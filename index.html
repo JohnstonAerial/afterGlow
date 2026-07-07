@@ -257,8 +257,8 @@ function scoreEvent(hourly, idx){
 }
 
 function label(score){
-  if(score >= 80) return "Epic";
-  if(score >= 62) return "Great";
+  if(score >= 85) return "Epic";
+  if(score >= 70) return "Great";
   if(score >= 44) return "Good";
   if(score >= 26) return "Fair";
   return "Flat";
@@ -266,8 +266,8 @@ function label(score){
 
 function blurb(s, mode){
   const time = mode === "evening" ? "sunset" : "sunrise";
-  if(s.score >= 80) return `High cloud sitting right in the sweet spot to catch color, with a clear line to the ${mode === "evening" ? "west" : "east"} horizon. Worth being in position early.`;
-  if(s.score >= 62) return `Solid setup for ${time} color — enough high cloud to light up, without much in the way lower down.`;
+  if(s.score >= 85) return `High cloud sitting right in the sweet spot to catch color, with a clear line to the ${mode === "evening" ? "west" : "east"} horizon. Worth being in position early.`;
+  if(s.score >= 70) return `Solid setup for ${time} color — enough high cloud to light up, without much in the way lower down.`;
   if(s.score >= 44) return `Workable but not a sure thing. Cloud cover is a bit heavier than ideal, so color may be short-lived.`;
   if(s.score >= 26) return `Cloud is stacked in a way that'll likely mute the color — low or mid cloud is blocking the direct light.`;
   return `Either a mostly clear sky (little to scatter light off) or heavy cloud blocking the horizon. Not much of a show expected.`;
