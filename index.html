@@ -201,7 +201,7 @@ async function fetchForecast(loc){
   const params = new URLSearchParams({
     latitude: loc.lat, longitude: loc.lon,
     daily: "sunrise,sunset",
-    hourly: "cloudcover,cloudcover_low,cloudcover_mid,cloudcover_high,relativehumidity_2m,precipitation_probability,visibility",
+    hourly: "cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,relative_humidity_2m,precipitation_probability,visibility",
     timezone: "auto",
     forecast_days: 7
   });
@@ -223,10 +223,10 @@ function scoreEvent(hourly, idx){
   // idx = the hourly index closest to sunrise/sunset for that day
   if(idx == null || idx < 0 || idx >= hourly.time.length) return null;
 
-  const low  = hourly.cloudcover_low[idx]   ?? 0;
-  const mid  = hourly.cloudcover_mid[idx]   ?? 0;
-  const high = hourly.cloudcover_high[idx]  ?? 0;
-  const hum  = hourly.relativehumidity_2m[idx] ?? 50;
+  const low  = hourly.cloud_cover_low[idx]   ?? 0;
+  const mid  = hourly.cloud_cover_mid[idx]   ?? 0;
+  const high = hourly.cloud_cover_high[idx]  ?? 0;
+  const hum  = hourly.relative_humidity_2m[idx] ?? 50;
   const precip = hourly.precipitation_probability[idx] ?? 0;
 
   // High cloud sweet spot centered at 45%, falling off toward 0 and 100
