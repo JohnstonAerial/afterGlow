@@ -205,8 +205,18 @@ async function fetchForecast(loc){
     timezone: "auto",
     forecast_days: 7
   });
-  const res = await fetch(`https://api.open-meteo.com/v1/forecast?${params}`);
-  if(!res.ok) throw new Error("Forecast fetch failed");
+  const url = `https://api.open-meteo.com/v1/forecast?${params}`;
+  let res;
+  try{
+    res = await fetch(url);
+  }catch(networkErr){
+    throw new Error(`Network request failed (this usually means the browser blocked or couldn't reach the API): ${networkErr.message}`);
+  }
+  if(!res.ok){
+    let detail = "";
+    try{ const body = await res.json(); detail = body.reason || JSON.stringify(body); }catch(e){}
+    throw new Error(`Open-Meteo returned HTTP ${res.status}${detail ? ": " + detail : ""}`);
+  }
   return res.json();
 }
 
@@ -409,7 +419,7 @@ async function boot(loc){
     state.activeDay = 0;
     render();
   }catch(e){
-    $("app").innerHTML = '<div class="err">Could not load the forecast. Check your connection and try again.</div>';
+    $("app").innerHTML = `<div class="err">Could not load the forecast.<br><span style="font-family:monospace;font-size:12px;opacity:0.8;">${(e && e.message) ? e.message : e}</span></div>`;
   }
 }
 
