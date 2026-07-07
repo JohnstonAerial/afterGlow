@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Afterglow — Sky Forecast</title>
+<meta name="description" content="Sunrise and sunset color-quality forecasts for photographers and pilots.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%231B1F3B%22/><circle cx=%2250%22 cy=%2265%22 r=%2226%22 fill=%22%23F2B84B%22/></svg>">
+<style>
+  @font-face {
+    font-family: 'Fraunces';
+    src: local('Fraunces');
+  }
+  :root{
+    --ink: #14172c;
+    --ink-2: #1B1F3B;
+    --ember: #FF6B35;
+    --rose: #E8517A;
+    --gold: #F2B84B;
+    --sand: #F5E6D3;
+    --slate: #8892a8;
+    --slate-dim: #565d78;
+    --line: rgba(245,230,211,0.14);
+    --card: rgba(245,230,211,0.05);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background: radial-gradient(120% 90% at 50% -10%, #262b4d 0%, var(--ink) 45%, #0d0f1e 100%);
+    color: var(--sand);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    padding-bottom: 60px;
+  }
+  a { color: inherit; }
+  .wrap{ max-width: 720px; margin: 0 auto; padding: 28px 20px 0; }
+
+  /* ---------- Header ---------- */
+  header{ display:flex; align-items:baseline; justify-content:space-between; gap: 12px; margin-bottom: 22px; }
+  .brand{ font-family: Georgia, 'Times New Roman', serif; font-size: 22px; letter-spacing: 0.02em; font-weight: 600; }
+  .brand em{ font-style: italic; color: var(--gold); font-weight: 500;}
+  #locBtn{
+    background: none; border: 1px solid var(--line); color: var(--slate);
+    font-size: 12px; padding: 7px 12px; border-radius: 20px; cursor: pointer;
+    font-family: 'IBM Plex Mono', monospace; letter-spacing: 0.02em;
+  }
+  #locBtn:hover{ color: var(--sand); border-color: var(--slate); }
+  #locBtn:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+  /* ---------- Hero: tonight's swatch ---------- */
+  .hero{
+    border-radius: 22px;
+    padding: 30px 26px 26px;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    margin-bottom: 18px;
+  }
+  .hero-swatch{
+    position:absolute; inset:0; z-index:0; opacity: 0.9;
+  }
+  .hero-content{ position:relative; z-index:1; }
+  .eyebrow{ font-family:'IBM Plex Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: rgba(20,23,44,0.65); margin-bottom: 6px; }
+  .hero.dark .eyebrow{ color: rgba(245,230,211,0.65); }
+  .score-row{ display:flex; align-items:flex-end; gap: 14px; margin-bottom: 4px;}
+  .score-num{ font-family: Georgia, 'Times New Roman', serif; font-size: 68px; line-height: 0.9; font-weight: 600; color: var(--ink-2); }
+  .hero.dark .score-num{ color: var(--sand); }
+  .score-label{ font-size: 20px; font-weight: 600; padding-bottom: 8px; color: var(--ink-2); }
+  .hero.dark .score-label{ color: var(--sand); }
+  .hero-sub{ font-size: 14px; color: rgba(20,23,44,0.7); max-width: 46ch; line-height: 1.5; }
+  .hero.dark .hero-sub{ color: rgba(245,230,211,0.75); }
+  .hero-times{ display:flex; gap: 22px; margin-top: 18px; flex-wrap: wrap; }
+  .hero-time-item .k{ font-family:'IBM Plex Mono', monospace; font-size: 11px; text-transform:uppercase; letter-spacing:0.08em; color: rgba(20,23,44,0.55); }
+  .hero.dark .hero-time-item .k{ color: rgba(245,230,211,0.55); }
+  .hero-time-item .v{ font-family:'IBM Plex Mono', monospace; font-size: 16px; font-weight: 600; color: var(--ink-2); }
+  .hero.dark .hero-time-item .v{ color: var(--sand); }
+
+  .toggle-row{ display:flex; gap: 6px; margin-bottom: 16px; }
+  .toggle-btn{
+    flex:1; padding: 10px; border-radius: 12px; border: 1px solid var(--line);
+    background: var(--card); color: var(--slate); font-size: 13px; cursor: pointer;
+    font-family: 'IBM Plex Mono', monospace; letter-spacing: 0.03em;
+  }
+  .toggle-btn.active{ background: var(--sand); color: var(--ink); border-color: var(--sand); font-weight: 600;}
+
+  /* ---------- 7-day strip ---------- */
+  .section-title{ font-family: Georgia, serif; font-size: 15px; color: var(--slate); text-transform: uppercase; letter-spacing: 0.1em; margin: 26px 0 12px; }
+  .days{ display:flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: thin; }
+  .day-card{
+    flex: 0 0 84px; border-radius: 14px; border: 1px solid var(--line); background: var(--card);
+    padding: 12px 8px; text-align:center; cursor: pointer; transition: border-color .15s;
+  }
+  .day-card.active{ border-color: var(--gold); }
+  .day-card .dow{ font-size: 11px; color: var(--slate); font-family:'IBM Plex Mono', monospace; text-transform: uppercase; }
+  .day-card .swatch{ width: 100%; height: 36px; border-radius: 8px; margin: 8px 0; }
+  .day-card .num{ font-family: Georgia, serif; font-size: 20px; font-weight:600; }
+
+  /* ---------- Detail cards ---------- */
+  .grid{ display:grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .card{ border: 1px solid var(--line); background: var(--card); border-radius: 14px; padding: 14px 16px; }
+  .card .label{ font-family:'IBM Plex Mono', monospace; font-size: 10.5px; text-transform:uppercase; letter-spacing:0.08em; color: var(--slate); margin-bottom: 6px;}
+  .card .value{ font-size: 17px; font-weight: 600; }
+  .card .value small{ font-size:12px; font-weight:400; color: var(--slate); }
+  .bar{ height: 5px; border-radius: 4px; background: rgba(245,230,211,0.1); margin-top: 8px; overflow:hidden; }
+  .bar i{ display:block; height:100%; border-radius:4px; }
+
+  .why{ font-size: 13px; line-height: 1.6; color: var(--slate); border-top: 1px solid var(--line); padding-top: 16px; margin-top: 22px; }
+  .why b{ color: var(--sand); }
+
+  footer{ text-align:center; font-size: 11px; color: var(--slate-dim); margin-top: 36px; font-family:'IBM Plex Mono', monospace; }
+  footer a{ text-decoration: underline; text-decoration-color: var(--slate-dim); }
+
+  .loading, .err{ text-align:center; padding: 60px 20px; color: var(--slate); font-size: 14px; }
+  .err{ color: var(--rose); }
+
+  /* location modal */
+  .modal-backdrop{ position:fixed; inset:0; background: rgba(10,11,22,0.7); display:none; align-items:center; justify-content:center; z-index: 50; padding: 20px;}
+  .modal-backdrop.open{ display:flex; }
+  .modal{ background: var(--ink-2); border: 1px solid var(--line); border-radius: 18px; padding: 22px; width: 100%; max-width: 380px; }
+  .modal h3{ margin: 0 0 12px; font-family: Georgia, serif; font-weight: 600; }
+  .modal input{
+    width:100%; padding: 11px 14px; border-radius: 10px; border: 1px solid var(--line);
+    background: rgba(0,0,0,0.2); color: var(--sand); font-size: 14px; margin-bottom: 10px;
+  }
+  .modal-results{ max-height: 220px; overflow-y: auto; }
+  .modal-result{ padding: 10px 12px; border-radius: 8px; cursor: pointer; font-size: 14px; }
+  .modal-result:hover{ background: rgba(245,230,211,0.08); }
+  .modal-actions{ display:flex; justify-content: space-between; margin-top: 10px; }
+  .modal-actions button{
+    background:none; border: none; color: var(--slate); font-size: 13px; cursor: pointer; padding: 6px;
+  }
+  .modal-actions button.gps{ color: var(--gold); }
+
+  @media (max-width: 420px){
+    .score-num{ font-size: 54px; }
+    .grid{ grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="brand">After<em>glow</em></div>
+    <button id="locBtn">···</button>
+  </header>
+
+  <div id="app"><div class="loading">Reading the sky…</div></div>
+
+  <footer>
+    Built for golden hour. Forecasts via Open&#8209;Meteo · not a substitute for checking the sky yourself.
+  </footer>
+</div>
+
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal">
+    <h3>Change location</h3>
+    <input type="text" id="locInput" placeholder="City, state, or ZIP" autocomplete="off">
+    <div class="modal-results" id="locResults"></div>
+    <div class="modal-actions">
+      <button class="gps" id="useGps">Use current location</button>
+      <button id="closeModal">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------------------------------------------------------------------
+   Afterglow — sunrise/sunset color-quality forecast
+   Data: Open-Meteo (no API key required, CORS-enabled)
+   Scoring: heuristic model based on published sunset-photography guidance —
+   high-altitude cloud in the 30-70% range catches and scatters color best,
+   low/mid cloud blocks the show, and high humidity flattens saturation.
+--------------------------------------------------------------------- */
+
+const DEFAULT_LOC = { name: "Clayton, NC", lat: 35.6501, lon: -78.4564 };
+const $ = (id) => document.getElementById(id);
+
+let state = {
+  loc: null,
+  daily: null,
+  hourly: null,
+  activeDay: 0,
+  mode: "evening" // or "morning"
+};
+
+function loadLoc(){
+  try{
+    const saved = JSON.parse(localStorage.getItem("afterglow_loc"));
+    if(saved && saved.lat) return saved;
+  }catch(e){}
+  return DEFAULT_LOC;
+}
+function saveLoc(loc){
+  state.loc = loc;
+  localStorage.setItem("afterglow_loc", JSON.stringify(loc));
+}
+
+async function fetchForecast(loc){
+  const params = new URLSearchParams({
+    latitude: loc.lat, longitude: loc.lon,
+    daily: "sunrise,sunset",
+    hourly: "cloudcover,cloudcover_low,cloudcover_mid,cloudcover_high,relativehumidity_2m,precipitation_probability,visibility",
+    timezone: "auto",
+    forecast_days: 7
+  });
+  const res = await fetch(`https://api.open-meteo.com/v1/forecast?${params}`);
+  if(!res.ok) throw new Error("Forecast fetch failed");
+  return res.json();
+}
+
+async function geocode(query){
+  const params = new URLSearchParams({ name: query, count: 6, language: "en", format: "json" });
+  const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?${params}`);
+  if(!res.ok) throw new Error("Geocode failed");
+  const data = await res.json();
+  return data.results || [];
+}
+
+/* ---------- Scoring ---------- */
+function scoreEvent(hourly, idx){
+  // idx = the hourly index closest to sunrise/sunset for that day
+  if(idx == null || idx < 0 || idx >= hourly.time.length) return null;
+
+  const low  = hourly.cloudcover_low[idx]   ?? 0;
+  const mid  = hourly.cloudcover_mid[idx]   ?? 0;
+  const high = hourly.cloudcover_high[idx]  ?? 0;
+  const hum  = hourly.relativehumidity_2m[idx] ?? 50;
+  const precip = hourly.precipitation_probability[idx] ?? 0;
+
+  // High cloud sweet spot centered at 45%, falling off toward 0 and 100
+  const highComponent = Math.max(0, 100 - Math.abs(high - 45) * 1.55);
+  // Low cloud directly blocks the horizon view — penalize hard
+  const lowComponent = Math.max(0, 100 - low * 1.3);
+  // Mid cloud moderately blocks
+  const midComponent = Math.max(0, 100 - mid * 0.7);
+  // Humidity haze flattens color once above ~55%
+  const humPenalty = Math.max(0, hum - 55) * 0.6;
+  const precipPenalty = precip * 0.5;
+
+  let score = (highComponent * 0.42) + (lowComponent * 0.30) + (midComponent * 0.18) + ((100 - humPenalty) * 0.10);
+  score -= precipPenalty * 0.3;
+  score = Math.round(Math.max(2, Math.min(98, score)));
+
+  return { score, low, mid, high, hum, precip };
+}
+
+function label(score){
+  if(score >= 80) return "Epic";
+  if(score >= 62) return "Great";
+  if(score >= 44) return "Good";
+  if(score >= 26) return "Fair";
+  return "Flat";
+}
+
+function blurb(s, mode){
+  const time = mode === "evening" ? "sunset" : "sunrise";
+  if(s.score >= 80) return `High cloud sitting right in the sweet spot to catch color, with a clear line to the ${mode === "evening" ? "west" : "east"} horizon. Worth being in position early.`;
+  if(s.score >= 62) return `Solid setup for ${time} color — enough high cloud to light up, without much in the way lower down.`;
+  if(s.score >= 44) return `Workable but not a sure thing. Cloud cover is a bit heavier than ideal, so color may be short-lived.`;
+  if(s.score >= 26) return `Cloud is stacked in a way that'll likely mute the color — low or mid cloud is blocking the direct light.`;
+  return `Either a mostly clear sky (little to scatter light off) or heavy cloud blocking the horizon. Not much of a show expected.`;
+}
+
+/* ---------- Gradient swatch ---------- */
+function swatchGradient(s, mode){
+  const t = s.score / 100;
+  const warm = mode === "evening"
+    ? [`#2b1730`, `#7a2f4a`, `#e8517a`, `#ff6b35`, `#f2b84b`]
+    : [`#141b30`, `#3a3560`, `#c76a8a`, `#f2b84b`, `#fce9c9`];
+  const flat = [`#1b2030`, `#2a3040`, `#4a5568`, `#6b7686`, `#8892a8`];
+  function mix(hexA, hexB, f){
+    const a = hexA.match(/\w\w/g).map(h=>parseInt(h,16));
+    const b = hexB.match(/\w\w/g).map(h=>parseInt(h,16));
+    const c = a.map((v,i)=>Math.round(v + (b[i]-v)*f));
+    return `rgb(${c[0]},${c[1]},${c[2]})`;
+  }
+  const stops = warm.map((w,i)=> mix(flat[i], w, t));
+  return `linear-gradient(180deg, ${stops.join(", ")})`;
+}
+function heroIsDark(s){ return s.score < 44; }
+
+/* ---------- Rendering ---------- */
+function fmtTime(iso){
+  const d = new Date(iso);
+  return d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+}
+function addMinutes(iso, mins){
+  return new Date(new Date(iso).getTime() + mins*60000);
+}
+function fmt(d){
+  return d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+}
+function nearestHourIdx(hourlyTimes, targetIso){
+  const target = new Date(targetIso).getTime();
+  let best = 0, bestDiff = Infinity;
+  hourlyTimes.forEach((t, i) => {
+    const diff = Math.abs(new Date(t).getTime() - target);
+    if(diff < bestDiff){ bestDiff = diff; best = i; }
+  });
+  return best;
+}
+
+function render(){
+  const { daily, hourly, activeDay, mode, loc } = state;
+  const app = $("app");
+  if(!daily){ app.innerHTML = '<div class="loading">Reading the sky…</div>'; return; }
+
+  const sunrise = daily.sunrise[activeDay];
+  const sunset = daily.sunset[activeDay];
+  const eventIso = mode === "evening" ? sunset : sunrise;
+  const idx = nearestHourIdx(hourly.time, eventIso);
+  const s = scoreEvent(hourly, idx);
+  if(!s){ app.innerHTML = '<div class="err">Could not compute a forecast for this day.</div>'; return; }
+
+  const dark = heroIsDark(s);
+  const gradient = swatchGradient(s, mode);
+
+  const goldenStart = mode === "evening" ? addMinutes(sunset, -60) : sunrise;
+  const goldenEnd   = mode === "evening" ? sunset : addMinutes(sunrise, 60);
+  const blueStart   = mode === "evening" ? sunset : addMinutes(sunrise, -35);
+  const blueEnd     = mode === "evening" ? addMinutes(sunset, 35) : sunrise;
+
+  let html = "";
+
+  html += `<div class="hero ${dark ? 'dark' : ''}">
+    <div class="hero-swatch" style="background:${gradient}"></div>
+    <div class="hero-content">
+      <div class="eyebrow">${loc.name} · ${new Date(daily.time[activeDay]).toLocaleDateString([], { weekday:'long', month:'short', day:'numeric' })}</div>
+      <div class="score-row">
+        <div class="score-num">${s.score}</div>
+        <div class="score-label">${label(s.score)} ${mode === "evening" ? "sunset" : "sunrise"}</div>
+      </div>
+      <div class="hero-sub">${blurb(s, mode)}</div>
+      <div class="hero-times">
+        <div class="hero-time-item"><div class="k">${mode === "evening" ? "Sunset" : "Sunrise"}</div><div class="v">${fmtTime(eventIso)}</div></div>
+        <div class="hero-time-item"><div class="k">Golden hour</div><div class="v">${fmt(goldenStart)}–${fmt(goldenEnd)}</div></div>
+        <div class="hero-time-item"><div class="k">Blue hour</div><div class="v">${fmt(blueStart)}–${fmt(blueEnd)}</div></div>
+      </div>
+    </div>
+  </div>`;
+
+  html += `<div class="toggle-row">
+    <button class="toggle-btn ${mode==='evening'?'active':''}" data-mode="evening">Sunset</button>
+    <button class="toggle-btn ${mode==='morning'?'active':''}" data-mode="morning">Sunrise</button>
+  </div>`;
+
+  html += `<div class="section-title">Next 7 days</div><div class="days">`;
+  daily.time.forEach((t, i) => {
+    const evt = mode === "evening" ? daily.sunset[i] : daily.sunrise[i];
+    const j = nearestHourIdx(hourly.time, evt);
+    const ds = scoreEvent(hourly, j);
+    const dow = i === 0 ? "Today" : new Date(t).toLocaleDateString([], { weekday: "short" });
+    html += `<div class="day-card ${i===activeDay?'active':''}" data-day="${i}">
+      <div class="dow">${dow}</div>
+      <div class="swatch" style="background:${ds ? swatchGradient(ds, mode) : '#2a3040'}"></div>
+      <div class="num">${ds ? ds.score : "–"}</div>
+    </div>`;
+  });
+  html += `</div>`;
+
+  html += `<div class="section-title">Sky breakdown</div>`;
+  html += `<div class="grid">
+    ${statCard("High cloud", s.high, "%", "Catches & scatters color — 30–60% is ideal", var2color(s.high, 45, 60))}
+    ${statCard("Low cloud", s.low, "%", "Blocks the horizon view when high", var2color(s.low, 100, 40, true))}
+    ${statCard("Mid cloud", s.mid, "%", "Moderate blocker at higher amounts", var2color(s.mid, 100, 50, true))}
+    ${statCard("Humidity", s.hum, "%", "Haze flattens saturation above ~55%", var2color(s.hum, 100, 55, true))}
+  </div>`;
+
+  html += `<div class="why"><b>How this is scored</b> — Afterglow weighs high-altitude cloud cover (the layer that catches direct light and turns pink/orange), low and mid cloud (which physically block the view of the horizon or the light source), and humidity (haze mutes saturation even on an otherwise clear evening). It's a heuristic, not a guarantee — always worth a look outside 20 minutes before showtime.</div>`;
+
+  app.innerHTML = html;
+
+  document.querySelectorAll(".toggle-btn").forEach(b => b.addEventListener("click", () => {
+    state.mode = b.dataset.mode; render();
+  }));
+  document.querySelectorAll(".day-card").forEach(b => b.addEventListener("click", () => {
+    state.activeDay = parseInt(b.dataset.day); render();
+  }));
+}
+
+function var2color(val, ref, sweetOrMax, inverse){
+  // returns a hex for the bar fill
+  let pct;
+  if(inverse){ pct = Math.max(0, 100 - (val/ (sweetOrMax||100)) * 100); }
+  else{ pct = Math.max(0, 100 - Math.abs(val - sweetOrMax) * 2); }
+  if(pct > 66) return "#F2B84B";
+  if(pct > 33) return "#E8517A";
+  return "#565d78";
+}
+
+function statCard(labelText, val, unit, note, color){
+  return `<div class="card">
+    <div class="label">${labelText}</div>
+    <div class="value">${Math.round(val)}${unit} <small>${note}</small></div>
+    <div class="bar"><i style="width:${Math.min(100,val)}%; background:${color}"></i></div>
+  </div>`;
+}
+
+/* ---------- Boot ---------- */
+async function boot(loc){
+  state.loc = loc;
+  $("app").innerHTML = '<div class="loading">Reading the sky over ' + loc.name + '…</div>';
+  try{
+    const data = await fetchForecast(loc);
+    state.daily = data.daily;
+    state.hourly = data.hourly;
+    state.activeDay = 0;
+    render();
+  }catch(e){
+    $("app").innerHTML = '<div class="err">Could not load the forecast. Check your connection and try again.</div>';
+  }
+}
+
+/* ---------- Location modal ---------- */
+const backdrop = $("modalBackdrop");
+$("locBtn").addEventListener("click", () => { backdrop.classList.add("open"); $("locInput").focus(); });
+$("closeModal").addEventListener("click", () => backdrop.classList.remove("open"));
+backdrop.addEventListener("click", (e) => { if(e.target === backdrop) backdrop.classList.remove("open"); });
+
+let searchTimeout;
+$("locInput").addEventListener("input", (e) => {
+  clearTimeout(searchTimeout);
+  const q = e.target.value.trim();
+  if(q.length < 2){ $("locResults").innerHTML = ""; return; }
+  searchTimeout = setTimeout(async () => {
+    try{
+      const results = await geocode(q);
+      $("locResults").innerHTML = results.map(r =>
+        `<div class="modal-result" data-lat="${r.latitude}" data-lon="${r.longitude}" data-name="${r.name}, ${r.admin1 || r.country}">
+          ${r.name}${r.admin1 ? ", " + r.admin1 : ""}${r.country ? " — " + r.country : ""}
+        </div>`
+      ).join("") || '<div class="modal-result" style="cursor:default;color:var(--slate)">No matches</div>';
+      document.querySelectorAll(".modal-result[data-lat]").forEach(el => {
+        el.addEventListener("click", () => {
+          const loc = { name: el.dataset.name, lat: parseFloat(el.dataset.lat), lon: parseFloat(el.dataset.lon) };
+          saveLoc(loc);
+          backdrop.classList.remove("open");
+          boot(loc);
+        });
+      });
+    }catch(err){ $("locResults").innerHTML = '<div class="modal-result" style="cursor:default;color:var(--rose)">Search failed</div>'; }
+  }, 350);
+});
+
+$("useGps").addEventListener("click", () => {
+  if(!navigator.geolocation){ alert("Location services aren't available in this browser."); return; }
+  $("useGps").textContent = "Locating…";
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      const loc = { name: "Current location", lat: pos.coords.latitude, lon: pos.coords.longitude };
+      saveLoc(loc);
+      backdrop.classList.remove("open");
+      $("useGps").textContent = "Use current location";
+      boot(loc);
+    },
+    () => { alert("Couldn't get your location — check permissions."); $("useGps").textContent = "Use current location"; },
+    { timeout: 8000 }
+  );
+});
+
+// Init
+boot(loadLoc());
+</script>
+</body>
+</html>
