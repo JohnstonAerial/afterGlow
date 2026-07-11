@@ -419,6 +419,17 @@ function civilTwilight(eventDate, lat, lon, which){
   return new Date(dayStartUTC + utcMinutes * 60000);
 }
 
+/* ---------- Blue hour window ----------
+   Morning blue hour sits before sunrise (first light -> sunrise); evening
+   blue hour sits after sunset (sunset -> ~35 min later). Shared by render()
+   and pickInitialView() so the "which view should be open" logic tracks the
+   same window shown on the hero card, not just the bare sunrise/sunset instant. */
+function blueHourBounds(sunriseIso, sunsetIso, mode){
+  return mode === "evening"
+    ? { start: new Date(sunsetIso), end: addMinutes(sunsetIso, 35) }
+    : { start: addMinutes(sunriseIso, -35), end: new Date(sunriseIso) };
+}
+
 function render(){
   const { daily, hourly, activeDay, mode, loc } = state;
   const app = $("app");
@@ -435,8 +446,7 @@ function render(){
 
   const goldenStart = mode === "evening" ? addMinutes(sunset, -60) : sunrise;
   const goldenEnd   = mode === "evening" ? sunset : addMinutes(sunrise, 60);
-  const blueStart   = mode === "evening" ? sunset : addMinutes(sunrise, -35);
-  const blueEnd     = mode === "evening" ? addMinutes(sunset, 35) : sunrise;
+  const { start: blueStart, end: blueEnd } = blueHourBounds(sunrise, sunset, mode);
 
   const azimuth = solarAzimuth(new Date(eventIso), loc.lat, loc.lon);
   const azimuthLabel = `${Math.round(azimuth)}° ${compassDir(azimuth)}`;
@@ -458,9 +468,8 @@ function render(){
       </div>
       <div class="hero-sub">${blurb(s, mode)}</div>
       <div class="hero-times">
-        ${(twilight && mode !== "evening") ? `<div class="hero-time-item"><div class="k">${twilightLabel}</div><div class="v">${fmt(twilight)}</div></div>` : ""}
         <div class="hero-time-item"><div class="k">${mode === "evening" ? "Sunset" : "Sunrise"}</div><div class="v">${fmtTime(eventIso)}</div></div>
-        ${(twilight && mode === "evening") ? `<div class="hero-time-item"><div class="k">${twilightLabel}</div><div class="v">${fmt(twilight)}</div></div>` : ""}
+        ${twilight ? `<div class="hero-time-item"><div class="k">${twilightLabel}</div><div class="v">${fmt(twilight)}</div></div>` : ""}
         <div class="hero-time-item"><div class="k">Direction</div><div class="v">${azimuthLabel}</div></div>
         <div class="hero-time-item"><div class="k">Golden hour</div><div class="v">${fmt(goldenStart)}–${fmt(goldenEnd)}</div></div>
         <div class="hero-time-item"><div class="k">Blue hour</div><div class="v">${fmt(blueStart)}–${fmt(blueEnd)}</div></div>
@@ -526,6 +535,20 @@ function statCard(labelText, val, unit, note, color){
 }
 
 /* ---------- Boot ---------- */
+// Default to whichever event (sunrise/sunset) hasn't happened yet, rather
+// than always opening to today's sunrise even if it's already evening.
+function pickInitialView(daily){
+  const now = new Date();
+  const morningBlue = blueHourBounds(daily.sunrise[0], daily.sunset[0], "morning");
+  const eveningBlue = blueHourBounds(daily.sunrise[0], daily.sunset[0], "evening");
+  // Still pre-dawn or in the morning blue hour -> stay on today's sunrise.
+  if(now < morningBlue.end) return { activeDay: 0, mode: "morning" };
+  // Past morning blue hour but not yet past evening blue hour -> today's sunset.
+  if(now < eveningBlue.end) return { activeDay: 0, mode: "evening" };
+  // Evening blue hour has wrapped up -> jump to tomorrow's sunrise, if we have it.
+  return { activeDay: daily.time.length > 1 ? 1 : 0, mode: "morning" };
+}
+
 async function boot(loc){
   state.loc = loc;
   $("app").innerHTML = '<div class="loading">Reading the sky over ' + loc.name + '…</div>';
@@ -533,7 +556,9 @@ async function boot(loc){
     const data = await fetchForecast(loc);
     state.daily = data.daily;
     state.hourly = data.hourly;
-    state.activeDay = 0;
+    const initial = pickInitialView(data.daily);
+    state.activeDay = initial.activeDay;
+    state.mode = initial.mode;
     render();
   }catch(e){
     $("app").innerHTML = `<div class="err">Could not load the forecast.<br><span style="font-family:monospace;font-size:12px;opacity:0.8;">${(e && e.message) ? e.message : e}</span></div>`;
