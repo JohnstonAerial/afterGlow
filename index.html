@@ -255,11 +255,19 @@ function scoreEvent(hourly, idx){
   const humPenalty = Math.max(0, hum - 55) * 0.6;
   const precipPenalty = precip * 0.5;
 
+  // "Murk" penalty: mid cloud and high cloud saturated at the same time means a solid,
+  // optically thick deck rather than a thin high layer that can glow — a low-cloud
+  // reading of 0% can otherwise mask this (the individual terms above don't catch it
+  // because nothing is technically "low"). Kicks in above 70% on both layers and scales
+  // with how saturated the thinner of the two is.
+  const murkPenalty = (mid > 70 && high > 70) ? Math.min(mid, high) * 0.35 : 0;
+
   let score = (highComponent * 0.42) + (lowComponent * 0.30) + (midComponent * 0.18) + ((100 - humPenalty) * 0.10);
   score -= precipPenalty * 0.3;
+  score -= murkPenalty;
   score = Math.round(Math.max(2, Math.min(98, score)));
 
-  return { score, low, mid, high, hum, precip };
+  return { score, low, mid, high, hum, precip, murk: murkPenalty > 0 };
 }
 
 function label(score){
@@ -272,6 +280,7 @@ function label(score){
 
 function blurb(s, mode){
   const time = mode === "evening" ? "sunset" : "sunrise";
+  if(s.murk) return `Mid and high cloud are both heavily overcast at once — a thick, solid deck rather than a thin layer that can glow. Expect a diffuse, muted glow instead of clean color.`;
   if(s.score >= 85) return `High cloud sitting right in the sweet spot to catch color, with a clear line to the ${mode === "evening" ? "west" : "east"} horizon. Worth being in position early.`;
   if(s.score >= 70) return `Solid setup for ${time} color — enough high cloud to light up, without much in the way lower down.`;
   if(s.score >= 44) return `Workable but not a sure thing. Cloud cover is a bit heavier than ideal, so color may be short-lived.`;
