@@ -420,9 +420,9 @@ function compassDir(deg){
    instead of a known clock time. "dawn" = first light before sunrise,
    "dusk" = last light after sunset. Returns null in the rare case the sun
    doesn't cross that altitude at all that day (deep polar latitudes). */
-function civilTwilight(eventDate, lat, lon, which){
+function civilTwilight(eventDate, lat, lon, which, zenith){
   const { decl, eqTime } = solarPosition(eventDate);
-  const zenith = 96;
+  if(zenith == null) zenith = 96;
   const cosHA = (dcos(zenith) - dsin(lat) * dsin(decl)) / (dcos(lat) * dcos(decl));
   if (cosHA > 1 || cosHA < -1) return null;
   const ha = dacosc(cosHA);
@@ -436,24 +436,30 @@ function civilTwilight(eventDate, lat, lon, which){
 }
 
 /* ---------- Blue hour window ----------
-   Morning blue hour sits before sunrise (first light -> sunrise); evening
-   blue hour sits after sunset (sunset -> last light). Bounds come from the
-   real civil twilight calc (sun at 6° below horizon) rather than a flat
-   35-minute guess, so the window is accurate for the actual lat/lon and
-   time of year. Falls back to the old 35-min estimate only in the rare case
-   civilTwilight() can't resolve a crossing (deep polar latitudes). Shared by
-   render() and pickInitialView() so the "which view should be open" logic
-   tracks the same window shown on the hero card, not just the bare
-   sunrise/sunset instant. */
+   Morning blue hour sits before sunrise (first light -> golden hour start);
+   evening blue hour sits after sunset (golden hour end -> last light).
+   Bounds come from the real twilight calc rather than flat clock-time
+   guesses, so the window is accurate for the actual lat/lon and time of
+   year:
+     - outer edge (first/last light) = sun 6° below horizon (civil twilight)
+     - inner edge (shared with golden hour) = sun 4° below horizon, the
+       conventional golden/blue hour handoff point
+   Falls back to flat-minute estimates only in the rare case civilTwilight()
+   can't resolve a crossing (deep polar latitudes). Shared by render() and
+   pickInitialView() so the "which view should be open" logic tracks the
+   same window shown on the hero card, not just the bare sunrise/sunset
+   instant. */
 function blueHourBounds(sunriseIso, sunsetIso, mode, lat, lon){
   if(mode === "evening"){
     const sunset = new Date(sunsetIso);
+    const handoff = (lat != null && lon != null) ? civilTwilight(sunset, lat, lon, "dusk", 94) : null;
     const lastLight = (lat != null && lon != null) ? civilTwilight(sunset, lat, lon, "dusk") : null;
-    return { start: sunset, end: lastLight || addMinutes(sunsetIso, 35) };
+    return { start: handoff || sunset, end: lastLight || addMinutes(sunsetIso, 35) };
   }
   const sunrise = new Date(sunriseIso);
   const firstLight = (lat != null && lon != null) ? civilTwilight(sunrise, lat, lon, "dawn") : null;
-  return { start: firstLight || addMinutes(sunriseIso, -35), end: sunrise };
+  const handoff = (lat != null && lon != null) ? civilTwilight(sunrise, lat, lon, "dawn", 94) : null;
+  return { start: firstLight || addMinutes(sunriseIso, -35), end: handoff || sunrise };
 }
 
 function render(){
@@ -470,9 +476,12 @@ function render(){
 
   const gradient = swatchGradient(s, mode);
 
-  const goldenStart = mode === "evening" ? addMinutes(sunset, -60) : sunrise;
-  const goldenEnd   = mode === "evening" ? sunset : addMinutes(sunrise, 60);
   const { start: blueStart, end: blueEnd } = blueHourBounds(sunrise, sunset, mode, loc.lat, loc.lon);
+  // Golden hour shares its far edge with blue hour's near edge (the -4°
+  // sun-angle handoff), so it naturally extends past sunset / before
+  // sunrise instead of stopping dead at the 0° instant.
+  const goldenStart = mode === "evening" ? addMinutes(sunset, -60) : blueEnd;
+  const goldenEnd   = mode === "evening" ? blueStart : addMinutes(sunrise, 60);
 
   const azimuth = solarAzimuth(new Date(eventIso), loc.lat, loc.lon);
   const azimuthLabel = `${Math.round(azimuth)}° ${compassDir(azimuth)}`;
