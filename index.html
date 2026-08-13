@@ -480,8 +480,14 @@ function render(){
   // Golden hour shares its far edge with blue hour's near edge (the -4°
   // sun-angle handoff), so it naturally extends past sunset / before
   // sunrise instead of stopping dead at the 0° instant.
-  const goldenStart = mode === "evening" ? addMinutes(sunset, -60) : blueEnd;
-  const goldenEnd   = mode === "evening" ? blueStart : addMinutes(sunrise, 60);
+  // Golden hour's far edge is shared with blue hour's near edge (the -4°
+  // handoff); its near edge (next to sunset/sunrise) is the sun crossing
+  // 6° above the horizon — the conventional start/end of "golden" light,
+  // rather than a flat 60-minute guess.
+  const sixDegEvening = (loc.lat != null && loc.lon != null) ? civilTwilight(new Date(sunset), loc.lat, loc.lon, "dusk", 84) : null;
+  const sixDegMorning = (loc.lat != null && loc.lon != null) ? civilTwilight(new Date(sunrise), loc.lat, loc.lon, "dawn", 84) : null;
+  const goldenStart = mode === "evening" ? (sixDegEvening || addMinutes(sunset, -60)) : blueEnd;
+  const goldenEnd   = mode === "evening" ? blueStart : (sixDegMorning || addMinutes(sunrise, 60));
 
   const azimuth = solarAzimuth(new Date(eventIso), loc.lat, loc.lon);
   const azimuthLabel = `${Math.round(azimuth)}° ${compassDir(azimuth)}`;
