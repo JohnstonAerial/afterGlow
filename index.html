@@ -387,7 +387,7 @@ function solarPosition(date){
       - 1.25 * e * e * dsin(2 * M)
   );
 
-  return { decl, eqTime };
+  return { decl, eqTime, lambda };
 }
 
 function solarAzimuth(date, lat, lon){
@@ -465,6 +465,158 @@ function blueHourBounds(sunriseIso, sunsetIso, mode, lat, lon){
   const firstLight = (lat != null && lon != null) ? civilTwilight(sunrise, lat, lon, "dawn") : null;
   const handoff = (lat != null && lon != null) ? civilTwilight(sunrise, lat, lon, "dawn", 94) : null;
   return { start: firstLight || addMinutes(sunriseIso, -35), end: handoff || sunrise };
+}
+
+/* ---------- Moon position, phase, and rise/set ----------
+   Low-precision lunar theory (truncated periodic terms — good to a few
+   tenths of a degree, plenty for a compass heading and a rise/set time
+   accurate to within a minute or two) combined with the Sun's apparent
+   ecliptic longitude already computed above, to get phase + illumination. */
+function moonEclipticPosition(date){
+  const JD = date.getTime() / 86400000 + 2440587.5;
+  const d = JD - 2451545.0;
+
+  const L = ((218.316 + 13.176396 * d) % 360 + 360) % 360;  // mean longitude
+  const M = ((134.963 + 13.064993 * d) % 360 + 360) % 360;  // mean anomaly
+  const F = ((93.272  + 13.229350 * d) % 360 + 360) % 360;  // argument of latitude
+
+  const lonEcl = ((L + 6.289 * dsin(M)) % 360 + 360) % 360;
+  const latEcl = 5.128 * dsin(F);
+  const distKm = 385001 - 20905 * dcos(M);
+
+  return { lonEcl, latEcl, distKm };
+}
+
+function eclipticToEquatorial(lonEcl, latEcl){
+  const eps = 23.4397; // mean obliquity of the ecliptic — stable enough at this precision
+  const ra = ((R2D * Math.atan2(
+    dsin(lonEcl) * dcos(eps) - dtan(latEcl) * dsin(eps),
+    dcos(lonEcl)
+  )) % 360 + 360) % 360;
+  const dec = dasinc(dsin(latEcl) * dcos(eps) + dcos(latEcl) * dsin(eps) * dsin(lonEcl));
+  return { ra, dec };
+}
+
+function siderealTime(date, lon){
+  const JD = date.getTime() / 86400000 + 2440587.5;
+  const d = JD - 2451545.0;
+  const gmst = ((280.46061837 + 360.98564736629 * d) % 360 + 360) % 360;
+  return ((gmst + lon) % 360 + 360) % 360; // local sidereal time, degrees
+}
+
+function moonHorizontal(date, lat, lon){
+  const { lonEcl, latEcl, distKm } = moonEclipticPosition(date);
+  const { ra, dec } = eclipticToEquatorial(lonEcl, latEcl);
+  const lst = siderealTime(date, lon);
+  let ha = lst - ra;
+  if(ha < -180) ha += 360;
+  if(ha > 180) ha -= 360;
+
+  const alt = dasinc(dsin(dec) * dsin(lat) + dcos(dec) * dcos(lat) * dcos(ha));
+  const az = ((R2D * Math.atan2(-dsin(ha), dcos(ha) * dsin(lat) - dtan(dec) * dcos(lat))) % 360 + 360) % 360;
+
+  return { alt, az, dec, ra, distKm, lonEcl };
+}
+
+// Illuminated fraction + phase name from the angular separation between the
+// Moon and Sun along the ecliptic. This skips the small correction for the
+// true phase angle (which also depends on Earth-Moon and Earth-Sun distance)
+// — close enough for "how full does it look tonight."
+function moonPhaseInfo(date){
+  const sunLon = solarPosition(date).lambda;
+  const { lonEcl } = moonEclipticPosition(date);
+  const elong = ((lonEcl - sunLon) % 360 + 360) % 360;
+  const illum = (1 - dcos(elong)) / 2;
+
+  const names = [
+    [15, "New", "🌑"], [75, "Waxing crescent", "🌒"], [105, "First quarter", "🌓"],
+    [165, "Waxing gibbous", "🌔"], [195, "Full", "🌕"], [255, "Waning gibbous", "🌖"],
+    [285, "Last quarter", "🌗"], [345, "Waning crescent", "🌘"], [360.1, "New", "🌑"]
+  ];
+  const found = names.find(([edge]) => elong < edge) || names[names.length - 1];
+
+  return { illumPct: Math.round(illum * 100), phaseName: found[1], emoji: found[2] };
+}
+
+// Steps through a local calendar day in 10-minute increments looking for the
+// Moon crossing the horizon (rise = altitude going negative -> positive, set
+// = positive -> negative), then linearly interpolates the crossing minute.
+// The threshold accounts for refraction plus the Moon's own apparent size —
+// same idea as a standard almanac rise/set definition. Some calendar days
+// have no rise, no set, or (rarely) both of one and neither of the other,
+// depending on where the Moon's ~24h50m cycle falls relative to midnight.
+function findMoonEvents(dayStart, lat, lon){
+  const H0 = -0.583;
+  const stepMin = 10;
+  const steps = Math.floor(24 * 60 / stepMin) + 1;
+  let prevT = dayStart, prevAlt = moonHorizontal(prevT, lat, lon).alt - H0;
+  let rise = null, set = null;
+
+  for(let i = 1; i <= steps; i++){
+    const t = new Date(dayStart.getTime() + i * stepMin * 60000);
+    const alt = moonHorizontal(t, lat, lon).alt - H0;
+    if(prevAlt < 0 && alt >= 0 && !rise){
+      const f = prevAlt / (prevAlt - alt);
+      rise = new Date(prevT.getTime() + f * (t - prevT));
+    }
+    if(prevAlt >= 0 && alt < 0 && !set){
+      const f = prevAlt / (prevAlt - alt);
+      set = new Date(prevT.getTime() + f * (t - prevT));
+    }
+    prevT = t; prevAlt = alt;
+  }
+  return { rise, set };
+}
+
+// Ties it together for one calendar day: phase/illumination at midday, rise
+// and set times + compass headings, and whether the Moon lines up with
+// sunrise/sunset closely enough to matter for a shot — a moonrise near
+// sunset (or moonset near sunrise) is the classic "big, warm Moon low over
+// the horizon" window that's worth being in position for.
+function computeMoonInfo(dayStart, lat, lon, sunriseIso, sunsetIso){
+  const events = findMoonEvents(dayStart, lat, lon);
+  const phase = moonPhaseInfo(new Date(dayStart.getTime() + 12 * 3600000));
+
+  const riseAz = events.rise ? moonHorizontal(events.rise, lat, lon).az : null;
+  const setAz  = events.set  ? moonHorizontal(events.set, lat, lon).az  : null;
+
+  let alignment = null;
+  const sunset = new Date(sunsetIso), sunrise = new Date(sunriseIso);
+  if(events.rise){
+    const diff = Math.abs(events.rise - sunset) / 60000;
+    if(diff <= 45) alignment = { type: "moonrise-sunset", minutes: Math.round(diff) };
+  }
+  if(!alignment && events.set){
+    const diff = Math.abs(events.set - sunrise) / 60000;
+    if(diff <= 45) alignment = { type: "moonset-sunrise", minutes: Math.round(diff) };
+  }
+
+  return {
+    ...phase,
+    moonrise: events.rise, moonriseAz: riseAz,
+    moonset: events.set, moonsetAz: setAz,
+    alignment
+  };
+}
+
+function moonCardHTML(m){
+  const riseStr = m.moonrise ? `${fmt(m.moonrise)} <small>${compassDir(m.moonriseAz)}</small>` : `<small>Doesn't rise today</small>`;
+  const setStr  = m.moonset  ? `${fmt(m.moonset)} <small>${compassDir(m.moonsetAz)}</small>`   : `<small>Doesn't set today</small>`;
+  const alignNote = m.alignment
+    ? (m.alignment.type === "moonrise-sunset"
+        ? `Moonrise lands within ${m.alignment.minutes} min of sunset — good odds of a big, warm Moon low over the horizon.`
+        : `Moonset lands within ${m.alignment.minutes} min of sunrise — worth watching the west as the sun comes up.`)
+    : null;
+
+  return `<div class="card" style="grid-column: 1 / -1;">
+    <div class="label">${m.emoji} ${m.phaseName} · ${m.illumPct}% lit</div>
+    <div class="grid" style="margin-top:10px;">
+      <div><div class="label">Moonrise</div><div class="value">${riseStr}</div></div>
+      <div><div class="label">Moonset</div><div class="value">${setStr}</div></div>
+    </div>
+    ${alignNote ? `<div class="outlook-note" style="margin-top:10px;">${alignNote}</div>` : ""}
+    <div class="outlook-note" style="margin-top:${alignNote ? 6 : 10}px;">Rise/set times are calculated, not observed — usually within a few minutes, but can be off by up to ~30-45 min when the Moon crosses the horizon at a shallow angle.</div>
+  </div>`;
 }
 
 function render(){
@@ -569,6 +721,10 @@ function render(){
     ${statCard("Mid cloud", s.mid, "%", "Moderate blocker at higher amounts", var2color(s.mid, 100, 50, true))}
     ${statCard("Humidity", s.hum, "%", "Haze flattens saturation above ~55%", var2color(s.hum, 100, 55, true))}
   </div>`;
+
+  const moon = computeMoonInfo(parseLocalDate(daily.time[activeDay]), loc.lat, loc.lon, sunrise, sunset);
+  html += `<div class="section-title">Moon</div>`;
+  html += `<div class="grid">${moonCardHTML(moon)}</div>`;
 
   html += `<div class="why"><b>How this is scored</b> — Afterglow weighs high-altitude cloud cover (the layer that catches direct light and turns pink/orange), low and mid cloud (which physically block the view of the horizon or the light source), and humidity (haze mutes saturation even on an otherwise clear evening). It's a heuristic, not a guarantee — always worth a look outside 20 minutes before showtime.</div>`;
 
