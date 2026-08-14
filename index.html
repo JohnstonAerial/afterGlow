@@ -212,7 +212,8 @@ async function fetchForecast(loc){
   const params = new URLSearchParams({
     latitude: loc.lat, longitude: loc.lon,
     daily: "sunrise,sunset",
-    hourly: "cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,relative_humidity_2m,precipitation_probability,visibility",
+    hourly: "cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,relative_humidity_2m,precipitation_probability,visibility,wind_speed_700hPa",
+    windspeed_unit: "mph",
     timezone: "auto",
     forecast_days: 11
   });
@@ -619,6 +620,103 @@ function moonCardHTML(m){
   </div>`;
 }
 
+/* ---------- Timelapse conditions ----------
+   Scans every hour the Moon is above the horizon on the given calendar day
+   and scores it for a cloud timelapse/hyperlapse shot: partial, moving
+   cloud (roughly 20-60% cover) gives texture and motion crossing the disc,
+   while upper-level wind speed is a rough stand-in for how fast that cloud
+   is actually moving — a clear sky is static, a solid deck just blocks the
+   shot outright. Unlike the sunrise/sunset score (a single instant), this
+   is a window, so it reports the best contiguous stretch rather than one
+   number. */
+function findMoonUpWindow(dayStart, lat, lon){
+  const dayEnd = new Date(dayStart.getTime() + 24 * 3600000);
+  const events = findMoonEvents(dayStart, lat, lon);
+  const H0 = -0.583;
+
+  const upAtStart = moonHorizontal(dayStart, lat, lon).alt > H0;
+  const upAtEnd = moonHorizontal(dayEnd, lat, lon).alt > H0;
+
+  let start = null, end = null;
+  if(upAtStart){
+    start = dayStart;
+    end = events.set || (upAtEnd ? dayEnd : null);
+  } else if(events.rise){
+    start = events.rise;
+    end = events.set || (upAtEnd ? dayEnd : null);
+  }
+  return (start && end) ? { start, end } : null;
+}
+
+function timelapseHourScore(cloudPct, windMph){
+  // Cloud sweet spot centered at 40% — enough to cross the disc without
+  // blocking it outright.
+  const cloudComponent = Math.max(0, 100 - Math.abs(cloudPct - 40) * 1.8);
+  // Wind speed saturates around 20mph — past that, more speed doesn't add
+  // much for a hyperlapse (and starts trading off against frame blur if
+  // shooting long exposures).
+  const windComponent = Math.min(100, (windMph / 20) * 100);
+  return Math.round(Math.max(0, Math.min(100, cloudComponent * 0.6 + windComponent * 0.4)));
+}
+
+function timelapseLabel(score){
+  if(score >= 70) return "Great";
+  if(score >= 45) return "Workable";
+  return "Flat";
+}
+
+function scanTimelapseWindow(dayStart, lat, lon, hourly){
+  const upWindow = findMoonUpWindow(dayStart, lat, lon);
+  if(!upWindow) return null;
+
+  const points = [];
+  hourly.time.forEach((t, i) => {
+    const ti = new Date(t).getTime();
+    if(ti < upWindow.start.getTime() || ti > upWindow.end.getTime()) return;
+    const cloud = ((hourly.cloud_cover_mid[i] ?? 0) + (hourly.cloud_cover_high[i] ?? 0)) / 2;
+    const wind = hourly.wind_speed_700hPa ? (hourly.wind_speed_700hPa[i] ?? 0) : 0;
+    points.push({ time: new Date(t), score: timelapseHourScore(cloud, wind), cloud, wind });
+  });
+  if(points.length === 0) return { upWindow, points, bestRun: null };
+
+  // Longest/strongest contiguous run of "workable or better" hours.
+  const THRESH = 45;
+  let bestRun = null, curRun = [];
+  const closeRun = () => {
+    if(!curRun.length) return;
+    const avg = curRun.reduce((s, c) => s + c.score, 0) / curRun.length;
+    if(!bestRun || avg > bestRun.avg) bestRun = { points: curRun.slice(), avg };
+    curRun = [];
+  };
+  points.forEach(p => { if(p.score >= THRESH) curRun.push(p); else closeRun(); });
+  closeRun();
+
+  return { upWindow, points, bestRun };
+}
+
+function timelapseCardHTML(result){
+  if(!result || !result.points || result.points.length === 0){
+    return `<div class="card" style="grid-column: 1 / -1;">
+      <div class="label">Timelapse conditions</div>
+      <div class="value" style="font-size:14px;font-weight:400;color:var(--slate)">Moon isn't up during forecast hours today.</div>
+    </div>`;
+  }
+  let body;
+  if(result.bestRun && result.bestRun.avg >= 45){
+    const pts = result.bestRun.points;
+    const start = pts[0].time, end = pts[pts.length - 1].time;
+    body = `<div class="value">${timelapseLabel(Math.round(result.bestRun.avg))} <small>best window</small></div>
+      <div style="font-family:'IBM Plex Mono', monospace; font-size:15px; margin-top:4px;">${fmt(start)}–${fmt(end)}</div>`;
+  } else {
+    body = `<div class="value" style="font-size:14px; font-weight:400; color:var(--slate);">Mostly clear or solid overcast the whole time the Moon's up — not much drift to catch.</div>`;
+  }
+  return `<div class="card" style="grid-column: 1 / -1;">
+    <div class="label">Timelapse conditions <small style="text-transform:none;">— cloud crossing the Moon</small></div>
+    ${body}
+    <div class="outlook-note" style="margin-top:10px;">Cloud cover + wind speed aloft — a rough proxy for cloud motion, not a guarantee. Heuristic, not calibrated against real footage yet.</div>
+  </div>`;
+}
+
 function render(){
   const { daily, hourly, activeDay, mode, loc } = state;
   const app = $("app");
@@ -723,8 +821,9 @@ function render(){
   </div>`;
 
   const moon = computeMoonInfo(parseLocalDate(daily.time[activeDay]), loc.lat, loc.lon, sunrise, sunset);
+  const timelapse = scanTimelapseWindow(parseLocalDate(daily.time[activeDay]), loc.lat, loc.lon, hourly);
   html += `<div class="section-title">Moon</div>`;
-  html += `<div class="grid">${moonCardHTML(moon)}</div>`;
+  html += `<div class="grid">${moonCardHTML(moon)}${timelapseCardHTML(timelapse)}</div>`;
 
   html += `<div class="why"><b>How this is scored</b> — Afterglow weighs high-altitude cloud cover (the layer that catches direct light and turns pink/orange), low and mid cloud (which physically block the view of the horizon or the light source), and humidity (haze mutes saturation even on an otherwise clear evening). It's a heuristic, not a guarantee — always worth a look outside 20 minutes before showtime.</div>`;
 
