@@ -101,6 +101,11 @@
   .day-card .dow{ font-size: 11px; color: var(--slate); font-family:'IBM Plex Mono', monospace; text-transform: uppercase; }
   .day-card .swatch{ width: 100%; height: 36px; border-radius: 8px; margin: 8px 0; }
   .day-card .num{ font-family: Georgia, serif; font-size: 20px; font-weight:600; }
+  .day-card.outlook{ flex: 0 0 72px; opacity: 0.62; }
+  .day-card.outlook .swatch{ height: 28px; }
+  .day-card.outlook .num{ font-size: 17px; }
+  .day-card.outlook.active{ opacity: 1; }
+  .outlook-note{ font-size: 12px; line-height: 1.5; color: var(--slate-dim); margin: 8px 2px 0; }
 
   /* ---------- Detail cards ---------- */
   .grid{ display:grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -209,7 +214,7 @@ async function fetchForecast(loc){
     daily: "sunrise,sunset",
     hourly: "cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,relative_humidity_2m,precipitation_probability,visibility",
     timezone: "auto",
-    forecast_days: 7
+    forecast_days: 11
   });
   const url = `https://api.open-meteo.com/v1/forecast?${params}`;
   let res;
@@ -537,6 +542,25 @@ function render(){
     </div>`;
   });
   html += `</div>`;
+
+  const outlookStart = 7;
+  if(daily.time.length > outlookStart){
+    html += `<div class="section-title">Outlook</div><div class="days">`;
+    daily.time.slice(outlookStart).forEach((t, k) => {
+      const i = outlookStart + k;
+      const evt = mode === "evening" ? daily.sunset[i] : daily.sunrise[i];
+      const j = nearestHourIdx(hourly.time, evt);
+      const ds = scoreEvent(hourly, j);
+      const dow = parseLocalDate(t).toLocaleDateString([], { weekday: "short" });
+      html += `<div class="day-card outlook ${i===activeDay?'active':''}" data-day="${i}">
+        <div class="dow">${dow}</div>
+        <div class="swatch" style="background:${ds ? swatchGradient(ds, mode) : '#2a3040'}"></div>
+        <div class="num">${ds ? ds.score : "–"}</div>
+      </div>`;
+    });
+    html += `</div>`;
+    html += `<div class="outlook-note">Forecasts this far out lean on modeled cloud layers rather than near-term observation — treat these as a rough read, not a plan.</div>`;
+  }
 
   html += `<div class="section-title">Sky breakdown</div>`;
   html += `<div class="grid">
