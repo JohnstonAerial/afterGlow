@@ -125,6 +125,17 @@
   .loading, .err{ text-align:center; padding: 60px 20px; color: var(--slate); font-size: 14px; }
   .err{ color: var(--rose); }
 
+  .err-box{ padding: 48px 22px; text-align: center; max-width: 420px; margin: 0 auto; }
+  .err-head{ font-family: Georgia, serif; font-size: 20px; color: var(--rose); margin-bottom: 10px; line-height: 1.3; }
+  .err-body{ font-size: 14px; color: var(--slate); line-height: 1.55; }
+  .err-retry{ margin-top: 18px; padding: 10px 22px; border-radius: 999px; border: 1px solid var(--line);
+    background: var(--ink-2); color: var(--sand); font-family: inherit; font-size: 14px; cursor: pointer; }
+  .err-retry:active{ opacity: 0.7; }
+  .err-tech{ margin-top: 22px; text-align: left; }
+  .err-tech summary{ font-size: 12px; color: var(--slate); opacity: 0.7; cursor: pointer; text-align: center; }
+  .err-tech code{ display: block; margin-top: 8px; font-family: 'IBM Plex Mono', monospace; font-size: 11px;
+    color: var(--slate); opacity: 0.8; word-break: break-word; line-height: 1.5; }
+
   /* location modal */
   .modal-backdrop{ position:fixed; inset:0; background: rgba(10,11,22,0.7); display:none; align-items:center; justify-content:center; z-index: 50; padding: 20px;}
   .modal-backdrop.open{ display:flex; }
@@ -227,6 +238,50 @@ async function fetchWithTimeout(url, ms){
   }
 }
 
+// Errors carry a `kind` so the UI can say something useful in plain language
+// instead of leaking a parser exception or a raw HTTP code at the user.
+class ForecastError extends Error {
+  constructor(kind, technical){
+    super(technical);
+    this.kind = kind;
+    this.technical = technical;
+  }
+}
+
+// Open-Meteo under load has been observed returning a 200 with a plain-text
+// error body, which makes res.json() throw a raw engine string ("Unexpected
+// token 'U'…" in Chrome, "The string did not match the expected pattern." in
+// Safari). Read as text first so a non-JSON body is a known case, not a crash.
+async function parseJsonSafely(res){
+  let text;
+  try{
+    text = await res.text();
+  }catch(e){
+    throw new ForecastError("truncated", `Could not read response body: ${e.message}`);
+  }
+  if(!text || !text.trim()){
+    throw new ForecastError("truncated", "Response body was empty");
+  }
+  try{
+    return JSON.parse(text);
+  }catch(e){
+    throw new ForecastError("badpayload", `Response wasn't valid JSON. Body began: ${text.slice(0, 80)}`);
+  }
+}
+
+// A 200 with well-formed JSON can still be missing the fields we render from.
+function assertUsableForecast(data){
+  const d = data && data.daily, h = data && data.hourly;
+  const ok = d && Array.isArray(d.sunrise) && d.sunrise.length
+          && Array.isArray(d.sunset)  && d.sunset.length
+          && h && Array.isArray(h.time) && h.time.length
+          && Array.isArray(h.cloud_cover_high);
+  if(!ok){
+    throw new ForecastError("incomplete", `Payload parsed but was missing expected fields. Keys: ${Object.keys(data || {}).join(", ") || "none"}`);
+  }
+  return data;
+}
+
 async function fetchCore(loc){
   const params = new URLSearchParams({
     latitude: loc.lat, longitude: loc.lon,
@@ -242,16 +297,83 @@ async function fetchCore(loc){
     res = await fetchWithTimeout(url, CORE_TIMEOUT_MS);
   }catch(networkErr){
     if(networkErr.name === "AbortError"){
-      throw new Error(`Open-Meteo didn't respond within ${CORE_TIMEOUT_MS / 1000}s. Worth a retry — this is usually a patchy connection or a brief hiccup at their end.`);
+      throw new ForecastError("timeout", `No response within ${CORE_TIMEOUT_MS / 1000}s`);
     }
-    throw new Error(`Network request failed (this usually means the browser blocked or couldn't reach the API): ${networkErr.message}`);
+    if(typeof navigator !== "undefined" && navigator.onLine === false){
+      throw new ForecastError("offline", `Device reports no connection: ${networkErr.message}`);
+    }
+    throw new ForecastError("network", networkErr.message);
   }
   if(!res.ok){
     let detail = "";
     try{ const body = await res.json(); detail = body.reason || JSON.stringify(body); }catch(e){}
-    throw new Error(`Open-Meteo returned HTTP ${res.status}${detail ? ": " + detail : ""}`);
+    const kind = res.status === 429 ? "ratelimit"
+               : res.status >= 500  ? "serverdown"
+               : res.status >= 400  ? "badrequest"
+               : "network";
+    throw new ForecastError(kind, `HTTP ${res.status}${detail ? ": " + detail : ""}`);
   }
-  return res.json();
+  return assertUsableForecast(await parseJsonSafely(res));
+}
+
+// Plain-language rendering of whatever went wrong. Every case answers two
+// questions: what happened, and is it worth trying again.
+function describeError(e){
+  const kind = (e && e.kind) || "unknown";
+  const map = {
+    offline: {
+      headline: "Your device isn't online.",
+      body: "Afterglow needs a connection to pull the forecast. Check wifi or cell signal and try again.",
+      retry: true
+    },
+    timeout: {
+      headline: "Open-Meteo didn't answer in time.",
+      body: "The request went out but nothing came back. Usually a weak signal or their servers being busy — neither of which lasts long.",
+      retry: true
+    },
+    network: {
+      headline: "Couldn't reach Open-Meteo.",
+      body: "The connection failed before the forecast came back. If you have signal, this is most likely a brief hiccup on their end.",
+      retry: true
+    },
+    serverdown: {
+      headline: "Open-Meteo is having trouble right now.",
+      body: "Their servers returned an error rather than a forecast. Nothing wrong on your end — it usually clears within a few minutes.",
+      retry: true
+    },
+    ratelimit: {
+      headline: "Too many requests, too quickly.",
+      body: "Open-Meteo is throttling this location for the moment. Give it a minute before trying again.",
+      retry: true
+    },
+    badpayload: {
+      headline: "Open-Meteo sent something that wasn't a forecast.",
+      body: "The response came back as plain text instead of data, which usually means their service is overloaded and erroring mid-request.",
+      retry: true
+    },
+    truncated: {
+      headline: "The forecast arrived incomplete.",
+      body: "The response was cut off before it finished sending. Almost always worth a straight retry.",
+      retry: true
+    },
+    incomplete: {
+      headline: "The forecast came back missing data.",
+      body: "Open-Meteo answered, but without the cloud and sun times Afterglow needs. Likely a temporary gap in their model output for this spot.",
+      retry: true
+    },
+    badrequest: {
+      headline: "Open-Meteo rejected the request.",
+      body: "That points at something in the request itself rather than a passing outage, so a retry may not help.",
+      retry: false
+    },
+    unknown: {
+      headline: "Something went wrong loading the forecast.",
+      body: "The details below might help if this keeps happening.",
+      retry: true
+    }
+  };
+  const picked = map[kind] || map.unknown;
+  return { ...picked, technical: (e && (e.technical || e.message)) || String(e) };
 }
 
 // Never throws. Returns the hourly wind array, or null if it stalled or failed.
@@ -975,7 +1097,15 @@ async function boot(loc){
     state.mode = initial.mode;
     render();
   }catch(e){
-    $("app").innerHTML = `<div class="err">Could not load the forecast.<br><span style="font-family:monospace;font-size:12px;opacity:0.8;">${(e && e.message) ? e.message : e}</span></div>`;
+    const info = describeError(e);
+    $("app").innerHTML = `<div class="err-box">
+      <div class="err-head">${info.headline}</div>
+      <div class="err-body">${info.body}</div>
+      ${info.retry ? `<button class="err-retry" id="errRetry">Try again</button>` : ``}
+      <details class="err-tech"><summary>Technical detail</summary><code>${String(info.technical).replace(/[<>&]/g, c => ({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]))}</code></details>
+    </div>`;
+    const btn = $("errRetry");
+    if(btn) btn.addEventListener("click", () => boot(loc));
   }
 }
 
