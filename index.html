@@ -208,11 +208,30 @@ function saveLoc(loc){
   localStorage.setItem("afterglow_loc", JSON.stringify(loc));
 }
 
-async function fetchForecast(loc){
+// Open-Meteo occasionally stalls on the 700hPa pressure-level field while serving
+// surface data fine. When everything rode in one request, that stall took down the
+// whole forecast — a hang with no error, or an eventual HTTP 500. The wind field
+// only feeds the timelapse card, so it gets its own request on a short leash and
+// the forecast renders without it if it doesn't come back.
+const CORE_TIMEOUT_MS = 15000;
+const WIND_TIMEOUT_MS = 4000;
+
+async function fetchWithTimeout(url, ms){
+  // AbortSignal.timeout isn't on older iOS Safari, so build the controller by hand.
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), ms);
+  try{
+    return await fetch(url, { signal: ctrl.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function fetchCore(loc){
   const params = new URLSearchParams({
     latitude: loc.lat, longitude: loc.lon,
     daily: "sunrise,sunset",
-    hourly: "cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,relative_humidity_2m,precipitation_probability,visibility,wind_speed_700hPa",
+    hourly: "cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,relative_humidity_2m,precipitation_probability,visibility",
     windspeed_unit: "mph",
     timezone: "auto",
     forecast_days: 11
@@ -220,8 +239,11 @@ async function fetchForecast(loc){
   const url = `https://api.open-meteo.com/v1/forecast?${params}`;
   let res;
   try{
-    res = await fetch(url);
+    res = await fetchWithTimeout(url, CORE_TIMEOUT_MS);
   }catch(networkErr){
+    if(networkErr.name === "AbortError"){
+      throw new Error(`Open-Meteo didn't respond within ${CORE_TIMEOUT_MS / 1000}s. Worth a retry — this is usually a patchy connection or a brief hiccup at their end.`);
+    }
     throw new Error(`Network request failed (this usually means the browser blocked or couldn't reach the API): ${networkErr.message}`);
   }
   if(!res.ok){
@@ -230,6 +252,37 @@ async function fetchForecast(loc){
     throw new Error(`Open-Meteo returned HTTP ${res.status}${detail ? ": " + detail : ""}`);
   }
   return res.json();
+}
+
+// Never throws. Returns the hourly wind array, or null if it stalled or failed.
+async function fetchWind(loc){
+  const params = new URLSearchParams({
+    latitude: loc.lat, longitude: loc.lon,
+    hourly: "wind_speed_700hPa",
+    windspeed_unit: "mph",
+    timezone: "auto",
+    forecast_days: 11
+  });
+  try{
+    const res = await fetchWithTimeout(`https://api.open-meteo.com/v1/forecast?${params}`, WIND_TIMEOUT_MS);
+    if(!res.ok) return null;
+    const data = await res.json();
+    const arr = data && data.hourly && data.hourly.wind_speed_700hPa;
+    return Array.isArray(arr) ? arr : null;
+  }catch(e){
+    return null; // stalled, aborted, or offline — the timelapse card degrades instead
+  }
+}
+
+async function fetchForecast(loc){
+  // Fire both together so the wind request costs wall-clock time only when it's
+  // slower than core, and never more than WIND_TIMEOUT_MS.
+  const [data, wind] = await Promise.all([fetchCore(loc), fetchWind(loc)]);
+  if(wind && data.hourly && wind.length === data.hourly.time.length){
+    data.hourly.wind_speed_700hPa = wind;
+  }
+  data.windAvailable = !!data.hourly.wind_speed_700hPa;
+  return data;
 }
 
 async function geocode(query){
@@ -251,29 +304,49 @@ function scoreEvent(hourly, idx){
   const hum  = hourly.relative_humidity_2m[idx] ?? 50;
   const precip = hourly.precipitation_probability[idx] ?? 0;
 
-  // High cloud sweet spot centered at 45%, falling off toward 0 and 100
-  const highComponent = Math.max(0, 100 - Math.abs(high - 45) * 1.55);
-  // Low cloud directly blocks the horizon view — penalize hard
-  const lowComponent = Math.max(0, 100 - low * 1.3);
-  // Mid cloud moderately blocks
-  const midComponent = Math.max(0, 100 - mid * 0.7);
-  // Humidity haze flattens color once above ~55%
-  const humPenalty = Math.max(0, hum - 55) * 0.6;
-  const precipPenalty = precip * 0.5;
+  // --- Tuning constants (kept together so they're easy to calibrate) ---
+  const CANVAS_PEAK       = 45;   // % high cloud that lights up best
+  const CANVAS_SIGMA_LOW  = 30;   // falloff toward a clear sky
+  const CANVAS_SIGMA_HIGH = 38;   // falloff toward full overcast (gentler on purpose)
+  // Nothing in the forecast tells us whether there's a clear gap at the horizon for
+  // light to get UNDER the cloud — which is the single biggest factor in whether a
+  // cirrus deck actually lights up. Cap the ceiling to reflect that blind spot
+  // rather than pretending a perfect grid reading means a guaranteed show.
+  const HORIZON_UNKNOWN_CEILING = 0.92;
+  const LOW_WEIGHT        = 1.10; // low cloud reaches zero transmission around 91%
+  const MID_WEIGHT        = 0.60; // full mid deck still passes ~40%
+  const HUM_WEIGHT        = 0.006;
+  const HUM_THRESHOLD     = 55;
+  const PRECIP_WEIGHT     = 0.65;
+  const MURK_THRESHOLD    = 70;
+  const MURK_WEIGHT       = 0.004;
 
-  // "Murk" penalty: mid cloud and high cloud saturated at the same time means a solid,
-  // optically thick deck rather than a thin high layer that can glow — a low-cloud
-  // reading of 0% can otherwise mask this (the individual terms above don't catch it
-  // because nothing is technically "low"). Kicks in above 70% on both layers and scales
-  // with how saturated the thinner of the two is.
-  const murkPenalty = (mid > 70 && high > 70) ? Math.min(mid, high) * 0.35 : 0;
+  // --- Canvas: is there anything up there for the light to catch? ---
+  // High cloud is what actually lights up. This is a MULTIPLIER rather than one
+  // additive term among several: with no canvas, clean air underneath is worth
+  // nothing. (The old additive model gave a dead-clear sky ~70 because three of
+  // its four components measured the ABSENCE of cloud and all maxed out at once.)
+  // Asymmetric falloff — a full cirrus deck is a better bet than an empty sky,
+  // because at least it has something that can glow.
+  const sigma = high < CANVAS_PEAK ? CANVAS_SIGMA_LOW : CANVAS_SIGMA_HIGH;
+  const canvas = Math.exp(-Math.pow(high - CANVAS_PEAK, 2) / (2 * sigma * sigma));
 
-  let score = (highComponent * 0.42) + (lowComponent * 0.30) + (midComponent * 0.18) + ((100 - humPenalty) * 0.10);
-  score -= precipPenalty * 0.3;
-  score -= murkPenalty;
-  score = Math.round(Math.max(2, Math.min(98, score)));
+  // --- Clarity: can the light actually reach that canvas? ---
+  const lowFactor    = Math.max(0,    1 - (low / 100) * LOW_WEIGHT);
+  const midFactor    = Math.max(0,    1 - (mid / 100) * MID_WEIGHT);
+  const humFactor    = Math.max(0.60, 1 - Math.max(0, hum - HUM_THRESHOLD) * HUM_WEIGHT);
+  const precipFactor = Math.max(0.35, 1 - (precip / 100) * PRECIP_WEIGHT);
 
-  return { score, low, mid, high, hum, precip, murk: murkPenalty > 0 };
+  // Murk: saturated mid AND high at once is one thick diffusing deck, not a thin
+  // layer that can glow. A low-cloud reading of 0% otherwise masks this.
+  const murkFactor = (mid > MURK_THRESHOLD && high > MURK_THRESHOLD)
+    ? Math.max(0, 1 - Math.min(mid, high) * MURK_WEIGHT)
+    : 1;
+
+  const clarity = lowFactor * midFactor * humFactor * precipFactor * murkFactor;
+  const score = Math.round(Math.max(2, Math.min(98, 100 * canvas * clarity * HORIZON_UNKNOWN_CEILING)));
+
+  return { score, low, mid, high, hum, precip, murk: murkFactor < 1, canvas, clarity };
 }
 
 function label(score){
@@ -286,12 +359,23 @@ function label(score){
 
 function blurb(s, mode){
   const time = mode === "evening" ? "sunset" : "sunrise";
+  const horizon = mode === "evening" ? "west" : "east";
+
+  // Condition-driven cases first — these assert something specific about the sky,
+  // so they read the actual values rather than inferring from the score.
   if(s.murk) return `Mid and high cloud are both heavily overcast at once — a thick, solid deck rather than a thin layer that can glow. Expect a diffuse, muted glow instead of clean color.`;
-  if(s.score >= 85) return `High cloud sitting right in the sweet spot to catch color, with a clear line to the ${mode === "evening" ? "west" : "east"} horizon. Worth being in position early.`;
+  if(s.high < 12 && s.mid < 20 && s.low < 20) return `Essentially clear overhead — there's very little up there for the light to catch. Expect a clean gradient near the horizon rather than real color, though air this dry usually makes for a deep blue hour.`;
+  if(s.low > 65) return `Low cloud is thick enough to block the ${horizon} horizon, so even if there's color higher up, the light that makes it may not reach you.`;
+  if(s.high < 20) return `Not much high cloud to work with — the color that does show will be confined close to the horizon.`;
+  if(s.high > 75 && s.mid < 30 && s.low < 30) return `A near-solid high deck with clear air beneath it. It'll either light up spectacularly or sit there as a gray lid — depends entirely on whether there's a gap at the ${horizon} horizon for light to get underneath, which the forecast can't tell us.`;
+
+  // Score-driven cases: safe to generalise from here, since the specific
+  // conditions above have already been ruled out.
+  if(s.score >= 85) return `High cloud sitting right in the sweet spot to catch color, with a clear line to the ${horizon} horizon. Worth being in position early.`;
   if(s.score >= 70) return `Solid setup for ${time} color — enough high cloud to light up, without much in the way lower down.`;
   if(s.score >= 44) return `Workable but not a sure thing. Cloud cover is a bit heavier than ideal, so color may be short-lived.`;
-  if(s.score >= 26) return `Cloud is stacked in a way that'll likely mute the color — low or mid cloud is blocking the direct light.`;
-  return `Either a mostly clear sky (little to scatter light off) or heavy cloud blocking the horizon. Not much of a show expected.`;
+  if(s.score >= 26) return `Cloud is stacked in a way that'll more likely mute the color than light it up. Not a night to drive far for.`;
+  return `Conditions aren't lining up for much of a show — either too little cloud to scatter light off, or too much of it in the way.`;
 }
 
 /* ---------- Gradient swatch ---------- */
@@ -652,6 +736,12 @@ function timelapseHourScore(cloudPct, windMph){
   // Cloud sweet spot centered at 40% — enough to cross the disc without
   // blocking it outright.
   const cloudComponent = Math.max(0, 100 - Math.abs(cloudPct - 40) * 1.8);
+  // Wind aloft can be unavailable (its request is separate and short-fused).
+  // Score on cloud alone in that case — treating "unknown" as 0mph would read
+  // as dead calm and silently suppress every window.
+  if(windMph == null){
+    return Math.round(Math.max(0, Math.min(100, cloudComponent)));
+  }
   // Wind speed saturates around 20mph — past that, more speed doesn't add
   // much for a hyperlapse (and starts trading off against frame blur if
   // shooting long exposures).
@@ -674,10 +764,11 @@ function scanTimelapseWindow(dayStart, lat, lon, hourly){
     const ti = new Date(t).getTime();
     if(ti < upWindow.start.getTime() || ti > upWindow.end.getTime()) return;
     const cloud = ((hourly.cloud_cover_mid[i] ?? 0) + (hourly.cloud_cover_high[i] ?? 0)) / 2;
-    const wind = hourly.wind_speed_700hPa ? (hourly.wind_speed_700hPa[i] ?? 0) : 0;
+    const wind = Array.isArray(hourly.wind_speed_700hPa) ? (hourly.wind_speed_700hPa[i] ?? null) : null;
     points.push({ time: new Date(t), score: timelapseHourScore(cloud, wind), cloud, wind });
   });
-  if(points.length === 0) return { upWindow, points, bestRun: null };
+  const windAvailable = Array.isArray(hourly.wind_speed_700hPa);
+  if(points.length === 0) return { upWindow, points, bestRun: null, windAvailable };
 
   // Longest/strongest contiguous run of "workable or better" hours.
   const THRESH = 45;
@@ -691,7 +782,7 @@ function scanTimelapseWindow(dayStart, lat, lon, hourly){
   points.forEach(p => { if(p.score >= THRESH) curRun.push(p); else closeRun(); });
   closeRun();
 
-  return { upWindow, points, bestRun };
+  return { upWindow, points, bestRun, windAvailable };
 }
 
 function timelapseCardHTML(result){
@@ -713,7 +804,9 @@ function timelapseCardHTML(result){
   return `<div class="card" style="grid-column: 1 / -1;">
     <div class="label">Timelapse conditions <small style="text-transform:none;">— cloud crossing the Moon</small></div>
     ${body}
-    <div class="outlook-note" style="margin-top:10px;">Cloud cover + wind speed aloft — a rough proxy for cloud motion, not a guarantee. Heuristic, not calibrated against real footage yet.</div>
+    <div class="outlook-note" style="margin-top:10px;">${result.windAvailable
+      ? `Cloud cover + wind speed aloft — a rough proxy for cloud motion, not a guarantee. Heuristic, not calibrated against real footage yet.`
+      : `Wind aloft unavailable right now, so this is scored on cloud cover alone — it can't say anything about how fast that cloud will actually move. Rougher than usual.`}</div>
   </div>`;
 }
 
