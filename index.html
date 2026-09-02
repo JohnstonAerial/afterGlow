@@ -204,7 +204,8 @@ let state = {
   daily: null,
   hourly: null,
   activeDay: 0,
-  mode: "morning" // or "evening"
+  mode: "morning", // or "evening"
+  sample: { morning: null, evening: null } // sun-path cloud readings
 };
 
 function loadLoc(){
@@ -415,8 +416,93 @@ async function geocode(query){
   return data.results || [];
 }
 
-/* ---------- Scoring ---------- */
-function scoreEvent(hourly, idx){
+/* ---------- Sun-path sampling ----------
+   Afterglow used to score the sky from a single grid cell: yours. But a sunset
+   needs two things in two different places — a clear slot toward the sun for the
+   light to get through (the projector), and cloud overhead to catch it (the
+   screen). Reading only the screen means a solid low deck sitting on the western
+   horizon looks identical to a clear one.
+
+   So we sample a second point along the solar azimuth. At sunset the sun's light
+   reaches cloud above you by grazing over ground roughly 150–200km toward it, so
+   that's where the gap has to be. Low and mid cloud AT THAT POINT gate whether
+   any direct light arrives at all. */
+const SUN_PATH_SAMPLE_KM = 180;
+const SAMPLE_TIMEOUT_MS = 5000;
+
+// Great-circle destination point, per the standard spherical formula.
+function projectPoint(lat, lon, bearingDeg, distKm){
+  const R = 6371;
+  const d = distKm / R;
+  const br = bearingDeg * Math.PI / 180;
+  const p1 = lat * Math.PI / 180, l1 = lon * Math.PI / 180;
+  const p2 = Math.asin(Math.sin(p1) * Math.cos(d) + Math.cos(p1) * Math.sin(d) * Math.cos(br));
+  const l2 = l1 + Math.atan2(Math.sin(br) * Math.sin(d) * Math.cos(p1),
+                             Math.cos(d) - Math.sin(p1) * Math.sin(p2));
+  return { lat: p2 * 180 / Math.PI, lon: ((l2 * 180 / Math.PI) + 540) % 360 - 180 };
+}
+
+// Never throws — a failed sample means we fall back to the old blind ceiling
+// rather than losing the forecast. Same short-leash pattern as the wind field.
+async function fetchSample(pt){
+  const params = new URLSearchParams({
+    latitude: pt.lat.toFixed(4), longitude: pt.lon.toFixed(4),
+    hourly: "cloud_cover_low,cloud_cover_mid",
+    timezone: "auto",
+    forecast_days: 11
+  });
+  try{
+    const res = await fetchWithTimeout(`https://api.open-meteo.com/v1/forecast?${params}`, SAMPLE_TIMEOUT_MS);
+    if(!res.ok) return null;
+    const data = await parseJsonSafely(res);
+    const h = data && data.hourly;
+    if(!h || !Array.isArray(h.time) || !Array.isArray(h.cloud_cover_low) || !Array.isArray(h.cloud_cover_mid)) return null;
+    return { time: h.time, low: h.cloud_cover_low, mid: h.cloud_cover_mid, point: pt };
+  }catch(e){
+    return null;
+  }
+}
+
+// How much direct light gets through toward the sun. Low cloud on the horizon is
+// the single biggest killer of a sunset — the sun simply sets into it — so it
+// gates hard. Mid cloud thins the beam without necessarily stopping it.
+function beamFactor(sampleLow, sampleMid){
+  const lowF = Math.max(0, 1 - (sampleLow / 100) * 1.05);
+  const midF = Math.max(0.25, 1 - (sampleMid / 100) * 0.55);
+  return lowF * midF;
+}
+
+// Pull the sample's low/mid at the hour matching a given event time.
+function sampleAt(sample, eventIso){
+  if(!sample) return null;
+  const j = nearestHourIdx(sample.time, eventIso);
+  if(j == null || j < 0) return null;
+  return { low: sample.low[j] ?? 0, mid: sample.mid[j] ?? 0 };
+}
+
+// One sample per mode. The solar azimuth shifts only a degree or so per day over
+// an 11-day window, so a single point per direction covers the whole forecast
+// rather than needing one request per day.
+async function fetchSunPathSamples(loc, daily){
+  const out = { morning: null, evening: null };
+  if(!daily || loc.lat == null || loc.lon == null) return out;
+  try{
+    const jobs = [];
+    const modes = [["evening", daily.sunset && daily.sunset[0]], ["morning", daily.sunrise && daily.sunrise[0]]];
+    for(const [mode, iso] of modes){
+      if(!iso) continue;
+      const az = solarAzimuth(new Date(iso), loc.lat, loc.lon);
+      if(!isFinite(az)) continue;
+      const pt = projectPoint(loc.lat, loc.lon, az, SUN_PATH_SAMPLE_KM);
+      jobs.push(fetchSample(pt).then(r => { out[mode] = r; }));
+    }
+    await Promise.all(jobs);
+  }catch(e){
+    // Any failure leaves the nulls in place — scoring falls back to blind mode.
+  }
+  return out;
+}
+function scoreEvent(hourly, idx, beam){
   // idx = the hourly index closest to sunrise/sunset for that day
   if(idx == null || idx < 0 || idx >= hourly.time.length) return null;
 
@@ -430,11 +516,14 @@ function scoreEvent(hourly, idx){
   const CANVAS_PEAK       = 45;   // % high cloud that lights up best
   const CANVAS_SIGMA_LOW  = 30;   // falloff toward a clear sky
   const CANVAS_SIGMA_HIGH = 38;   // falloff toward full overcast (gentler on purpose)
-  // Nothing in the forecast tells us whether there's a clear gap at the horizon for
-  // light to get UNDER the cloud — which is the single biggest factor in whether a
-  // cirrus deck actually lights up. Cap the ceiling to reflect that blind spot
-  // rather than pretending a perfect grid reading means a guaranteed show.
+  // When we have no reading toward the sun we can't tell whether there's a gap at
+  // the horizon for light to get under the cloud — the biggest single factor in
+  // whether a deck lights up. Cap the ceiling to reflect that blind spot.
+  // When a sun-path sample IS available that guess is replaced by a measurement,
+  // so the haircut shrinks to a small residual (one sample point, still not the
+  // whole path).
   const HORIZON_UNKNOWN_CEILING = 0.92;
+  const MEASURED_CEILING = 0.97;
   const LOW_WEIGHT        = 1.10; // low cloud reaches zero transmission around 91%
   const MID_WEIGHT        = 0.60; // full mid deck still passes ~40%
   const HUM_WEIGHT        = 0.006;
@@ -466,9 +555,16 @@ function scoreEvent(hourly, idx){
     : 1;
 
   const clarity = lowFactor * midFactor * humFactor * precipFactor * murkFactor;
-  const score = Math.round(Math.max(2, Math.min(98, 100 * canvas * clarity * HORIZON_UNKNOWN_CEILING)));
 
-  return { score, low, mid, high, hum, precip, murk: murkFactor < 1, canvas, clarity };
+  // The gate: is there a clear slot toward the sun for light to arrive through?
+  const hasBeam = beam && typeof beam.low === "number" && typeof beam.mid === "number";
+  const beamF = hasBeam ? beamFactor(beam.low, beam.mid) : 1;
+  const ceiling = hasBeam ? MEASURED_CEILING : HORIZON_UNKNOWN_CEILING;
+
+  const score = Math.round(Math.max(2, Math.min(98, 100 * canvas * clarity * beamF * ceiling)));
+
+  return { score, low, mid, high, hum, precip, murk: murkFactor < 1, canvas, clarity,
+           beam: hasBeam ? beamF : null, beamLow: hasBeam ? beam.low : null, beamMid: hasBeam ? beam.mid : null };
 }
 
 function label(score){
@@ -486,6 +582,7 @@ function blurb(s, mode){
   // Condition-driven cases first — these assert something specific about the sky,
   // so they read the actual values rather than inferring from the score.
   if(s.murk) return `Mid and high cloud are both heavily overcast at once — a thick, solid deck rather than a thin layer that can glow. Expect a diffuse, muted glow instead of clean color.`;
+  if(s.beam != null && s.beam < 0.35) return `Cloud is sitting between you and the ${horizon} horizon, roughly ${SUN_PATH_SAMPLE_KM}km out along the sun's line. The low sun's light will likely be blocked before it ever reaches the sky above you — the limiting factor here is over there, not overhead.`;
   if(s.high < 12 && s.mid < 20 && s.low < 20) return `Essentially clear overhead — there's very little up there for the light to catch. Expect a clean gradient near the horizon rather than real color, though air this dry usually makes for a deep blue hour.`;
   if(s.low > 65) return `Low cloud is thick enough to block the ${horizon} horizon, so even if there's color higher up, the light that makes it may not reach you.`;
   if(s.high < 20) return `Not much high cloud to work with — the color that does show will be confined close to the horizon.`;
@@ -941,7 +1038,7 @@ function render(){
   const sunset = daily.sunset[activeDay];
   const eventIso = mode === "evening" ? sunset : sunrise;
   const idx = nearestHourIdx(hourly.time, eventIso);
-  const s = scoreEvent(hourly, idx);
+  const s = scoreEvent(hourly, idx, sampleAt(state.sample[mode], eventIso));
   if(!s){ app.innerHTML = '<div class="err">Could not compute a forecast for this day.</div>'; return; }
 
   const gradient = swatchGradient(s, mode);
@@ -998,7 +1095,7 @@ function render(){
   daily.time.forEach((t, i) => {
     const evt = mode === "evening" ? daily.sunset[i] : daily.sunrise[i];
     const j = nearestHourIdx(hourly.time, evt);
-    const ds = scoreEvent(hourly, j);
+    const ds = scoreEvent(hourly, j, sampleAt(state.sample[mode], evt));
     const dow = i === 0 ? "Today" : parseLocalDate(t).toLocaleDateString([], { weekday: "short" });
     html += `<div class="day-card ${i===activeDay?'active':''}" data-day="${i}">
       <div class="dow">${dow}</div>
@@ -1015,7 +1112,7 @@ function render(){
       const i = outlookStart + k;
       const evt = mode === "evening" ? daily.sunset[i] : daily.sunrise[i];
       const j = nearestHourIdx(hourly.time, evt);
-      const ds = scoreEvent(hourly, j);
+      const ds = scoreEvent(hourly, j, sampleAt(state.sample[mode], evt));
       const dow = parseLocalDate(t).toLocaleDateString([], { weekday: "short" });
       html += `<div class="day-card outlook ${i===activeDay?'active':''}" data-day="${i}">
         <div class="dow">${dow}</div>
@@ -1029,6 +1126,9 @@ function render(){
 
   html += `<div class="section-title">Sky breakdown</div>`;
   html += `<div class="grid">
+    ${s.beam != null ? statCard("Toward the sun", Math.max(s.beamLow, s.beamMid), "%",
+        `Low/mid cloud ~${SUN_PATH_SAMPLE_KM}km ${compassDir(azimuth)} — the gap light has to come through`,
+        var2color(Math.max(s.beamLow, s.beamMid), 100, 45, true)) : ``}
     ${statCard("High cloud", s.high, "%", "Catches & scatters color — 30–60% is ideal", var2color(s.high, 45, 60))}
     ${statCard("Low cloud", s.low, "%", "Blocks the horizon view when high", var2color(s.low, 100, 40, true))}
     ${statCard("Mid cloud", s.mid, "%", "Moderate blocker at higher amounts", var2color(s.mid, 100, 50, true))}
@@ -1092,6 +1192,10 @@ async function boot(loc){
     const data = await fetchForecast(loc);
     state.daily = data.daily;
     state.hourly = data.hourly;
+    // Sun-path samples need the sunrise/sunset instants to compute an azimuth,
+    // so they go out after core. Both are optional — a failure just falls back
+    // to the blind ceiling rather than costing us the forecast.
+    state.sample = await fetchSunPathSamples(loc, data.daily);
     const initial = pickInitialView(data.daily, loc.lat, loc.lon);
     state.activeDay = initial.activeDay;
     state.mode = initial.mode;
