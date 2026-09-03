@@ -517,6 +517,7 @@ function scoreEvent(hourly, idx, beam){
   const high = hourly.cloud_cover_high[idx]  ?? 0;
   const hum  = hourly.relative_humidity_2m[idx] ?? 50;
   const precip = hourly.precipitation_probability[idx] ?? 0;
+  const vis  = (hourly.visibility && isFinite(hourly.visibility[idx])) ? hourly.visibility[idx] : null;
 
   // --- Tuning constants (kept together so they're easy to calibrate) ---
   const CANVAS_PEAK       = 45;   // % high cloud that lights up best
@@ -532,8 +533,20 @@ function scoreEvent(hourly, idx, beam){
   const MEASURED_CEILING = 0.97;
   const LOW_WEIGHT        = 1.10; // low cloud reaches zero transmission around 91%
   const MID_WEIGHT        = 0.60; // full mid deck still passes ~40%
+  // Haze. Visibility (metres) is a direct measure of how much the air scatters
+  // light. It replaces the old 2m-relative-humidity proxy, which was
+  // systematically biased against sunrises: overnight radiative cooling pulls
+  // surface air toward its dewpoint on any clear calm night, so dawn RH runs
+  // 85–95% regardless of actual haze while the same sky reads 40% by evening.
+  // Every morning was being penalised for being a morning.
+  const VIS_CLEAR_M       = 15000; // at or above this, no haze penalty
+  const VIS_MURKY_M       = 2000;  // at or below this, the floor applies
+  const HAZE_FLOOR        = 0.35;
+  // Humidity is now only a fallback for when visibility is missing from the
+  // model output. Threshold sits well above the dawn-saturation band so it
+  // flags genuinely muggy air rather than routine overnight cooling.
   const HUM_WEIGHT        = 0.006;
-  const HUM_THRESHOLD     = 55;
+  const HUM_FALLBACK_THRESHOLD = 80;
   const PRECIP_WEIGHT     = 0.65;
   const MURK_THRESHOLD    = 70;
   const MURK_WEIGHT       = 0.004;
@@ -551,7 +564,10 @@ function scoreEvent(hourly, idx, beam){
   // --- Clarity: can the light actually reach that canvas? ---
   const lowFactor    = Math.max(0,    1 - (low / 100) * LOW_WEIGHT);
   const midFactor    = Math.max(0,    1 - (mid / 100) * MID_WEIGHT);
-  const humFactor    = Math.max(0.60, 1 - Math.max(0, hum - HUM_THRESHOLD) * HUM_WEIGHT);
+  const clamp01 = (v) => Math.max(0, Math.min(1, v));
+  const hazeFactor = (vis != null)
+    ? HAZE_FLOOR + (1 - HAZE_FLOOR) * clamp01((vis - VIS_MURKY_M) / (VIS_CLEAR_M - VIS_MURKY_M))
+    : Math.max(0.70, 1 - Math.max(0, hum - HUM_FALLBACK_THRESHOLD) * HUM_WEIGHT);
   const precipFactor = Math.max(0.35, 1 - (precip / 100) * PRECIP_WEIGHT);
 
   // Murk: saturated mid AND high at once is one thick diffusing deck, not a thin
@@ -560,7 +576,7 @@ function scoreEvent(hourly, idx, beam){
     ? Math.max(0, 1 - Math.min(mid, high) * MURK_WEIGHT)
     : 1;
 
-  const clarity = lowFactor * midFactor * humFactor * precipFactor * murkFactor;
+  const clarity = lowFactor * midFactor * hazeFactor * precipFactor * murkFactor;
 
   // The gate: is there a clear slot toward the sun for light to arrive through?
   const hasBeam = beam && typeof beam.low === "number" && typeof beam.mid === "number";
@@ -569,7 +585,8 @@ function scoreEvent(hourly, idx, beam){
 
   const score = Math.round(Math.max(2, Math.min(98, 100 * canvas * clarity * beamF * ceiling)));
 
-  return { score, low, mid, high, hum, precip, murk: murkFactor < 1, canvas, clarity,
+  return { score, low, mid, high, hum, precip, vis, hazeFactor, hazeFromVis: vis != null,
+           murk: murkFactor < 1, canvas, clarity,
            beam: hasBeam ? beamF : null, beamLow: hasBeam ? beam.low : null, beamMid: hasBeam ? beam.mid : null };
 }
 
@@ -1148,7 +1165,9 @@ function render(){
     ${statCard("High cloud", s.high, "%", "Catches & scatters color — 30–60% is ideal", var2color(s.high, 45, 60))}
     ${statCard("Low cloud", s.low, "%", "Blocks the horizon view when high", var2color(s.low, 100, 40, true))}
     ${statCard("Mid cloud", s.mid, "%", "Moderate blocker at higher amounts", var2color(s.mid, 100, 50, true))}
-    ${statCard("Humidity", s.hum, "%", "Haze flattens saturation above ~55%", var2color(s.hum, 100, 55, true))}
+    ${s.hazeFromVis
+      ? statCard("Visibility", Math.round(s.vis / 1609), " mi", "Direct haze reading — under ~9mi starts flattening color", var2color(Math.min(100, (s.vis / 15000) * 100), 100, 70))
+      : statCard("Humidity", s.hum, "%", "Fallback haze proxy — visibility unavailable", var2color(s.hum, 100, 80, true))}
   </div>`;
 
   const moon = computeMoonInfo(parseLocalDate(daily.time[activeDay]), loc.lat, loc.lon, sunrise, sunset);
