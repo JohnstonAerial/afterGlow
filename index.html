@@ -559,7 +559,21 @@ function scoreEvent(hourly, idx, beam){
   // Asymmetric falloff — a full cirrus deck is a better bet than an empty sky,
   // because at least it has something that can glow.
   const sigma = high < CANVAS_PEAK ? CANVAS_SIGMA_LOW : CANVAS_SIGMA_HIGH;
-  const canvas = Math.exp(-Math.pow(high - CANVAS_PEAK, 2) / (2 * sigma * sigma));
+  let canvas = Math.exp(-Math.pow(high - CANVAS_PEAK, 2) / (2 * sigma * sigma));
+
+  // Dry-air credit: a near-clear sky with exceptional visibility can still
+  // produce clean, saturated horizon color via Rayleigh scattering, even with
+  // nothing up high to catch light directly. This is a small, capped nudge —
+  // not a floor — so an ordinary hazy-but-technically-clear sky (moderate
+  // visibility) still scores low and correctly reads as flat. Only genuinely
+  // exceptional air (well past the existing haze-clear threshold) qualifies.
+  const VIS_EXCEPTIONAL_M = 35000; // meaningfully past the existing 15km "clear" threshold
+  const VIS_PRISTINE_M    = 55000; // full credit ceiling — near the top of what this region sees
+  const DRY_AIR_CREDIT     = 0.25;
+  if (vis != null && vis > VIS_EXCEPTIONAL_M) {
+    const clamp01_local = (v) => Math.max(0, Math.min(1, v));
+    canvas = Math.min(1, canvas + DRY_AIR_CREDIT * clamp01_local((vis - VIS_EXCEPTIONAL_M) / (VIS_PRISTINE_M - VIS_EXCEPTIONAL_M)));
+  }
 
   // --- Clarity: can the light actually reach that canvas? ---
   const lowFactor    = Math.max(0,    1 - (low / 100) * LOW_WEIGHT);
