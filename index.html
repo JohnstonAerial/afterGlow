@@ -1101,6 +1101,19 @@ function render(){
     : civilTwilight(new Date(sunrise), loc.lat, loc.lon, "dawn");
   const twilightLabel = mode === "evening" ? "Last light" : "First light";
 
+  // Nautical (sun 12° below horizon, zenith 102) and astronomical (18°, zenith
+  // 108) twilight — same civilTwilight() solver, just deeper crossings. Both
+  // can come back null at extreme latitudes/seasons where the sun never gets
+  // that far below the horizon; render() below only shows a row when non-null.
+  const nauticalTwilight = mode === "evening"
+    ? civilTwilight(new Date(sunset), loc.lat, loc.lon, "dusk", 102)
+    : civilTwilight(new Date(sunrise), loc.lat, loc.lon, "dawn", 102);
+  const astroTwilight = mode === "evening"
+    ? civilTwilight(new Date(sunset), loc.lat, loc.lon, "dusk", 108)
+    : civilTwilight(new Date(sunrise), loc.lat, loc.lon, "dawn", 108);
+  const nauticalLabel = mode === "evening" ? "Nautical dusk" : "Nautical dawn";
+  const astroLabel = mode === "evening" ? "Astronomical dusk" : "Astronomical dawn";
+
   let html = "";
 
   // Stale banner: whenever we're showing cached numbers, say so up front and give
@@ -1129,6 +1142,8 @@ function render(){
         <div class="hero-time-item"><div class="k">Direction</div><div class="v">${azimuthLabel}</div></div>
         <div class="hero-time-item"><div class="k">Golden hour</div><div class="v">${fmt(goldenStart)}–${fmt(goldenEnd)}</div></div>
         <div class="hero-time-item"><div class="k">Blue hour</div><div class="v">${fmt(blueStart)}–${fmt(blueEnd)}</div></div>
+        ${nauticalTwilight ? `<div class="hero-time-item"><div class="k">${nauticalLabel}</div><div class="v">${fmt(nauticalTwilight)}</div></div>` : ""}
+        ${astroTwilight ? `<div class="hero-time-item"><div class="k">${astroLabel}</div><div class="v">${fmt(astroTwilight)}</div></div>` : ""}
       </div>
     </div>
   </div>`;
