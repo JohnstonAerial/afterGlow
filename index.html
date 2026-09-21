@@ -90,6 +90,29 @@
   }
   .toggle-btn.active{ background: var(--sand); color: var(--ink); border-color: var(--sand); font-weight: 600;}
 
+  /* ---------- View tabs (Today / Outlook) ---------- */
+  .view-tabs{ display:flex; gap: 6px; margin-bottom: 18px; }
+  .view-tab{
+    flex:1; padding: 11px; border-radius: 14px; border: 1px solid var(--line);
+    background: transparent; color: var(--slate); font-size: 14px; cursor: pointer;
+    font-family: Georgia, serif; letter-spacing: 0.02em;
+  }
+  .view-tab.active{ background: var(--card); color: var(--sand); border-color: var(--gold); font-weight: 600; }
+
+  /* ---------- Outlook (agenda list) ---------- */
+  .agenda-day{ font-family: Georgia, serif; font-size: 20px; font-weight: 600; color: var(--sand); margin: 22px 2px 10px; }
+  .agenda-day.first{ margin-top: 4px; }
+  .agenda-card{
+    border: 1px solid var(--line); background: var(--card); border-radius: 16px;
+    padding: 18px 16px; text-align: center; margin-bottom: 10px; cursor: pointer;
+  }
+  .agenda-card .k{ font-family: Georgia, serif; font-size: 22px; font-weight: 600; color: var(--sand); }
+  .agenda-card .label-word{ font-size: 15px; color: var(--slate); margin: 2px 0 12px; }
+  .agenda-bar{ height: 9px; border-radius: 999px; background: rgba(245,230,211,0.1); overflow: hidden; margin-bottom: 10px; }
+  .agenda-bar i{ display:block; height:100%; border-radius:999px; }
+  .agenda-pct{ font-size: 14px; color: var(--slate); margin-bottom: 2px; }
+  .agenda-time{ font-family:'IBM Plex Mono', monospace; font-size: 15px; color: var(--sand); }
+
   /* ---------- 7-day strip ---------- */
   .section-title{ font-family: Georgia, serif; font-size: 15px; color: var(--slate); text-transform: uppercase; letter-spacing: 0.1em; margin: 26px 0 12px; }
   .days{ display:flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: thin; }
@@ -210,6 +233,7 @@ let state = {
   hourly: null,
   activeDay: 0,
   mode: "morning", // or "evening"
+  view: "today", // or "outlook" — which top-level screen is showing
   sample: { morning: null, evening: null }, // sun-path cloud readings
   stale: null // set when showing a cached forecast we couldn't refresh
 };
@@ -1067,16 +1091,31 @@ function timelapseCardHTML(result){
 }
 
 function render(){
-  const { daily, hourly, activeDay, mode, loc } = state;
   const app = $("app");
-  if(!daily){ app.innerHTML = '<div class="loading">Reading the sky…</div>'; return; }
+  if(!state.daily){ app.innerHTML = '<div class="loading">Reading the sky…</div>'; return; }
+  const tabsHtml = `<div class="view-tabs">
+    <button class="view-tab ${state.view==='today'?'active':''}" data-view="today">Today</button>
+    <button class="view-tab ${state.view==='outlook'?'active':''}" data-view="outlook">Outlook</button>
+  </div>`;
+  if(state.view === "outlook"){
+    renderOutlook(app, tabsHtml);
+  } else {
+    renderToday(app, tabsHtml);
+  }
+  document.querySelectorAll(".view-tab").forEach(b => b.addEventListener("click", () => {
+    state.view = b.dataset.view; render();
+  }));
+}
+
+function renderToday(app, tabsHtml){
+  const { daily, hourly, activeDay, mode, loc } = state;
 
   const sunrise = daily.sunrise[activeDay];
   const sunset = daily.sunset[activeDay];
   const eventIso = mode === "evening" ? sunset : sunrise;
   const idx = nearestHourIdx(hourly.time, eventIso);
   const s = scoreEvent(hourly, idx, sampleAt(state.sample[mode], eventIso));
-  if(!s){ app.innerHTML = '<div class="err">Could not compute a forecast for this day.</div>'; return; }
+  if(!s){ app.innerHTML = tabsHtml + '<div class="err">Could not compute a forecast for this day.</div>'; return; }
 
   const gradient = swatchGradient(s, mode);
 
@@ -1114,7 +1153,7 @@ function render(){
   const nauticalLabel = mode === "evening" ? "Nautical dusk" : "Nautical dawn";
   const astroLabel = mode === "evening" ? "Astronomical dusk" : "Astronomical dawn";
 
-  let html = "";
+  let html = tabsHtml;
 
   // Stale banner: whenever we're showing cached numbers, say so up front and give
   // the real age. Never let old data pass as current.
@@ -1216,6 +1255,62 @@ function render(){
   }));
   const staleBtn = $("staleRetry");
   if(staleBtn) staleBtn.addEventListener("click", () => boot(state.loc));
+}
+
+/* ---------- Outlook (agenda list) ----------
+   A day-by-day list showing both sunrise and sunset scores side by side,
+   rather than the Today view's single-event-at-a-time toggle. Reuses the
+   exact same scoreEvent()/label()/blurb() pipeline — this is purely a
+   different arrangement of the same numbers, not a second scoring path. */
+function agendaColor(score){
+  if(score >= 70) return "#F2B84B"; // gold — Epic/Great
+  if(score >= 44) return "#F2D98B"; // pale gold — Good
+  if(score >= 26) return "#8892a8"; // slate — Fair
+  return "#565d78"; // slate-dim — Flat
+}
+
+function agendaCardHTML(dayIdx, mode, daily, hourly){
+  const evt = mode === "evening" ? daily.sunset[dayIdx] : daily.sunrise[dayIdx];
+  if(!evt) return `<div class="agenda-card"><div class="k">–</div><div class="label-word">No data</div></div>`;
+  const j = nearestHourIdx(hourly.time, evt);
+  const s = scoreEvent(hourly, j, sampleAt(state.sample[mode], evt));
+  if(!s) return `<div class="agenda-card"><div class="k">–</div><div class="label-word">No data</div></div>`;
+  const eventLabel = mode === "evening" ? "Sunset" : "Sunrise";
+  return `<div class="agenda-card" data-day="${dayIdx}" data-mode="${mode}">
+    <div class="k">${eventLabel}</div>
+    <div class="label-word">${label(s.score)}</div>
+    <div class="agenda-bar"><i style="width:${s.score}%; background:${agendaColor(s.score)}"></i></div>
+    <div class="agenda-pct">${s.score}%</div>
+    <div class="agenda-time">${fmtTime(evt)}</div>
+  </div>`;
+}
+
+function renderOutlook(app, tabsHtml){
+  const { daily, hourly, activeDay } = state;
+  let html = tabsHtml;
+
+  daily.time.forEach((t, i) => {
+    const dow = i === 0 ? "Today" : parseLocalDate(t).toLocaleDateString([], { weekday: "long" });
+    html += `<div class="agenda-day${i===0?' first':''}">${dow}</div>`;
+    html += `<div class="grid">
+      ${agendaCardHTML(i, "morning", daily, hourly)}
+      ${agendaCardHTML(i, "evening", daily, hourly)}
+    </div>`;
+    if(i === 6 && daily.time.length > 7){
+      html += `<div class="outlook-note">Days below lean on modeled cloud layers rather than near-term observation — treat these as a rough read, not a plan.</div>`;
+    }
+  });
+
+  app.innerHTML = html;
+
+  // Tapping a card jumps to that day/mode on the Today view — same activeDay
+  // and mode state the hero view reads, so the two screens stay in sync.
+  document.querySelectorAll(".agenda-card[data-day]").forEach(b => b.addEventListener("click", () => {
+    state.activeDay = parseInt(b.dataset.day);
+    state.mode = b.dataset.mode;
+    state.view = "today";
+    render();
+  }));
 }
 
 function var2color(val, ref, sweetOrMax, inverse){
