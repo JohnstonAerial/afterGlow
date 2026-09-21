@@ -127,6 +127,13 @@
   }
   #sunMap{ width: 100%; height: 100%; }
   .map-compass{ position: absolute; inset: 0; pointer-events: none; z-index: 1000; }
+  .map-center-btn{
+    position: absolute; right: 12px; top: 12px; z-index: 1001;
+    width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--line);
+    background: var(--ink-2); color: var(--sand); font-size: 17px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .map-center-btn:active{ opacity: 0.7; }
   .map-slider-row{ display:flex; align-items:center; gap: 12px; margin-bottom: 16px; }
   .map-slider-row input[type=range]{ flex: 1; accent-color: var(--gold); }
   .map-slider-icon{ font-size: 15px; opacity: 0.7; }
@@ -1414,7 +1421,7 @@ function renderMap(app, tabsHtml){
     <div class="map-date">${dayLabel}</div>
     <button id="mapNextDay" ${activeDay >= daily.time.length - 1 ? "disabled" : ""}>›</button>
   </div>`;
-  html += `<div class="map-wrap"><div id="sunMap"></div><svg class="map-compass" id="mapCompass" viewBox="0 0 100 100"></svg></div>`;
+  html += `<div class="map-wrap"><div id="sunMap"></div><svg class="map-compass" id="mapCompass" viewBox="0 0 100 100"></svg><button type="button" class="map-center-btn" id="mapCenterBtn" title="Center on location">⌖</button></div>`;
   html += `<div class="map-slider-row">
     <span class="map-slider-icon">🌅</span>
     <input type="range" id="mapSlider" min="0" max="100" step="1" value="${Math.round(state.mapSliderPct * 100)}">
@@ -1432,18 +1439,37 @@ function renderMap(app, tabsHtml){
   destroySunMap();
   const mapEl = $("sunMap");
   if(mapEl && typeof L !== "undefined"){
-    sunMapInstance = L.map(mapEl, { attributionControl: true }).setView([loc.lat, loc.lon], 14);
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      maxZoom: 19,
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-    }).addTo(sunMapInstance);
-    L.circleMarker([loc.lat, loc.lon], { radius: 6, color: "#F2B84B", weight: 2, fillColor: "#F2B84B", fillOpacity: 1 }).addTo(sunMapInstance);
+    try{
+      sunMapInstance = L.map(mapEl, { attributionControl: true }).setView([loc.lat, loc.lon], 14);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      }).addTo(sunMapInstance);
+      L.circleMarker([loc.lat, loc.lon], { radius: 6, color: "#F2B84B", weight: 2, fillColor: "#F2B84B", fillOpacity: 1 }).addTo(sunMapInstance);
+    } catch(e){
+      // A Leaflet init failure here must not take down the rest of this
+      // function — the slider, day nav, and center button below still need
+      // their listeners attached even if the map itself couldn't come up.
+      console.error("Sun map failed to initialize:", e);
+      sunMapInstance = null;
+      mapEl.innerHTML = '<div class="loading" style="padding-top:40%;">Map couldn\'t load — the compass below still works.</div>';
+    }
   } else if(mapEl){
     // Leaflet failed to load (blocked script, offline, ad blocker) — degrade
     // to just the compass, rather than an empty box with no explanation.
     mapEl.innerHTML = '<div class="loading" style="padding-top:40%;">Map tiles unavailable — the compass below still works.</div>';
   }
   drawCompass(az);
+
+  const centerBtn = $("mapCenterBtn");
+  if(centerBtn){
+    centerBtn.addEventListener("click", () => {
+      if(sunMapInstance){
+        // Keep whatever zoom the person has set — recenter, don't reset the view.
+        sunMapInstance.setView([loc.lat, loc.lon], sunMapInstance.getZoom());
+      }
+    });
+  }
 
   const slider = $("mapSlider");
   if(slider){
