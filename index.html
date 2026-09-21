@@ -113,6 +113,27 @@
   .agenda-pct{ font-size: 14px; color: var(--slate); margin-bottom: 2px; }
   .agenda-time{ font-family:'IBM Plex Mono', monospace; font-size: 15px; color: var(--sand); }
 
+  /* ---------- Map (sun direction) ---------- */
+  .map-nav{ display:flex; align-items:center; justify-content:space-between; gap: 12px; margin-bottom: 14px; }
+  .map-nav button{
+    background: var(--card); border: 1px solid var(--line); color: var(--sand);
+    width: 34px; height: 34px; border-radius: 50%; cursor: pointer; font-size: 16px; line-height: 1;
+  }
+  .map-nav button:disabled{ opacity: 0.35; cursor: default; }
+  .map-date{ font-family: Georgia, serif; font-size: 15px; color: var(--sand); text-align: center; flex: 1; }
+  .map-wrap{
+    position: relative; border-radius: 18px; overflow: hidden; border: 1px solid var(--line);
+    height: 360px; margin-bottom: 14px; background: var(--card);
+  }
+  #sunMap{ width: 100%; height: 100%; }
+  .map-compass{ position: absolute; inset: 0; pointer-events: none; z-index: 1000; }
+  .map-slider-row{ display:flex; align-items:center; gap: 12px; margin-bottom: 16px; }
+  .map-slider-row input[type=range]{ flex: 1; accent-color: var(--gold); }
+  .map-slider-icon{ font-size: 15px; opacity: 0.7; }
+  .map-readout{ display:flex; gap: 10px; margin-bottom: 14px; }
+  .map-readout .card{ flex: 1; text-align: center; }
+  .map-note{ font-size: 12px; line-height: 1.5; color: var(--slate-dim); }
+
   /* ---------- 7-day strip ---------- */
   .section-title{ font-family: Georgia, serif; font-size: 15px; color: var(--slate); text-transform: uppercase; letter-spacing: 0.1em; margin: 26px 0 12px; }
   .days{ display:flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: thin; }
@@ -187,6 +208,10 @@
     .grid{ grid-template-columns: 1fr 1fr; }
   }
 </style>
+<!-- Leaflet: free, keyless map tiles for the Map tab's sun-direction view.
+     Loaded synchronously so `L` is guaranteed defined before renderMap() runs. -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -233,7 +258,8 @@ let state = {
   hourly: null,
   activeDay: 0,
   mode: "morning", // or "evening"
-  view: "today", // or "outlook" — which top-level screen is showing
+  view: "today", // or "outlook" / "map" — which top-level screen is showing
+  mapSliderPct: null, // 0–1 position between sunrise and sunset on the Map tab; null = not yet set for this day
   sample: { morning: null, evening: null }, // sun-path cloud readings
   stale: null // set when showing a cached forecast we couldn't refresh
 };
@@ -755,7 +781,11 @@ function solarPosition(date){
   return { decl, eqTime, lambda };
 }
 
-function solarAzimuth(date, lat, lon){
+// Sun's position in the sky (altitude + azimuth) for a given instant, using
+// the same low-precision NOAA/Meeus approach as solarPosition() above. Shared
+// by solarAzimuth() (existing call sites) and the Map tab's altitude readout,
+// so the hour-angle/zenith math lives in exactly one place.
+function solarHorizontal(date, lat, lon){
   const { decl, eqTime } = solarPosition(date);
 
   // Note: this assumes the browser's timezone matches the forecast location's
@@ -776,7 +806,11 @@ function solarAzimuth(date, lat, lon){
   if (hourAngle > 0) az = (dacosc(cosAz) + 180) % 360;
   else az = (540 - dacosc(cosAz)) % 360;
 
-  return az;
+  return { alt: 90 - zenith, az };
+}
+
+function solarAzimuth(date, lat, lon){
+  return solarHorizontal(date, lat, lon).az;
 }
 
 function compassDir(deg){
@@ -1096,9 +1130,16 @@ function render(){
   const tabsHtml = `<div class="view-tabs">
     <button class="view-tab ${state.view==='today'?'active':''}" data-view="today">Today</button>
     <button class="view-tab ${state.view==='outlook'?'active':''}" data-view="outlook">Outlook</button>
+    <button class="view-tab ${state.view==='map'?'active':''}" data-view="map">Map</button>
   </div>`;
+  // The Leaflet instance is tied to a DOM node that app.innerHTML is about to
+  // replace or discard, so tear it down whenever we're not rendering the Map
+  // tab — otherwise Leaflet keeps handles to elements that no longer exist.
+  if(state.view !== "map") destroySunMap();
   if(state.view === "outlook"){
     renderOutlook(app, tabsHtml);
+  } else if(state.view === "map"){
+    renderMap(app, tabsHtml);
   } else {
     renderToday(app, tabsHtml);
   }
@@ -1311,6 +1352,118 @@ function renderOutlook(app, tabsHtml){
     state.view = "today";
     render();
   }));
+}
+
+/* ---------- Map (sun direction) ----------
+   A free, keyless alternative to a native MapKit sun-direction view: an
+   OpenStreetMap tile layer (via Leaflet) centered on the forecast location,
+   with a compass overlay whose line points along the sun's azimuth at a
+   time chosen by the slider. Altitude/azimuth come from solarHorizontal()
+   above — same solar math the rest of the app already relies on, just
+   evaluated at an arbitrary time-of-day instead of only at sunrise/sunset. */
+let sunMapInstance = null;
+
+function destroySunMap(){
+  if(sunMapInstance){ sunMapInstance.remove(); sunMapInstance = null; }
+}
+
+// Draws the compass ring + sun-direction line into the overlay SVG. Standalone
+// so both the initial render and every slider "input" event can call it
+// without re-running the rest of renderMap()'s DOM setup.
+function drawCompass(azDeg){
+  const svg = $("mapCompass");
+  if(!svg) return;
+  const cx = 50, cy = 50, r = 42;
+  const rad = azDeg * Math.PI / 180;
+  const x2 = cx + r * Math.sin(rad);
+  const y2 = cy - r * Math.cos(rad);
+  const dirLabels = [["N", 0], ["E", 90], ["S", 180], ["W", 270]].map(([txt, deg]) => {
+    const dr = deg * Math.PI / 180;
+    const lx = cx + (r + 8) * Math.sin(dr);
+    const ly = cy - (r + 8) * Math.cos(dr) + 2.5;
+    return `<text x="${lx}" y="${ly}" font-size="7" fill="#F5E6D3" text-anchor="middle" font-family="'IBM Plex Mono', monospace">${txt}</text>`;
+  }).join("");
+  svg.innerHTML = `
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="rgba(245,230,211,0.35)" stroke-width="1"/>
+    <line x1="${cx}" y1="${cy}" x2="${x2.toFixed(2)}" y2="${y2.toFixed(2)}" stroke="#FF6B35" stroke-width="2.5" stroke-linecap="round"/>
+    <circle cx="${cx}" cy="${cy}" r="3" fill="#F5E6D3"/>
+    ${dirLabels}`;
+}
+
+function renderMap(app, tabsHtml){
+  const { daily, loc, activeDay } = state;
+  const sunrise = new Date(daily.sunrise[activeDay]);
+  const sunset = new Date(daily.sunset[activeDay]);
+  const dayLabel = activeDay === 0 ? "Today"
+    : parseLocalDate(daily.time[activeDay]).toLocaleDateString([], { weekday: "long", month: "short", day: "numeric" });
+
+  // Slider spans the daylight window for the active day. Defaults to whichever
+  // event the person was last looking at on the Today tab (sunrise vs sunset),
+  // so switching to Map picks up where they left off rather than always
+  // starting at sunrise.
+  const spanMin = (sunset - sunrise) / 60000;
+  if(state.mapSliderPct == null){
+    state.mapSliderPct = state.mode === "evening" ? 1 : 0;
+  }
+  const curTime = new Date(sunrise.getTime() + state.mapSliderPct * spanMin * 60000);
+  const { alt, az } = solarHorizontal(curTime, loc.lat, loc.lon);
+
+  let html = tabsHtml;
+  html += `<div class="map-nav">
+    <button id="mapPrevDay" ${activeDay === 0 ? "disabled" : ""}>‹</button>
+    <div class="map-date">${dayLabel}</div>
+    <button id="mapNextDay" ${activeDay >= daily.time.length - 1 ? "disabled" : ""}>›</button>
+  </div>`;
+  html += `<div class="map-wrap"><div id="sunMap"></div><svg class="map-compass" id="mapCompass" viewBox="0 0 100 100"></svg></div>`;
+  html += `<div class="map-slider-row">
+    <span class="map-slider-icon">🌅</span>
+    <input type="range" id="mapSlider" min="0" max="100" step="1" value="${Math.round(state.mapSliderPct * 100)}">
+    <span class="map-slider-icon">🌇</span>
+  </div>`;
+  html += `<div class="map-readout">
+    <div class="card"><div class="label">Time</div><div class="value" id="mapTimeVal">${fmt(curTime)}</div></div>
+    <div class="card"><div class="label">Azimuth</div><div class="value" id="mapAzVal">${Math.round(az)}° ${compassDir(az)}</div></div>
+    <div class="card"><div class="label">Altitude</div><div class="value" id="mapAltVal">${alt.toFixed(1)}°</div></div>
+  </div>`;
+  html += `<div class="map-note">Drag the slider to see which direction the sun sits at any point between sunrise and sunset. The line points along the sun's compass bearing — it doesn't account for hills, trees, or buildings that might block the actual horizon from where you're standing.</div>`;
+
+  app.innerHTML = html;
+
+  destroySunMap();
+  const mapEl = $("sunMap");
+  if(mapEl && typeof L !== "undefined"){
+    sunMapInstance = L.map(mapEl, { attributionControl: true }).setView([loc.lat, loc.lon], 14);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(sunMapInstance);
+    L.circleMarker([loc.lat, loc.lon], { radius: 6, color: "#F2B84B", weight: 2, fillColor: "#F2B84B", fillOpacity: 1 }).addTo(sunMapInstance);
+  } else if(mapEl){
+    // Leaflet failed to load (blocked script, offline, ad blocker) — degrade
+    // to just the compass, rather than an empty box with no explanation.
+    mapEl.innerHTML = '<div class="loading" style="padding-top:40%;">Map tiles unavailable — the compass below still works.</div>';
+  }
+  drawCompass(az);
+
+  const slider = $("mapSlider");
+  if(slider){
+    slider.addEventListener("input", () => {
+      state.mapSliderPct = slider.value / 100;
+      const t = new Date(sunrise.getTime() + state.mapSliderPct * spanMin * 60000);
+      const pos = solarHorizontal(t, loc.lat, loc.lon);
+      $("mapTimeVal").textContent = fmt(t);
+      $("mapAzVal").textContent = `${Math.round(pos.az)}° ${compassDir(pos.az)}`;
+      $("mapAltVal").textContent = `${pos.alt.toFixed(1)}°`;
+      drawCompass(pos.az);
+    });
+  }
+  const prevBtn = $("mapPrevDay"), nextBtn = $("mapNextDay");
+  if(prevBtn) prevBtn.addEventListener("click", () => {
+    if(state.activeDay > 0){ state.activeDay--; state.mapSliderPct = null; render(); }
+  });
+  if(nextBtn) nextBtn.addEventListener("click", () => {
+    if(state.activeDay < daily.time.length - 1){ state.activeDay++; state.mapSliderPct = null; render(); }
+  });
 }
 
 function var2color(val, ref, sweetOrMax, inverse){
