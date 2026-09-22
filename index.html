@@ -13,6 +13,12 @@
 <meta name="twitter:title" content="Afterglow — Sky Forecast">
 <meta name="twitter:description" content="Sunrise and sunset color-quality forecasts for photographers and pilots.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%231B1F3B%22/><circle cx=%2250%22 cy=%2265%22 r=%2226%22 fill=%22%23F2B84B%22/></svg>">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#1B1F3B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Afterglow">
 <style>
   @font-face {
     font-family: 'Fraunces';
@@ -1744,6 +1750,17 @@ function initLocation(){
   );
 }
 initLocation();
+</script>
+<script>
+  // Register the service worker for offline support / installability.
+  // Silently no-ops in browsers without support — never blocks normal use.
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("sw.js").catch((err) => {
+        console.warn("Afterglow: service worker registration failed:", err);
+      });
+    });
+  }
 </script>
 </body>
 </html>
