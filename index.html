@@ -215,6 +215,33 @@
     background:none; border: none; color: var(--slate); font-size: 13px; cursor: pointer; padding: 6px;
   }
   .modal-actions button.gps{ color: var(--gold); }
+  .header-actions{ display:flex; align-items:center; gap: 8px; }
+  #notifBtn{
+    background: transparent; border: 1px solid var(--line); border-radius: 10px;
+    color: var(--sand); font-size: 16px; padding: 6px 10px; cursor: pointer; line-height: 1;
+  }
+  #notifBtn:hover{ color: var(--gold); border-color: var(--slate); }
+  #notifBtn.active{ border-color: var(--gold); color: var(--gold); }
+  .notif-row{ display:flex; align-items:center; justify-content:space-between; padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .notif-row:last-of-type{ border-bottom: none; }
+  .notif-row label{ font-size: 14px; }
+  .notif-row select{
+    background: var(--ink); color: var(--sand); border: 1px solid var(--line);
+    border-radius: 8px; padding: 6px 8px; font-size: 14px;
+  }
+  .notif-status{ font-size: 13px; color: var(--slate); margin-top: 12px; min-height: 18px; }
+  .switch{ position: relative; display: inline-block; width: 42px; height: 24px; flex-shrink: 0; }
+  .switch input{ opacity: 0; width: 0; height: 0; }
+  .switch-track{
+    position: absolute; inset: 0; background: var(--line); border-radius: 999px;
+    transition: background 0.15s; cursor: pointer;
+  }
+  .switch-track::before{
+    content: ""; position: absolute; width: 18px; height: 18px; left: 3px; top: 3px;
+    background: var(--sand); border-radius: 50%; transition: transform 0.15s;
+  }
+  .switch input:checked + .switch-track{ background: var(--gold); }
+  .switch input:checked + .switch-track::before{ transform: translateX(18px); background: var(--ink-2); }
 
   @media (max-width: 420px){
     .score-num{ font-size: 54px; }
@@ -231,7 +258,10 @@
 
   <header>
     <div class="brand">After<em>glow</em></div>
-    <button id="locBtn">···</button>
+    <div class="header-actions">
+      <button id="notifBtn" title="Notifications" aria-label="Notifications">🔔</button>
+      <button id="locBtn">···</button>
+    </div>
   </header>
 
   <div id="app"><div class="loading">Reading the sky…</div></div>
@@ -250,6 +280,40 @@
       <button class="gps" id="useGps">Use current location</button>
       <button id="closeModal">Cancel</button>
     </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="notifBackdrop">
+  <div class="modal">
+    <h3>Notifications</h3>
+    <div class="notif-row">
+      <label for="notifSunrise">Alert before sunrise</label>
+      <span class="switch">
+        <input type="checkbox" id="notifSunrise">
+        <span class="switch-track"></span>
+      </span>
+    </div>
+    <div class="notif-row">
+      <label for="notifSunset">Alert before sunset</label>
+      <span class="switch">
+        <input type="checkbox" id="notifSunset">
+        <span class="switch-track"></span>
+      </span>
+    </div>
+    <div class="notif-row">
+      <label for="notifMinutes">How far ahead</label>
+      <select id="notifMinutes">
+        <option value="15">15 minutes</option>
+        <option value="30">30 minutes</option>
+        <option value="60" selected>1 hour</option>
+        <option value="90">90 minutes</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="gps" id="notifSave">Save</button>
+      <button id="closeNotifModal">Close</button>
+    </div>
+    <div class="notif-status" id="notifStatus"></div>
   </div>
 </div>
 
@@ -1686,6 +1750,165 @@ const backdrop = $("modalBackdrop");
 $("locBtn").addEventListener("click", () => { backdrop.classList.add("open"); $("locInput").focus(); });
 $("closeModal").addEventListener("click", () => backdrop.classList.remove("open"));
 backdrop.addEventListener("click", (e) => { if(e.target === backdrop) backdrop.classList.remove("open"); });
+
+/* ---------- Push notifications ---------- */
+// This is the VAPID *public* key only — safe to embed in client code by design.
+// The matching private key lives only in the Cloudflare Worker's environment.
+const VAPID_PUBLIC_KEY = "BHxu1_fnBDbRAf7OTVY74Wec1YQ6BnvGtuET7p23LBEW8b6NhE3YTsF23vrg2m1c9D3lyizR8BhtiEj2O1GiBMc";
+
+// Fill this in once the Worker is deployed (Cloudflare gives you a
+// *.workers.dev URL, or your own custom domain if you set one up).
+const PUSH_WORKER_URL = "https://afterglow-push.fisherofmen58.workers.dev";
+
+const NOTIF_PREFS_KEY = "afterglow_notif_prefs";
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const raw = atob(base64);
+  const arr = new Uint8Array(raw.length);
+  for (let i = 0; i < raw.length; i++) arr[i] = raw.charCodeAt(i);
+  return arr;
+}
+
+function loadNotifPrefs() {
+  try {
+    return JSON.parse(localStorage.getItem(NOTIF_PREFS_KEY)) || { sunrise: false, sunset: false, minutesBefore: 60 };
+  } catch {
+    return { sunrise: false, sunset: false, minutesBefore: 60 };
+  }
+}
+function saveNotifPrefs(prefs) {
+  localStorage.setItem(NOTIF_PREFS_KEY, JSON.stringify(prefs));
+}
+
+function isStandalone() {
+  return window.navigator.standalone === true || window.matchMedia("(display-mode: standalone)").matches;
+}
+
+function setNotifStatus(msg) {
+  const el = $("notifStatus");
+  if (el) el.textContent = msg;
+}
+
+function updateNotifButtonIndicator() {
+  const prefs = loadNotifPrefs();
+  const btn = $("notifBtn");
+  if (btn) btn.classList.toggle("active", !!(prefs.sunrise || prefs.sunset));
+}
+
+async function getPushSubscription() {
+  if (!("serviceWorker" in navigator) || !("PushManager" in window)) return null;
+  const reg = await navigator.serviceWorker.ready;
+  return reg.pushManager.getSubscription();
+}
+
+async function subscribeToPush(prefs) {
+  if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+    setNotifStatus("Push notifications aren't supported in this browser.");
+    return false;
+  }
+  if (!isStandalone()) {
+    setNotifStatus("Add Afterglow to your Home Screen first, then open it from there to enable notifications.");
+    return false;
+  }
+  if (PUSH_WORKER_URL.includes("REPLACE-WITH-YOUR-WORKER-URL")) {
+    setNotifStatus("Notifications aren't set up yet — the app needs a Worker URL configured.");
+    return false;
+  }
+
+  const permission = await Notification.requestPermission();
+  if (permission !== "granted") {
+    setNotifStatus("Notification permission was not granted.");
+    return false;
+  }
+
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    let sub = await reg.pushManager.getSubscription();
+    if (!sub) {
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+      });
+    }
+
+    const res = await fetch(`${PUSH_WORKER_URL}/subscribe`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        subscription: sub.toJSON(),
+        lat: state.loc.lat,
+        lon: state.loc.lon,
+        notify: { sunrise: prefs.sunrise, sunset: prefs.sunset },
+        minutesBefore: prefs.minutesBefore,
+      }),
+    });
+
+    if (!res.ok) throw new Error("Worker responded with " + res.status);
+    setNotifStatus("Notifications enabled.");
+    return true;
+  } catch (err) {
+    console.error("Afterglow: push subscribe failed:", err);
+    setNotifStatus("Something went wrong enabling notifications. Try again.");
+    return false;
+  }
+}
+
+async function unsubscribeFromPush() {
+  try {
+    const sub = await getPushSubscription();
+    if (sub) {
+      if (!PUSH_WORKER_URL.includes("REPLACE-WITH-YOUR-WORKER-URL")) {
+        await fetch(`${PUSH_WORKER_URL}/unsubscribe`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ endpoint: sub.endpoint }),
+        }).catch(() => {}); // best-effort — local unsubscribe still proceeds
+      }
+      await sub.unsubscribe();
+    }
+  } catch (err) {
+    console.error("Afterglow: push unsubscribe failed:", err);
+  }
+}
+
+const notifBackdrop = $("notifBackdrop");
+$("notifBtn").addEventListener("click", () => {
+  const prefs = loadNotifPrefs();
+  $("notifSunrise").checked = !!prefs.sunrise;
+  $("notifSunset").checked = !!prefs.sunset;
+  $("notifMinutes").value = String(prefs.minutesBefore || 60);
+  setNotifStatus("");
+  notifBackdrop.classList.add("open");
+});
+$("closeNotifModal").addEventListener("click", () => notifBackdrop.classList.remove("open"));
+notifBackdrop.addEventListener("click", (e) => { if (e.target === notifBackdrop) notifBackdrop.classList.remove("open"); });
+
+$("notifSave").addEventListener("click", async () => {
+  const prefs = {
+    sunrise: $("notifSunrise").checked,
+    sunset: $("notifSunset").checked,
+    minutesBefore: parseInt($("notifMinutes").value, 10),
+  };
+
+  if (!prefs.sunrise && !prefs.sunset) {
+    // Nothing selected — treat as "turn notifications off".
+    setNotifStatus("Turning off notifications…");
+    await unsubscribeFromPush();
+    saveNotifPrefs(prefs);
+    updateNotifButtonIndicator();
+    setNotifStatus("Notifications turned off.");
+    return;
+  }
+
+  setNotifStatus("Enabling notifications…");
+  const ok = await subscribeToPush(prefs);
+  if (ok) saveNotifPrefs(prefs);
+  updateNotifButtonIndicator();
+});
+
+updateNotifButtonIndicator();
 
 let searchTimeout;
 $("locInput").addEventListener("input", (e) => {
