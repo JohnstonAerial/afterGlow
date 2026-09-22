@@ -301,6 +301,20 @@
       </span>
     </div>
     <div class="notif-row">
+      <label for="notifGoldenMorning">Alert before morning golden hour</label>
+      <span class="switch">
+        <input type="checkbox" id="notifGoldenMorning">
+        <span class="switch-track"></span>
+      </span>
+    </div>
+    <div class="notif-row">
+      <label for="notifGoldenEvening">Alert before evening golden hour</label>
+      <span class="switch">
+        <input type="checkbox" id="notifGoldenEvening">
+        <span class="switch-track"></span>
+      </span>
+    </div>
+    <div class="notif-row">
       <label for="notifMinutes">How far ahead</label>
       <select id="notifMinutes">
         <option value="15">15 minutes</option>
@@ -1773,9 +1787,9 @@ function urlBase64ToUint8Array(base64String) {
 
 function loadNotifPrefs() {
   try {
-    return JSON.parse(localStorage.getItem(NOTIF_PREFS_KEY)) || { sunrise: false, sunset: false, minutesBefore: 60 };
+    return JSON.parse(localStorage.getItem(NOTIF_PREFS_KEY)) || { sunrise: false, sunset: false, goldenMorning: false, goldenEvening: false, minutesBefore: 60 };
   } catch {
-    return { sunrise: false, sunset: false, minutesBefore: 60 };
+    return { sunrise: false, sunset: false, goldenMorning: false, goldenEvening: false, minutesBefore: 60 };
   }
 }
 function saveNotifPrefs(prefs) {
@@ -1794,7 +1808,7 @@ function setNotifStatus(msg) {
 function updateNotifButtonIndicator() {
   const prefs = loadNotifPrefs();
   const btn = $("notifBtn");
-  if (btn) btn.classList.toggle("active", !!(prefs.sunrise || prefs.sunset));
+  if (btn) btn.classList.toggle("active", !!(prefs.sunrise || prefs.sunset || prefs.goldenMorning || prefs.goldenEvening));
 }
 
 async function getPushSubscription() {
@@ -1840,7 +1854,7 @@ async function subscribeToPush(prefs) {
         subscription: sub.toJSON(),
         lat: state.loc.lat,
         lon: state.loc.lon,
-        notify: { sunrise: prefs.sunrise, sunset: prefs.sunset },
+        notify: { sunrise: prefs.sunrise, sunset: prefs.sunset, goldenMorning: prefs.goldenMorning, goldenEvening: prefs.goldenEvening },
         minutesBefore: prefs.minutesBefore,
       }),
     });
@@ -1878,6 +1892,8 @@ $("notifBtn").addEventListener("click", () => {
   const prefs = loadNotifPrefs();
   $("notifSunrise").checked = !!prefs.sunrise;
   $("notifSunset").checked = !!prefs.sunset;
+  $("notifGoldenMorning").checked = !!prefs.goldenMorning;
+  $("notifGoldenEvening").checked = !!prefs.goldenEvening;
   $("notifMinutes").value = String(prefs.minutesBefore || 60);
   setNotifStatus("");
   notifBackdrop.classList.add("open");
@@ -1889,10 +1905,12 @@ $("notifSave").addEventListener("click", async () => {
   const prefs = {
     sunrise: $("notifSunrise").checked,
     sunset: $("notifSunset").checked,
+    goldenMorning: $("notifGoldenMorning").checked,
+    goldenEvening: $("notifGoldenEvening").checked,
     minutesBefore: parseInt($("notifMinutes").value, 10),
   };
 
-  if (!prefs.sunrise && !prefs.sunset) {
+  if (!prefs.sunrise && !prefs.sunset && !prefs.goldenMorning && !prefs.goldenEvening) {
     // Nothing selected — treat as "turn notifications off".
     setNotifStatus("Turning off notifications…");
     await unsubscribeFromPush();
