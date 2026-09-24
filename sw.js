@@ -7,7 +7,7 @@
 //   - Everything else (this app's own files, Leaflet's CDN assets): cache-first,
 //     since those don't go stale in a way that matters day-to-day.
 
-const CACHE_NAME = "afterglow-v1";
+const CACHE_NAME = "afterglow-v3";
 
 // Bump this string (v1 -> v2, etc.) any time index.html, manifest.json, or the
 // icons change, so returning visitors get the new version instead of a cached
@@ -51,6 +51,49 @@ self.addEventListener("activate", (event) => {
     )
   );
   self.clients.claim();
+});
+
+self.addEventListener("push", (event) => {
+  // Unconditional — logs regardless of whether there's a payload, so an
+  // empty/no-payload push still proves the event actually fired. Without
+  // this, silence in the console is ambiguous: it could mean the push never
+  // arrived, or it arrived fine and there was just nothing to log about it.
+  console.log("Afterglow SW: push event received.", event.data ? "Has data." : "No data (empty push).");
+
+  let data = { title: "Afterglow", body: "Check the sky." };
+  try {
+    if (event.data) data = event.data.json();
+  } catch (err) {
+    console.warn("Afterglow SW: push payload wasn't JSON, using default text. Raw text:", event.data ? event.data.text() : "(none)");
+  }
+
+  const title = data.title || "Afterglow";
+  const options = {
+    body: data.body || "",
+    icon: "icon-192.png",
+    badge: "icon-192.png",
+    tag: data.tag || "afterglow-notification",
+    // Replacing by tag (rather than stacking) keeps a missed sunrise alert
+    // from lingering alongside a newer sunset alert.
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(title, options)
+      .then(() => console.log("Afterglow SW: showNotification resolved OK."))
+      .catch((err) => console.error("Afterglow SW: showNotification FAILED:", err))
+  );
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
+      for (const client of clientList) {
+        if ("focus" in client) return client.focus();
+      }
+      if (self.clients.openWindow) return self.clients.openWindow("./index.html");
+    })
+  );
 });
 
 self.addEventListener("fetch", (event) => {
