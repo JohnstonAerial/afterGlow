@@ -32,6 +32,12 @@ Single-file HTML/CSS/JS front end, no build step. Notification backend is a stan
 
 Actively used and evolving. Scoring constants (cloud sweet-spot ranges, murk-penalty thresholds, sampling distance) are being refined against real shoot outcomes over time.
 
+## Support this project
+
+Afterglow is free. If it's saved you time, or helped you catch an epic sunset, sunrise, or moon shot you'd have otherwise missed, you can [buy me a coffee ☕](https://buymeacoffee.com/JohnstonAerial). It helps cover the time I put into keeping it accurate.
+
+Thank you, and good light.
+— Jim, Johnston Aerial
 ---
 
 Built by [Johnston Aerial](https://johnstonaerial.com).
