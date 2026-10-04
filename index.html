@@ -1,3 +1,4 @@
+<!-- Afterglow v1.0 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -51,8 +52,9 @@
 
   /* ---------- Header ---------- */
   header{ display:flex; align-items:baseline; justify-content:space-between; gap: 12px; margin-bottom: 22px; }
-  .brand{ font-family: Georgia, 'Times New Roman', serif; font-size: 22px; letter-spacing: 0.02em; font-weight: 600; }
+  .brand{ font-family: Georgia, 'Times New Roman', serif; font-size: 22px; letter-spacing: 0.02em; font-weight: 600; line-height: 1.1; }
   .brand em{ font-style: italic; color: var(--gold); font-weight: 500;}
+  .brand .version{ display:block; font-family:'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.04em; font-weight: 400; color: var(--slate-dim); margin-top: 2px; }
   #locBtn{
     background: none; border: 1px solid var(--line); color: var(--slate);
     font-size: 12px; padding: 7px 12px; border-radius: 20px; cursor: pointer;
@@ -257,7 +259,7 @@
 <div class="wrap">
 
   <header>
-    <div class="brand">After<em>glow</em></div>
+    <div class="brand">After<em>glow</em><span class="version">v1.0</span></div>
     <div class="header-actions">
       <button id="notifBtn" title="Notifications" aria-label="Notifications">🔔</button>
       <button id="locBtn">···</button>
