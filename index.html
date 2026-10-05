@@ -1,4 +1,4 @@
-<!-- Afterglow v1.0 -->
+<!-- Afterglow v1.1b -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -259,7 +259,7 @@
 <div class="wrap">
 
   <header>
-    <div class="brand">After<em>glow</em><span class="version">v1.0</span></div>
+    <div class="brand">After<em>glow</em><span class="version">v1.1b</span></div>
     <div class="header-actions">
       <button id="notifBtn" title="Notifications" aria-label="Notifications">🔔</button>
       <button id="locBtn">···</button>
@@ -1327,8 +1327,10 @@ function renderToday(app, tabsHtml){
     <button class="toggle-btn ${mode==='evening'?'active':''}" data-mode="evening">Sunset</button>
   </div>`;
 
+  const outlookStart = 7;
+
   html += `<div class="section-title">Next 7 days</div><div class="days">`;
-  daily.time.forEach((t, i) => {
+  daily.time.slice(0, outlookStart).forEach((t, i) => {
     const evt = mode === "evening" ? daily.sunset[i] : daily.sunrise[i];
     const j = nearestHourIdx(hourly.time, evt);
     const ds = scoreEvent(hourly, j, sampleAt(state.sample[mode], evt));
@@ -1340,25 +1342,6 @@ function renderToday(app, tabsHtml){
     </div>`;
   });
   html += `</div>`;
-
-  const outlookStart = 7;
-  if(daily.time.length > outlookStart){
-    html += `<div class="section-title">Outlook</div><div class="days">`;
-    daily.time.slice(outlookStart).forEach((t, k) => {
-      const i = outlookStart + k;
-      const evt = mode === "evening" ? daily.sunset[i] : daily.sunrise[i];
-      const j = nearestHourIdx(hourly.time, evt);
-      const ds = scoreEvent(hourly, j, sampleAt(state.sample[mode], evt));
-      const dow = parseLocalDate(t).toLocaleDateString([], { weekday: "short" });
-      html += `<div class="day-card outlook ${i===activeDay?'active':''}" data-day="${i}">
-        <div class="dow">${dow}</div>
-        <div class="swatch" style="background:${ds ? swatchGradient(ds, mode) : '#2a3040'}"></div>
-        <div class="num">${ds ? ds.score : "–"}</div>
-      </div>`;
-    });
-    html += `</div>`;
-    html += `<div class="outlook-note">Forecasts this far out lean on modeled cloud layers rather than near-term observation — treat these as a rough read, not a plan.</div>`;
-  }
 
   html += `<div class="section-title">Sky breakdown</div>`;
   html += `<div class="grid">
@@ -1373,12 +1356,12 @@ function renderToday(app, tabsHtml){
       : statCard("Humidity", s.hum, "%", "Fallback haze proxy — visibility unavailable", var2color(s.hum, 100, 80, true))}
   </div>`;
 
+  html += `<div class="why"><b>How this is scored</b> — Afterglow weighs high-altitude cloud cover (the layer that catches direct light and turns pink/orange), low and mid cloud (which physically block the view of the horizon or the light source), and humidity (haze mutes saturation even on an otherwise clear evening). It's a heuristic, not a guarantee — always worth a look outside 20 minutes before showtime.</div>`;
+
   const moon = computeMoonInfo(parseLocalDate(daily.time[activeDay]), loc.lat, loc.lon, sunrise, sunset);
   const timelapse = scanTimelapseWindow(parseLocalDate(daily.time[activeDay]), loc.lat, loc.lon, hourly);
   html += `<div class="section-title">Moon</div>`;
   html += `<div class="grid">${moonCardHTML(moon)}${timelapseCardHTML(timelapse)}</div>`;
-
-  html += `<div class="why"><b>How this is scored</b> — Afterglow weighs high-altitude cloud cover (the layer that catches direct light and turns pink/orange), low and mid cloud (which physically block the view of the horizon or the light source), and humidity (haze mutes saturation even on an otherwise clear evening). It's a heuristic, not a guarantee — always worth a look outside 20 minutes before showtime.</div>`;
 
   app.innerHTML = html;
 
@@ -1424,16 +1407,13 @@ function renderOutlook(app, tabsHtml){
   const { daily, hourly, activeDay } = state;
   let html = tabsHtml;
 
-  daily.time.forEach((t, i) => {
+  daily.time.slice(0, 7).forEach((t, i) => {
     const dow = i === 0 ? "Today" : parseLocalDate(t).toLocaleDateString([], { weekday: "long" });
     html += `<div class="agenda-day${i===0?' first':''}">${dow}</div>`;
     html += `<div class="grid">
       ${agendaCardHTML(i, "morning", daily, hourly)}
       ${agendaCardHTML(i, "evening", daily, hourly)}
     </div>`;
-    if(i === 6 && daily.time.length > 7){
-      html += `<div class="outlook-note">Days below lean on modeled cloud layers rather than near-term observation — treat these as a rough read, not a plan.</div>`;
-    }
   });
 
   app.innerHTML = html;
