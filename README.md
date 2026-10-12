@@ -13,7 +13,7 @@ Afterglow predicts how good a sunrise or sunset is actually going to look — no
 - **Sky quality scoring** — a heuristic model based on published sunset-photography guidance: mid/high cloud in the right range catches color, low cloud blocks it, haze flattens it. Scores are checked against real shoots and still being refined. Like any forecast, it can miss, especially on high cloud.
 - **Golden & blue hour, precisely** — computed from actual solar angle (civil twilight math), not flat clock-time offsets. Nautical and astronomical twilight times shown when they fall that day.
 - **7-day outlook** — the next seven sunrises and sunsets, each scored.
-- **Any location** — search by city, state or ZIP, or use your current position, and switch any time with the location button. Your chosen location stays on your device.
+- **Any location** — search by city, state or ZIP, or use your current position, and switch any time with the location button. Your chosen location stays on your device. Opening Afterglow from the [Drone Preflight Checklist](https://checklist.johnstonaerial.com) weather card takes you straight to the flight site you were checking there.
 - **Moon conditions** — phase, illumination, moonrise/moonset with compass headings, and a callout for the "big warm moon on the horizon" alignment window. Includes an hourly timelapse-conditions score.
 - **Interactive sun map** — a free, keyless Leaflet/OpenStreetMap view showing the sun's compass direction and altitude at any point across the day.
 - **Outlook tab** — a day-by-day agenda view of upcoming sunrises and sunsets, color-coded by score. The app has three views: Today, Outlook and Map.

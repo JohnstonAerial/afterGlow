@@ -12,6 +12,8 @@ Tap the location button near the top. You can:
 
 Your choice is saved on your device. Change it any time with the same button.
 
+If you open Afterglow from the **Drone Preflight Checklist** (the AfterGlow link under the golden hour times), it opens at the flight site you were checking there. If you have not picked a place in Afterglow yet, it keeps that one. If you already have, Afterglow shows the flight site for that visit only and your own place stays as it was.
+
 ## 2. Read the Today view
 
 Use the **Sunrise** / **Sunset** toggle to switch between the two. You'll see a score and label, golden and blue hour times, a short plain-language explanation, and moon conditions.
