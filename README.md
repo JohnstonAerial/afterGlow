@@ -49,6 +49,10 @@ Actively used and evolving. Scoring constants (cloud sweet-spot ranges, murk-pen
 
 Afterglow has no accounts and no ads. Your chosen location, recent places and Plan stay on your device, except when you turn on notifications: then that location, your alert choices and your phone's push address are stored so the alerts can be sent, and they're removed when you turn notifications off. The page also uses Cloudflare Web Analytics, a privacy-focused visit counter. It counts visits and rough details like country and device type, with no cookies and no personal information, so I can see whether Afterglow is being used.
 
+## License and security
+
+Afterglow is open source under the [MIT License](LICENSE). To report a security problem, see [SECURITY.md](SECURITY.md).
+
 ## Support this project
 
 Afterglow is free. If it's saved you time, or helped you catch an epic sunset, sunrise, or moon shot you'd have otherwise missed, you can [buy me a coffee ☕](https://buymeacoffee.com/JohnstonAerial). It helps cover the time I put into keeping it accurate.
