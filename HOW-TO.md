@@ -42,7 +42,7 @@ The **Plan** tab works for any date and any place, and it's separate from your s
 2. Pick the date with the arrows or the calendar. The map shows where the Sun and Moon rise and set that day.
 3. Tap the map to drop a pin on what you want to shoot, and give it a name. You'll see its direction and distance, and how the Sun and Moon sit against it: behind it (backlit), to the side, or behind you (front-lit). Drag the pin to move it, or switch **Tap the map to place** to **My spot** to move where you're standing.
 4. Under **Find the dates it lines up**, choose Sun or Moon to see the dates when it rises or sets behind your subject, or lines up with it.
-5. Drag the **Time of day** slider to watch the Sun and Moon move across the sky, or tap Sunrise, Golden hr, Sunset or Moonrise.
+5. Drag the **Time of day** slider to watch the Sun and Moon move across the sky, or tap Sunrise, Golden hr, Sunset or Moonrise. The **Sky view** at the bottom has its own slider that moves together with this one, so you can drag it and watch the Sun and Moon dots on the dial without scrolling back up.
 6. **Sky outlook** scores the sunrise and sunset when the date is within about ten days. Further out, directions and times are still exact, but there is no sky forecast.
 7. **Share this plan** copies a link that reopens the same place, subject, date and time. **Add to calendar** downloads a calendar entry (or use **Google Calendar**), with the light times in the notes. You can change the title and add your own notes first.
 
