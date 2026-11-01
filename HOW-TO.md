@@ -34,6 +34,8 @@ The **Outlook** tab lists the next seven sunrises and sunsets, color-coded by sc
 
 The **Map** tab shows where the sun will be, by compass direction and height, at any point in the day. Use the arrows to change the day and the ⌖ button to re-center on your location. It's handy for choosing where to stand or fly.
 
+On a phone or tablet, one finger scrolls the page even when it starts on the map; use two fingers to move or zoom the map. Tapping the map still drops a pin. On a computer, drag the map with the mouse as usual.
+
 ## 5. Plan a shoot for any date or place
 
 The **Plan** tab works for any date and any place, and it's separate from your saved location, so your alerts stay put.
