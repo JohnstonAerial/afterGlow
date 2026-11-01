@@ -1,4 +1,4 @@
-<!-- Afterglow v1.3.2 -->
+<!-- Afterglow v1.4.0 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -153,6 +153,42 @@
   .map-readout .card{ flex: 1; text-align: center; }
   .map-note{ font-size: 12px; line-height: 1.5; color: var(--slate-dim); }
 
+  /* ---------- Plan tab ---------- */
+  .plan-row{ display:flex; align-items:center; gap:8px; margin-bottom:12px; }
+  .plan-row .grow{ flex:1; min-width:0; }
+  .plan-btn{ background: var(--card); border:1px solid var(--line); color: var(--sand); border-radius: 12px; padding: 9px 12px; font-size: 14px; cursor:pointer; font-family: inherit; }
+  .plan-btn.round{ width:36px; height:36px; padding:0; border-radius:50%; font-size:16px; }
+  .plan-place{ flex:1; min-width:0; text-align:left; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .plan-date{ flex:1; min-width:0; background: var(--card); border:1px solid var(--line); color: var(--sand); border-radius:12px; padding:8px 10px; font-size:15px; font-family: inherit; color-scheme: dark; }
+  .plan-search{ display:flex; gap:8px; margin-bottom:8px; }
+  .plan-search input{ flex:1; min-width:0; background: var(--card); border:1px solid var(--line); color: var(--sand); border-radius:12px; padding:9px 12px; font-size:16px; font-family: inherit; }
+  .plan-res{ display:block; width:100%; text-align:left; margin-bottom:6px; }
+  .plan-msg{ font-size:12.5px; color: var(--slate); margin: 0 0 10px; line-height:1.5; }
+  .plan-lbl{ background:none; border:none; }
+  .plan-lbl span{ position:absolute; transform: translate(-50%,-50%); white-space:nowrap; font-size:11px; font-weight:600; padding:2px 7px; border-radius:999px; background: rgba(20,23,44,0.88); border:1px solid currentColor; }
+  .plan-legend{ display:flex; flex-wrap:wrap; gap:6px 14px; font-size:12px; color: var(--slate); margin: -4px 0 14px; }
+  .plan-legend i{ display:inline-block; width:18px; height:0; border-top:3px solid; vertical-align:middle; margin-right:5px; }
+  .plan-clock{ font: 600 28px Georgia, serif; color: var(--sand); margin: 2px 0 4px; }
+  .plan-range{ -webkit-appearance:none; appearance:none; width:100%; height:38px; background:transparent; margin:4px 0 0; }
+  .plan-range::-webkit-slider-runnable-track{ height:8px; border-radius:4px; background: var(--track); }
+  .plan-range::-moz-range-track{ height:8px; border-radius:4px; background: var(--track); }
+  .plan-range::-webkit-slider-thumb{ -webkit-appearance:none; width:30px; height:30px; border-radius:50%; background: var(--sand); border:3px solid var(--gold); margin-top:-11px; }
+  .plan-range::-moz-range-thumb{ width:24px; height:24px; border-radius:50%; background: var(--sand); border:3px solid var(--gold); }
+  .plan-ticks{ display:flex; justify-content:space-between; font-size:11.5px; color: var(--slate); }
+  .plan-seg{ display:flex; align-items:center; gap:6px; margin: 0 0 10px; flex-wrap:wrap; }
+  .plan-seg-l{ font-size:12.5px; color: var(--slate); margin-right:2px; }
+  .plan-seg-b{ background: var(--card); border:1px solid var(--line); color: var(--slate); border-radius:999px; padding:6px 14px; font-size:13px; cursor:pointer; font-family: inherit; }
+  .plan-seg-b.on{ color: var(--sand); border-color: var(--gold); }
+  .plan-name{ width:100%; background: var(--card); border:1px solid var(--line); color: var(--sand); border-radius:12px; padding:9px 12px; font-size:16px; font-family: inherit; margin-bottom:10px; }
+  .plan-pin{ background:none; border:none; }
+  .plan-row2{ display:flex; justify-content:space-between; gap:12px; padding:8px 0; border-top:1px solid var(--line); font-size:13.5px; line-height:1.4; }
+  .plan-row2:first-of-type{ border-top:0; }
+  .plan-row2 b{ font-weight:600; text-align:right; }
+  .plan-good{ color:#7bd88f; } .plan-warn{ color: var(--gold); }
+  .plan-dial{ width:100%; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:12px; }
+  .plan-dial{ width:100%; max-width:340px; display:block; margin: 0 auto 6px; }
+  .plan-dial text{ font-family: 'IBM Plex Mono', monospace; }
+
   /* ---------- 7-day strip ---------- */
   .section-title{ font-family: Georgia, serif; font-size: 15px; color: var(--slate); text-transform: uppercase; letter-spacing: 0.1em; margin: 26px 0 12px; }
   .days{ display:flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: thin; }
@@ -273,7 +309,7 @@
 
   <header>
     <div class="hdr-top">
-    <div class="brand">After<em>glow</em><span class="version">v1.3.2</span></div>
+    <div class="brand">After<em>glow</em><span class="version">v1.4.0</span></div>
     <div class="header-actions">
       <a class="hdr-coffee" href="https://buymeacoffee.com/JohnstonAerial" target="_blank" rel="noopener" aria-label="Buy me a coffee (opens in a new tab)">☕ Buy me a coffee</a>
       <a class="hdr-help" href="https://github.com/JohnstonAerial/afterGlow#readme" target="_blank" rel="noopener" aria-label="Help and about (opens the README in a new tab)" title="Help &amp; about">ⓘ About</a>
@@ -294,7 +330,7 @@
 <div class="modal-backdrop" id="modalBackdrop">
   <div class="modal">
     <h3>Change location</h3>
-    <input type="text" id="locInput" placeholder="City, state, or ZIP" autocomplete="off">
+    <input type="text" id="locInput" placeholder="City, state, ZIP, or lat, lon" autocomplete="off">
     <div class="modal-results" id="locResults"></div>
     <div class="modal-actions">
       <button class="gps" id="useGps">Use current location</button>
@@ -647,6 +683,24 @@ function loadLoc(){
 function saveLoc(loc){
   state.loc = loc;
   localStorage.setItem("afterglow_loc", JSON.stringify(loc));
+  addRecent(loc);
+}
+// Recent places, newest first, shared by the Change-location box and the Plan tab.
+const RECENT_KEY = "afterglow_recent", RECENT_MAX = 6;
+function loadRecents(){
+  try{ const a = JSON.parse(localStorage.getItem(RECENT_KEY)); if(Array.isArray(a)) return a.filter(x => x && isFinite(x.lat) && isFinite(x.lon) && x.name); }catch(e){}
+  return [];
+}
+function addRecent(loc){
+  if(!loc || !isFinite(loc.lat) || !isFinite(loc.lon) || !loc.name || loc.name === "Current location") return;
+  try{
+    const keep = loadRecents().filter(x => Math.abs(x.lat - loc.lat) > 0.002 || Math.abs(x.lon - loc.lon) > 0.002);
+    keep.unshift({ name: String(loc.name).slice(0, 80), lat: loc.lat, lon: loc.lon, tz: loc.tz || null });
+    localStorage.setItem(RECENT_KEY, JSON.stringify(keep.slice(0, RECENT_MAX)));
+  }catch(e){}
+}
+function recentsFor(exceptLoc){
+  return loadRecents().filter(x => !exceptLoc || Math.abs(x.lat - exceptLoc.lat) > 0.002 || Math.abs(x.lon - exceptLoc.lon) > 0.002);
 }
 
 // Open-Meteo occasionally stalls on the 700hPa pressure-level field while serving
@@ -837,6 +891,20 @@ async function fetchForecast(loc){
   return data;
 }
 
+// Coordinates as Google Maps copies them ("35.7672209, -78.6630545"), with or without
+// brackets, degree signs or N/S/E/W letters. Returns {lat, lon}, or null if it isn't a pair
+// of coordinates in range.
+function parseLatLon(q){
+  const t = String(q).replace(/[()\[\]°]/g, " ").replace(/\s+/g, " ").trim();
+  const m = t.match(/^(-?\d+(?:\.\d+)?)\s*([NS])?\s*[, ]\s*(-?\d+(?:\.\d+)?)\s*([EW])?$/i);
+  if(!m) return null;
+  let lat = parseFloat(m[1]), lon = parseFloat(m[3]);
+  if(m[2] && m[2].toUpperCase() === "S") lat = -Math.abs(lat);
+  if(m[4] && m[4].toUpperCase() === "W") lon = -Math.abs(lon);
+  if(!isFinite(lat) || !isFinite(lon) || Math.abs(lat) > 90 || Math.abs(lon) > 180) return null;
+  return { lat: lat, lon: lon };
+}
+function looksLikeCoords(q){ return /^[\s\d.,()\[\]°\-NSEWnsew]+$/.test(q) && (String(q).match(/\d+/g) || []).length >= 2; }
 async function geocode(query){
   const params = new URLSearchParams({ name: query, count: 6, language: "en", format: "json" });
   const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?${params}`);
@@ -1490,21 +1558,25 @@ function render(){
     <button class="view-tab ${state.view==='today'?'active':''}" data-view="today">Today</button>
     <button class="view-tab ${state.view==='outlook'?'active':''}" data-view="outlook">Outlook</button>
     <button class="view-tab ${state.view==='map'?'active':''}" data-view="map">Map</button>
+    <button class="view-tab ${state.view==='plan'?'active':''}" data-view="plan">Plan</button>
   </div>`;
   // The Leaflet instance is tied to a DOM node that app.innerHTML is about to
   // replace or discard, so tear it down whenever we're not rendering the Map
   // tab — otherwise Leaflet keeps handles to elements that no longer exist.
-  if(state.view !== "map") destroySunMap();
+  if(state.view !== "map" && state.view !== "plan") destroySunMap();
   if(state.view === "outlook"){
     renderOutlook(app, tabsHtml);
   } else if(state.view === "map"){
     renderMap(app, tabsHtml);
+  } else if(state.view === "plan"){
+    renderPlan(app, tabsHtml);
   } else {
     renderToday(app, tabsHtml);
   }
   document.querySelectorAll(".view-tab").forEach(b => b.addEventListener("click", () => {
     state.view = b.dataset.view; render();
   }));
+  saveUi();
 }
 
 function renderToday(app, tabsHtml){
@@ -1825,6 +1897,645 @@ function renderMap(app, tabsHtml){
   });
 }
 
+/* ---------- Plan tab (v1.4.0) ----------
+   Sun and Moon directions for ANY date and ANY place, with no weather involved:
+   it is all geometry (Astronomy Engine, already loaded for the Moon card), so it
+   is exact years ahead. The planning place is separate from the saved location,
+   so planning a shoot elsewhere never touches the place your alerts use. Times
+   are shown in the planning place's own time zone, not the phone's. */
+function planZoneOk(tz){ try{ new Intl.DateTimeFormat([], { timeZone: tz }); return !!tz; }catch(e){ return false; } }
+function tzOffsetMs(tz, utcMs){
+  const t = utcMs - (utcMs % 1000);
+  const f = new Intl.DateTimeFormat("en-US", { timeZone: tz, hourCycle: "h23", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  const p = {};
+  f.formatToParts(new Date(t)).forEach(x => { p[x.type] = x.value; });
+  return Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute, +p.second) - t;
+}
+// The instant a calendar day starts in a given time zone (falls back to the phone's zone).
+function zonedMidnight(y, m, d, tz){
+  if(!planZoneOk(tz)) return new Date(y, m - 1, d);
+  const guess = Date.UTC(y, m - 1, d);
+  let t = guess - tzOffsetMs(tz, guess);
+  t = guess - tzOffsetMs(tz, t);
+  return new Date(t);
+}
+function fmtZ(d, tz){
+  const o = { hour: "numeric", minute: "2-digit" };
+  if(planZoneOk(tz)) o.timeZone = tz;
+  return d.toLocaleTimeString([], o);
+}
+function localHM(d, tz){
+  const o = { hourCycle: "h23", hour: "2-digit", minute: "2-digit" };
+  if(planZoneOk(tz)) o.timeZone = tz;
+  const p = {};
+  new Intl.DateTimeFormat("en-US", o).formatToParts(d).forEach(x => { p[x.type] = x.value; });
+  return { h: +p.hour % 24, m: +p.minute };
+}
+function planToday(tz){
+  const o = planZoneOk(tz) ? { timeZone: tz } : {};
+  return new Date().toLocaleDateString("en-CA", o);
+}
+function planShift(str, n){
+  const [y, m, d] = str.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d + n)).toISOString().slice(0, 10);
+}
+function planDateLabel(str){
+  const [y, m, d] = str.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d, 12)).toLocaleDateString([], { weekday: "long", month: "long", day: "numeric", year: "numeric", timeZone: "UTC" });
+}
+function bodyHorizontal(body, date, lat, lon){
+  const obs = new Astronomy.Observer(lat, lon, 0);
+  const eq = Astronomy.Equator(body, date, obs, true, true);
+  const hor = Astronomy.Horizon(date, obs, eq.ra, eq.dec, "normal");
+  return { alt: hor.altitude, az: hor.azimuth };
+}
+function computePlan(p){
+  const { lat, lon, tz } = p.loc;
+  const [y, m, d] = p.date.split("-").map(Number);
+  const t0 = zonedMidnight(y, m, d, tz), t1 = zonedMidnight(y, m, d + 1, tz);
+  const obs = new Astronomy.Observer(lat, lon, 0);
+  const inDay = r => (r && r.date >= t0 && r.date < t1) ? r.date : null;
+  const Sun = Astronomy.Body.Sun;
+  const sr = inDay(Astronomy.SearchRiseSet(Sun, obs, +1, t0, 1));
+  const ss = inDay(Astronomy.SearchRiseSet(Sun, obs, -1, t0, 1));
+  const gMorn = sr ? inDay(Astronomy.SearchAltitude(Sun, obs, +1, t0, 1, 6)) : null;
+  const gEve = ss ? inDay(Astronomy.SearchAltitude(Sun, obs, -1, t0, 1, 6)) : null;
+  let polar = null;
+  if(!sr && !ss){
+    const noon = new Date((t0.getTime() + t1.getTime()) / 2);
+    polar = bodyHorizontal(Sun, noon, lat, lon).alt > 0 ? "up" : "down";
+  }
+  const sun = {
+    rise: sr, riseAz: sr ? bodyHorizontal(Sun, sr, lat, lon).az : null,
+    set: ss, setAz: ss ? bodyHorizontal(Sun, ss, lat, lon).az : null,
+    gMorn, gEve, polar
+  };
+  const moon = computeMoonInfo(t0, lat, lon, (sr || t0).toISOString(), (ss || t0).toISOString());
+  const sunPts = [], moonPts = [];
+  for(let ms = t0.getTime(); ms < t1.getTime(); ms += 10 * 60000){
+    const dt = new Date(ms);
+    sunPts.push({ t: dt, ...bodyHorizontal(Sun, dt, lat, lon) });
+    moonPts.push({ t: dt, ...bodyHorizontal(Astronomy.Body.Moon, dt, lat, lon) });
+  }
+  return { t0, t1, sun, moon, sunPts, moonPts };
+}
+
+// ---- Share link: the whole plan rides inside the address, nothing is stored on a server.
+function planLink(p){
+  const q = new URLSearchParams({ lat: p.loc.lat.toFixed(5), lon: p.loc.lon.toFixed(5), name: p.loc.name, view: "plan", d: p.date });
+  if(p.loc.tz) q.set("tz", p.loc.tz);
+  if(p.min != null && p.t0ms){ const hm = localHM(new Date(p.t0ms + p.min * 60000), p.loc.tz); q.set("t", String(hm.h).padStart(2, "0") + String(hm.m).padStart(2, "0")); }
+  if(p.subject){ q.set("sl", p.subject.lat.toFixed(5)); q.set("so", p.subject.lon.toFixed(5)); q.set("sn", p.subject.name || "Subject"); }
+  return location.origin + location.pathname + "?" + q.toString();
+}
+function planFromLink(){
+  try{
+    const q = new URLSearchParams(location.search);
+    if(q.get("view") !== "plan") return null;
+    const lat = parseFloat(q.get("lat")), lon = parseFloat(q.get("lon"));
+    if(!isFinite(lat) || !isFinite(lon) || Math.abs(lat) > 90 || Math.abs(lon) > 180) return null;
+    const clean = t => String(t || "").replace(/[<>&"'`]/g, "").replace(/\s+/g, " ").trim();
+    const tz = q.get("tz"), d = q.get("d");
+    const plan = { loc: { name: clean(q.get("name")).slice(0, 60) || "Shared place", lat: lat, lon: lon, tz: (tz && planZoneOk(tz)) ? tz : null },
+      date: /^\d{4}-\d{2}-\d{2}$/.test(d || "") ? d : null, searching: false, results: [], msg: "" };
+    const tt = q.get("t");
+    if(/^\d{4}$/.test(tt || "") && +tt.slice(0, 2) < 24 && +tt.slice(2) < 60) plan.linkMin = +tt.slice(0, 2) * 60 + +tt.slice(2);
+    const sl = parseFloat(q.get("sl")), so = parseFloat(q.get("so"));
+    if(isFinite(sl) && isFinite(so) && Math.abs(sl) <= 90 && Math.abs(so) <= 180) plan.subject = { name: clean(q.get("sn")).slice(0, 40) || "Subject", lat: sl, lon: so };
+    return plan;
+  }catch(e){ return null; }
+}
+// Sky forecast for the planning place. Uses the app's own forecast when the plan is at the saved place.
+async function loadPlanSky(p){
+  const key = p.loc.lat.toFixed(3) + "," + p.loc.lon.toFixed(3);
+  if(p.sky && p.sky.key === key) return;
+  p.sky = { key, loading: true };
+  const near = state.loc && Math.abs(state.loc.lat - p.loc.lat) < 0.02 && Math.abs(state.loc.lon - p.loc.lon) < 0.02;
+  try{
+    if(near && state.daily && state.hourly){
+      p.sky = { key, daily: state.daily, hourly: state.hourly, sample: state.sample };
+    } else {
+      const data = await fetchCore(p.loc);
+      let sample = { morning: null, evening: null };
+      try{ sample = await fetchSunPathSamples(p.loc, data.daily); }catch(e){}
+      p.sky = { key, daily: data.daily, hourly: data.hourly, sample };
+    }
+  }catch(e){ p.sky = { key, error: true }; }
+  if(state.view === "plan" && state.plan === p) render();
+}
+function skyCardHtml(p, sun, esc){
+  const sk = p.sky;
+  if(!sk || sk.loading) return `<div class="card" style="margin-bottom:10px;"><div class="label">Sky outlook</div><div class="note">Reading the sky…</div></div>`;
+  if(sk.error) return `<div class="card" style="margin-bottom:10px;"><div class="label">Sky outlook</div><div class="note">The sky forecast didn't load. Directions and times above don't need it.</div></div>`;
+  const i = sk.daily.time.indexOf(p.date);
+  if(i < 0){
+    const last = sk.daily.time[sk.daily.time.length - 1];
+    const msg = p.date < sk.daily.time[0]
+      ? "That date has passed. Pick a later date for a sky forecast."
+      : `Too far out for a sky forecast. It becomes available <b>${planDayLabel(planShift(p.date, -(sk.daily.time.length - 1)))}</b>, about ten days before. Directions and times above are exact now.`;
+    return `<div class="card" style="margin-bottom:10px;"><div class="label">Sky outlook · ${planDayLabel(p.date)}</div><div class="note" style="font-size:13px;">${msg}</div></div>`;
+  }
+  const rows = [];
+  [["evening", "Sunset", sk.daily.sunset[i], sun.set], ["morning", "Sunrise", sk.daily.sunrise[i], sun.rise]].forEach(([mode, name, evt, t]) => {
+    if(!evt) return;
+    const j = nearestHourIdx(sk.hourly.time, evt), sc = scoreEvent(sk.hourly, j, sampleAt(sk.sample && sk.sample[mode], evt));
+    if(!sc) return;
+    rows.push(`<div class="plan-row2"><span>${name}${t ? " " + fmtZ(t, p.loc.tz) : ""}</span><b class="${sc.score >= 44 ? "plan-good" : ""}">${label(sc.score)} · ${sc.score}</b></div>`);
+  });
+  const nearToday = i === 0 ? "" : "";
+  return `<div class="card" style="margin-bottom:10px;"><div class="label">Sky outlook · ${planDayLabel(p.date)} · inside the forecast</div>${rows.join("") || '<div class="note">No sunrise or sunset score for this date.</div>'}<div class="note" style="margin-top:6px;">Same score as Today and Outlook. Forecasts shift, so check again closer to the day.</div></div>`;
+}
+
+// ---- Calendar file (.ics): the shoot window plus the light times, in the event notes.
+function icsEsc(t){ return String(t).replace(/\\/g, "\\\\").replace(/;/g, "\;").replace(/,/g, "\\,").replace(/\r?\n/g, "\\n"); }
+function icsFold(line){
+  const out = []; let cur = "";
+  for(const ch of line){ if(new TextEncoder().encode(cur + ch).length > 73 && !cur.endsWith("\\")){ out.push(cur); cur = " " + ch; } else cur += ch; }
+  out.push(cur); return out.join("\r\n");
+}
+function icsStamp(d){ return d.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, ""); }
+function planGcalUrl(p, pl, mode){
+  const w = planShootWindow(pl, mode); if(!w) return null;
+  const name = (p.subject && p.subject.name) || p.loc.name, L = planShootLines(p, pl, mode, w);
+  const mk = (extra) => "https://calendar.google.com/calendar/render?" + new URLSearchParams({ action: "TEMPLATE", text: planEventTitle(p),
+    dates: icsStamp(w.start) + "/" + icsStamp(w.end), location: p.loc.name + " (" + p.loc.lat.toFixed(5) + ", " + p.loc.lon.toFixed(5) + ")",
+    details: L.concat(extra ? ["Plan: " + planLink(p)] : []).join("\n") }).toString();
+  const withLink = mk(true);
+  return withLink.length <= 1900 ? withLink : mk(false);
+}
+function planEventTitle(p){ return (p.calTitle || "").trim() || "Shoot: " + ((p.subject && p.subject.name) || p.loc.name); }
+function planShootWindow(pl, mode){
+  const { sun } = pl, HR = 3600000;
+  if(mode === "morning"){
+    if(!sun.rise) return null;
+    return { start: new Date(sun.rise.getTime() - HR), end: sun.gMorn || new Date(sun.rise.getTime() + 45 * 60000) };
+  }
+  if(!sun.set) return null;
+  return { start: new Date((sun.gEve || new Date(sun.set.getTime() - 45 * 60000)).getTime() - HR), end: sun.set };
+}
+function planSkyLine(p, sun, mode){
+  const sk = p.sky; if(!sk || !sk.daily) return "";
+  const i = sk.daily.time.indexOf(p.date); if(i < 0) return "";
+  const evt = mode === "morning" ? sk.daily.sunrise[i] : sk.daily.sunset[i]; if(!evt) return "";
+  const sc = scoreEvent(sk.hourly, nearestHourIdx(sk.hourly.time, evt), sampleAt(sk.sample && sk.sample[mode], evt));
+  return sc ? label(sc.score) + " (" + sc.score + ")" : "";
+}
+function saveIcs(ics, fname){
+  const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" }), a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = fname;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+}
+function planShootLines(p, pl, mode, w){
+  const { sun, moon } = pl, tz = p.loc.tz, ft = d => fmtZ(d, tz);
+  const L = [];
+  if((p.calNotes || "").trim()){ L.push(p.calNotes.trim().slice(0, 600)); L.push(""); }
+  L.push((mode === "morning" ? "Sunrise" : "Sunset") + " shoot window: " + ft(w.start) + " to " + ft(w.end) + (tz ? " (" + tz + ")" : ""));
+  if(sun.gMorn && sun.rise) L.push("Golden hour AM: " + ft(sun.rise) + " to " + ft(sun.gMorn));
+  if(sun.gEve && sun.set) L.push("Golden hour PM: " + ft(sun.gEve) + " to " + ft(sun.set));
+  if(sun.rise) L.push("Sunrise " + ft(sun.rise) + " at " + Math.round(sun.riseAz) + "° " + compassDir(sun.riseAz));
+  if(sun.set) L.push("Sunset " + ft(sun.set) + " at " + Math.round(sun.setAz) + "° " + compassDir(sun.setAz));
+  if(moon.moonrise) L.push("Moonrise " + ft(moon.moonrise) + " at " + Math.round(moon.moonriseAz) + "°");
+  if(moon.moonset) L.push("Moonset " + ft(moon.moonset) + " at " + Math.round(moon.moonsetAz) + "°");
+  if(p.subject){
+    const bd = bearingDist(p.loc.lat, p.loc.lon, p.subject.lat, p.subject.lon);
+    L.push(p.subject.name + ": " + Math.round(bd.brg) + "° " + compassDir(bd.brg) + ", " + fmtDist(bd.km));
+    const az = mode === "morning" ? sun.riseAz : sun.setAz;
+    if(az != null) L.push("Light on " + p.subject.name + ": " + lightPhrase(az, bd.brg).t);
+  }
+  const sky = planSkyLine(p, sun, mode); if(sky) L.push("Sky outlook: " + sky + " (forecast can change)");
+  return L;
+}
+function planIcs(p, pl, mode){
+  const w = planShootWindow(pl, mode); if(!w) return null;
+  const name = (p.subject && p.subject.name) || p.loc.name;
+  const L = planShootLines(p, pl, mode, w); L.push("Plan: " + planLink(p));
+  const lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Johnston Aerial//AfterGlow//EN", "CALSCALE:GREGORIAN", "METHOD:PUBLISH", "BEGIN:VEVENT",
+    "UID:" + icsStamp(w.start) + "-" + p.loc.lat.toFixed(4) + "-" + p.loc.lon.toFixed(4) + "@afterglow.johnstonaerial.com",
+    "DTSTAMP:" + icsStamp(new Date()), "DTSTART:" + icsStamp(w.start), "DTEND:" + icsStamp(w.end),
+    "SUMMARY:" + icsEsc(planEventTitle(p)),
+    "LOCATION:" + icsEsc(p.loc.name), "GEO:" + p.loc.lat.toFixed(6) + ";" + p.loc.lon.toFixed(6),
+    "DESCRIPTION:" + icsEsc(L.join("\n")),
+    "BEGIN:VALARM", "ACTION:DISPLAY", "DESCRIPTION:" + icsEsc(planEventTitle(p)), "TRIGGER:-PT2H", "END:VALARM", "END:VEVENT", "END:VCALENDAR"];
+  return lines.map(icsFold).join("\r\n") + "\r\n";
+}
+
+// ---- Remember the tab and the Plan across a refresh (this device only).
+const UI_KEY = "afterglow_ui";
+function saveUi(){
+  try{
+    const o = { view: state.view };
+    const p = state.plan;
+    if(p && p.loc) o.plan = { loc: p.loc, date: p.date || null, subject: p.subject || null, min: p.min == null ? null : p.min, minSet: !!p.minSet, tap: p.tap, finder: p.finder, calMode: p.calMode, calTitle: p.calTitle || "", calNotes: p.calNotes || "" };
+    localStorage.setItem(UI_KEY, JSON.stringify(o));
+  }catch(e){}
+}
+function restoreUi(){
+  try{
+    const o = JSON.parse(localStorage.getItem(UI_KEY));
+    if(!o) return;
+    if(["today", "outlook", "map", "plan"].includes(o.view)) state.view = o.view;
+    const q = o.plan;
+    if(q && q.loc && isFinite(q.loc.lat) && isFinite(q.loc.lon)){
+      const stale = q.date && q.date < planToday(q.loc.tz);
+      state.plan = { loc: q.loc, date: stale ? null : (q.date || null), subject: q.subject && isFinite(q.subject.lat) ? q.subject : null,
+        min: q.min, minKey: q.loc.lat.toFixed(3) + "," + q.loc.lon.toFixed(3), minSet: stale ? false : !!q.minSet, tap: q.tap, finder: q.finder, calMode: q.calMode, calTitle: q.calTitle || "", calNotes: q.calNotes || "", searching: false, results: [], msg: "" };
+    }
+  }catch(e){}
+}
+
+function bearingDist(lat1, lon1, lat2, lon2){
+  const r = Math.PI / 180, p1 = lat1 * r, p2 = lat2 * r, dl = (lon2 - lon1) * r;
+  const y = Math.sin(dl) * Math.cos(p2), x = Math.cos(p1) * Math.sin(p2) - Math.sin(p1) * Math.cos(p2) * Math.cos(dl);
+  const brg = (Math.atan2(y, x) / r + 360) % 360;
+  const a = Math.sin((p2 - p1) / 2) ** 2 + Math.cos(p1) * Math.cos(p2) * Math.sin(dl / 2) ** 2;
+  return { brg: brg, km: 2 * 6371 * Math.asin(Math.sqrt(a)) };
+}
+// Signed angle from b to a, -180..180. Positive = a is clockwise of b (to the right when you face b).
+function angDiff(a, b){ return ((a - b + 540) % 360) - 180; }
+function fmtDist(km){ const mi = km / 1.609344; return (mi < 10 ? mi.toFixed(1) : Math.round(mi)) + " mi · " + (km < 10 ? km.toFixed(1) : Math.round(km)) + " km"; }
+// How the Sun/Moon sits against the line from you to the subject. You are facing the subject.
+function lightPhrase(azDeg, brg){
+  const r = angDiff(azDeg, brg), a = Math.abs(r), side = r > 0 ? "right" : "left";
+  if(a < 20) return { t: "behind the subject: backlit", c: "plan-warn" };
+  if(a < 60) return { t: Math.round(a) + "° " + side + " of the subject, behind it: rim light", c: "plan-warn" };
+  if(a <= 120) return { t: Math.round(a) + "° " + side + " of the subject: side light", c: "" };
+  const off = Math.round(180 - a);
+  return { t: "behind you" + (off >= 3 ? ", " + off + "° to the " + side : "") + (a >= 160 ? ": front-lit" : ": front-side light"), c: "plan-good" };
+}
+function planDayLabel(ds){ const [y, m, d] = ds.split("-").map(Number); return new Date(Date.UTC(y, m - 1, d, 12)).toLocaleDateString([], { month: "short", day: "numeric", timeZone: "UTC" }); }
+// Rise / set time and compass heading of the Sun or Moon for each of the next `days` calendar days.
+function scanDays(p, body, days){
+  const { lat, lon, tz } = p.loc;
+  const obs = new Astronomy.Observer(lat, lon, 0), out = [];
+  for(let i = 0; i < days; i++){
+    const ds = planShift(p.date, i), [y, m, d] = ds.split("-").map(Number);
+    const t0 = zonedMidnight(y, m, d, tz), t1 = zonedMidnight(y, m, d + 1, tz);
+    const inDay = r => (r && r.date >= t0 && r.date < t1) ? r.date : null;
+    const rise = inDay(Astronomy.SearchRiseSet(body, obs, +1, t0, 1)), set = inDay(Astronomy.SearchRiseSet(body, obs, -1, t0, 1));
+    out.push({ ds, rise: rise ? { t: rise, az: bodyHorizontal(body, rise, lat, lon).az } : null, set: set ? { t: set, az: bodyHorizontal(body, set, lat, lon).az } : null });
+  }
+  return out;
+}
+function windowsOf(list, key, target, tol){
+  const runs = []; let cur = null, closest = null;
+  list.forEach((day, i) => {
+    const e = day[key]; if(!e) { cur = null; return; }
+    const off = Math.abs(angDiff(e.az, target));
+    if(!closest || off < closest.off) closest = { off, ds: day.ds, az: e.az };
+    if(off <= tol){ if(cur && cur.i === i - 1){ cur.to = day.ds; cur.i = i; } else { cur = { from: day.ds, to: day.ds, i }; runs.push(cur); } }
+  });
+  return { runs, closest };
+}
+function runsText(w){
+  if(!w.runs.length) return null;
+  return w.runs.map(r => r.from === r.to ? planDayLabel(r.from) : planDayLabel(r.from) + " – " + planDayLabel(r.to)).join(", ");
+}
+function planFinder(p, brg, mode){
+  const tz = p.loc.tz;
+  const key = [p.loc.lat, p.loc.lon, brg.toFixed(1), p.date, mode].join("|");
+  if(p.scan && p.scan.key === key) return p.scan.html;
+  let html = "";
+  if(mode === "sun"){
+    const list = scanDays(p, Astronomy.Body.Sun, 366), back = (brg + 180) % 360;
+    const rows = [];
+    [["rise", "Sunrise"], ["set", "Sunset"]].forEach(([k, label]) => {
+      const w = windowsOf(list, k, brg, 3), tx = runsText(w);
+      rows.push(`<div class="plan-row2"><span>${label} behind the subject <span style="color:var(--slate)">(within 3°)</span></span><b>${tx || "never"}</b></div>`);
+      if(!tx && w.closest) rows.push(`<div class="plan-row2" style="padding-top:0;border-top:0;"><span style="color:var(--slate);font-size:12.5px;">Closest: ${Math.round(w.closest.az)}° on ${planDayLabel(w.closest.ds)}, ${Math.round(w.closest.off)}° off</span><b></b></div>`);
+    });
+    [["rise", "Sunrise"], ["set", "Sunset"]].forEach(([k, label]) => {
+      const w = windowsOf(list, k, back, 20), tx = runsText(w);
+      rows.push(`<div class="plan-row2"><span>${label} behind you: front light <span style="color:var(--slate)">(within 20°)</span></span><b>${tx || "never"}</b></div>`);
+    });
+    html = `<div class="note" style="margin-bottom:6px;">Dates in the next 12 months. The Sun's heading moves slowly, so these are runs of days.</div>` + rows.join("");
+  } else {
+    const days = 90, mlist = scanDays(p, Astronomy.Body.Moon, days), slist = scanDays(p, Astronomy.Body.Sun, days);
+    const cand = [];
+    mlist.forEach((day, i) => {
+      [["rise", "Moonrise"], ["set", "Moonset"]].forEach(([k, label]) => {
+        const e = day[k]; if(!e) return;
+        const off = Math.abs(angDiff(e.az, brg));
+        let rel = "";
+        const ref = k === "rise" ? slist[i].set : slist[i].rise, refName = k === "rise" ? "sunset" : "sunrise";
+        if(ref){ const mins = Math.round((e.t - ref.t) / 60000); if(Math.abs(mins) <= 75) rel = k === "rise" ? (mins >= 0 ? mins + " min after " : -mins + " min before ") + refName : (mins >= 0 ? mins + " min after " : -mins + " min before ") + refName; }
+        cand.push({ ds: day.ds, label, t: e.t, az: e.az, off, lit: Math.round(Astronomy.Illumination(Astronomy.Body.Moon, e.t).phase_fraction * 100), rel });
+      });
+    });
+    const near = cand.filter(c => c.off <= 6).sort((a, b) => a.off - b.off).slice(0, 5).sort((a, b) => a.t - b.t);
+    const show = near.length ? near : cand.slice().sort((a, b) => a.off - b.off).slice(0, 1);
+    html = `<div class="note" style="margin-bottom:6px;">${near.length ? "Moonrise or moonset within 6° of the subject, next " + days + " days" : "Nothing within 6° in the next " + days + " days. The closest one:"}</div>` +
+      show.map(c => `<div class="plan-row2"><span><b>${planDayLabel(c.ds)}</b> · ${c.label} ${fmtZ(c.t, tz)} · ${c.lit}% lit${c.rel ? `<br><span style="color:var(--slate);font-size:12.5px;">${c.rel}</span>` : ""}</span><b>${Math.round(c.az)}°, ${Math.round(c.off)}° off</b></div>`).join("");
+  }
+  p.scan = { key, html };
+  return html;
+}
+
+function fmtRangeZ(a, b, tz){
+  const x = fmtZ(a, tz), y = fmtZ(b, tz);
+  const sx = x.slice(-2), sy = y.slice(-2);
+  return (sx === sy && /^[AP]M$/i.test(sx) ? x.slice(0, -3).trim() : x) + " – " + y;
+}
+function planDialSVG(pl, tz){
+  const R = 130, cx = 160, cy = 160;
+  const xy = (alt, az) => { const r = (90 - Math.max(alt, 0)) / 90 * R, a = az * Math.PI / 180; return [cx + r * Math.sin(a), cy - r * Math.cos(a)]; };
+  const arc = pts => {
+    let dstr = "", prevUp = false;
+    pts.forEach(p => {
+      if(p.alt >= 0){ const [x, y] = xy(p.alt, p.az); dstr += (prevUp ? "L" : "M") + x.toFixed(1) + " " + y.toFixed(1) + " "; prevUp = true; }
+      else prevUp = false;
+    });
+    return dstr;
+  };
+  const ticks = (pts, every, color, dy) => pts.filter(p => p.alt >= 0).map(p => {
+    const hm = localHM(p.t, tz);
+    if(hm.m !== 0 || hm.h % every !== 0) return "";
+    const [x, y] = xy(p.alt, p.az);
+    const lab = (hm.h % 12 || 12) + (hm.h < 12 ? "a" : "p");
+    return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3" fill="${color}"/><text x="${x.toFixed(1)}" y="${(y + dy).toFixed(1)}" font-size="9" text-anchor="middle" fill="${color}">${lab}</text>`;
+  }).join("");
+  const dirs = [["N", 0, 0, -8], ["E", 90, 11, 4], ["S", 180, 0, 16], ["W", 270, -11, 4]]
+    .map(([t, , dx, dy], i) => { const a = [0, 90, 180, 270][i] * Math.PI / 180; return `<text x="${(cx + (R) * Math.sin(a) + dx).toFixed(1)}" y="${(cy - R * Math.cos(a) + dy).toFixed(1)}" font-size="13" font-weight="700" fill="var(--sand)" text-anchor="middle">${t}</text>`; }).join("");
+  return `<svg class="plan-dial" viewBox="0 0 320 320" role="img" aria-label="Sun and Moon paths across the sky">
+    <circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="rgba(245,230,211,0.3)" stroke-width="1.5"/>
+    <circle cx="${cx}" cy="${cy}" r="${R * 2 / 3}" fill="none" stroke="rgba(245,230,211,0.14)" stroke-dasharray="3 4"/>
+    <circle cx="${cx}" cy="${cy}" r="${R / 3}" fill="none" stroke="rgba(245,230,211,0.14)" stroke-dasharray="3 4"/>
+    <line x1="${cx}" y1="${cy - R}" x2="${cx}" y2="${cy + R}" stroke="rgba(245,230,211,0.14)"/><line x1="${cx - R}" y1="${cy}" x2="${cx + R}" y2="${cy}" stroke="rgba(245,230,211,0.14)"/>
+    <text x="${cx + 4}" y="${cy - R / 3 + 11}" font-size="9" fill="var(--slate)">60°</text><text x="${cx + 4}" y="${cy - 2 * R / 3 + 11}" font-size="9" fill="var(--slate)">30°</text>
+    <path d="${arc(pl.moonPts)}" fill="none" stroke="#9db4e8" stroke-width="3" stroke-linecap="round" stroke-dasharray="1 6"/>
+    <path d="${arc(pl.sunPts)}" fill="none" stroke="var(--gold)" stroke-width="3.5" stroke-linecap="round"/>
+    ${ticks(pl.moonPts, 3, "#9db4e8", 13)}${ticks(pl.sunPts, 2, "var(--gold)", -7)}
+    ${dirs}<circle cx="${cx}" cy="${cy}" r="4" fill="var(--sand)"/>
+    <circle id="planDialMoon" r="7" fill="#dfe8ff" stroke="#9db4e8" stroke-width="2" style="display:none"/><circle id="planDialSun" r="8" fill="var(--gold)" stroke="#fff" stroke-width="2" style="display:none"/></svg>`;
+}
+
+async function planTimeZoneFor(lat, lon){
+  try{
+    const res = await fetchWithTimeout(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=sunrise&forecast_days=1&timezone=auto`, 6000);
+    if(!res.ok) return null;
+    const j = await res.json();
+    return (j && j.timezone) || null;
+  }catch(e){ return null; }
+}
+
+function renderPlan(app, tabsHtml){
+  if(!state.plan){
+    state.plan = { loc: { name: state.loc.name, lat: state.loc.lat, lon: state.loc.lon, tz: state.tz || null }, date: null, searching: false, results: [], msg: "" };
+  }
+  const p = state.plan;
+  if(!p.date) p.date = planToday(p.loc.tz);
+  if(!p.tap) p.tap = "subject";
+  if(!p.finder) p.finder = "sun";
+  const esc = t => String(t).replace(/[<>&"]/g, c => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;" }[c]));
+  const tz = p.loc.tz;
+  let pl;
+  try{ pl = computePlan(p); }
+  catch(e){
+    console.error("Plan failed:", e);
+    app.innerHTML = tabsHtml + '<div class="err-box"><div class="err-head">Couldn\'t work out the Sun and Moon for that date</div><div class="err-body">Try another date or place.</div></div>';
+    return;
+  }
+  const { sun, moon } = pl;
+  const tzNote = planZoneOk(tz) ? "" : " The time zone for this place wasn't found, so times are shown in your phone's zone.";
+
+  let html = tabsHtml;
+  html += `<div class="plan-row"><button class="plan-btn plan-place" id="planPlaceBtn" aria-label="Change planning place">📍 ${esc(p.loc.name)} · Change ▾</button></div>`;
+  if(p.searching){
+    html += `<form class="plan-search" id="planForm"><input id="planQ" type="search" placeholder="Town, or paste lat, lon" autocomplete="off" autocapitalize="words" enterkeyhint="search"><button class="plan-btn" type="submit">Search</button></form>`;
+    if(!p.results.length && !p.msg){
+      const rl = recentsFor(p.loc);
+      if(rl.length) html += `<div class="note" style="margin:8px 0 4px;">Recent places</div>` + rl.map((r, i) => `<button type="button" class="plan-btn plan-res" data-recent="${i}">📍 ${esc(r.name)}</button>`).join("");
+    }
+    html += p.results.map((r, i) => `<button type="button" class="plan-btn plan-res" data-i="${i}">${esc(r.name)}${r.admin1 ? ", " + esc(r.admin1) : ""}${r.country ? " · " + esc(r.country) : ""}</button>`).join("");
+    html += `<button type="button" class="plan-btn plan-res" id="planSaved">Use my saved location (${esc(state.loc.name)})</button>`;
+  }
+  if(p.msg) html += `<div class="plan-msg">${esc(p.msg)}</div>`;
+  html += `<div class="plan-row"><button class="plan-btn round" id="planPrev" aria-label="Previous day">‹</button><input class="plan-date" type="date" id="planDate" value="${p.date}" min="1900-01-01" max="2100-12-31" aria-label="Date"><button class="plan-btn round" id="planNext" aria-label="Next day">›</button><button class="plan-btn" id="planToday">Today</button></div>`;
+  html += `<div class="map-date" style="margin-bottom:12px;">${planDateLabel(p.date)}</div>`;
+  html += `<div class="map-wrap"><div id="sunMap"></div><button type="button" class="map-center-btn" id="planCenter" title="Center on place">⌖</button></div>`;
+  html += `<div class="plan-legend"><span style="color:var(--gold)"><i></i>Sunrise</span><span style="color:var(--ember)"><i></i>Sunset</span><span style="color:#9db4e8"><i style="border-top-style:dashed"></i>Moonrise / Moonset</span></div>`;
+
+  const dayMin = Math.max(60, Math.round((pl.t1 - pl.t0) / 60000));
+  const plKey = p.loc.lat.toFixed(3) + "," + p.loc.lon.toFixed(3);
+  if(p.minKey !== plKey){ p.minKey = plKey; p.minSet = false; }
+  if(p.linkMin != null){ p.min = p.linkMin; p.minSet = true; p.linkMin = null; }
+  if(!p.minSet){
+    p.min = (p.date === planToday(tz)) ? Math.round((Date.now() - pl.t0.getTime()) / 60000)
+          : sun.set ? Math.round((sun.set - pl.t0) / 60000) : Math.round(dayMin / 2);
+  }
+  p.min = Math.max(0, Math.min(dayMin - 1, p.min)); p.t0ms = pl.t0.getTime();
+  const fr = d => d ? Math.max(0, Math.min(1, (d - pl.t0) / (pl.t1 - pl.t0))) : null;
+  const pc = x => (x * 100).toFixed(1) + "%", fR = fr(sun.rise), fS = fr(sun.set), D = "#1b2040", B = "#7fb0e8";
+  const track = (fR != null && fS != null)
+    ? `linear-gradient(90deg, ${D} 0%, ${D} ${pc(Math.max(0, fR - 0.03))}, #F2B84B ${pc(fR)}, ${B} ${pc(Math.min(1, fR + 0.06))}, ${B} ${pc(Math.max(0, fS - 0.06))}, #FF6B35 ${pc(fS)}, ${D} ${pc(Math.min(1, fS + 0.03))}, ${D} 100%)`
+    : (sun.polar === "up" ? B : D);
+  const jumps = [["Sunrise", sun.rise], ["Golden hr", sun.gEve], ["Sunset", sun.set], ["Moonrise", moon.moonrise]].filter(j => j[1]);
+  html += `<div class="card" style="margin-bottom:10px;"><div class="label">Time of day</div><div class="plan-clock" id="planTime">&nbsp;</div>
+    <input type="range" class="plan-range" id="planSlider" min="0" max="${dayMin - 1}" step="1" value="${p.min}" aria-label="Time of day" style="--track:${track}">
+    <div class="plan-ticks"><span>12a</span><span>6a</span><span>12p</span><span>6p</span><span>12a</span></div>
+    ${jumps.length ? `<div class="plan-seg" style="margin:10px 0 4px;">${jumps.map(j => `<button class="plan-seg-b" data-jump="${Math.round((j[1] - pl.t0) / 60000)}">${j[0]}</button>`).join("")}</div>` : ""}
+    <div class="label" style="margin-top:8px;" id="planReadLbl"></div><div id="planReadout"></div></div>`;
+  html += `<div class="plan-seg"><span class="plan-seg-l">Tap the map to place:</span><button class="plan-seg-b ${p.tap === "subject" ? "on" : ""}" data-tap="subject">Subject</button><button class="plan-seg-b ${p.tap === "you" ? "on" : ""}" data-tap="you">My spot</button></div>`;
+  if(!p.subject){
+    html += `<div class="plan-msg">Tap the map to drop a pin on what you want to shoot: a skyline, a tower, a barn. You'll see its direction, the light on it, and the dates the Sun or Moon lines up with it.</div>`;
+  } else {
+    const bd = bearingDist(p.loc.lat, p.loc.lon, p.subject.lat, p.subject.lon), sname = p.subject.name || "Subject";
+    html += `<input class="plan-name" id="planSubjName" value="${esc(sname)}" maxlength="40" aria-label="Subject name" placeholder="Name of the subject">`;
+    const rows = [];
+    if(sun.rise) { const lp = lightPhrase(sun.riseAz, bd.brg); rows.push(`<div class="plan-row2"><span>Sun at sunrise (${fmtZ(sun.rise, tz)})</span><b class="${lp.c}">${lp.t}</b></div>`); }
+    if(sun.set) { const lp = lightPhrase(sun.setAz, bd.brg); rows.push(`<div class="plan-row2"><span>Sun at sunset (${fmtZ(sun.set, tz)})</span><b class="${lp.c}">${lp.t}</b></div>`); }
+    if(moon.moonrise) { const dd = angDiff(moon.moonriseAz, bd.brg); rows.push(`<div class="plan-row2"><span>Moonrise (${fmtZ(moon.moonrise, tz)})</span><b>${Math.round(Math.abs(dd))}° ${dd > 0 ? "right" : "left"} of the subject</b></div>`); }
+    if(moon.moonset) { const dd = angDiff(moon.moonsetAz, bd.brg); rows.push(`<div class="plan-row2"><span>Moonset (${fmtZ(moon.moonset, tz)})</span><b>${Math.round(Math.abs(dd))}° ${dd > 0 ? "right" : "left"} of the subject</b></div>`); }
+    html += `<div class="card" style="margin-bottom:10px;"><div class="label">${esc(sname)} · ${Math.round(bd.brg)}° ${compassDir(bd.brg)} · ${fmtDist(bd.km)}</div><div class="note" style="margin-bottom:4px;">Light on the subject, ${planDayLabel(p.date)}. You are facing it from your spot.</div>${rows.join("") || '<div class="note">No sunrise, sunset or moon events on this date.</div>'}</div>`;
+    let fin = "";
+    try{ fin = planFinder(p, bd.brg, p.finder); }catch(e){ console.error("Finder failed:", e); fin = '<div class="note">Couldn\'t search the dates.</div>'; }
+    html += `<div class="card" style="margin-bottom:12px;"><div class="label">Find the dates it lines up</div><div class="plan-seg" style="margin-bottom:8px;"><button class="plan-seg-b ${p.finder === "sun" ? "on" : ""}" data-finder="sun">Sun</button><button class="plan-seg-b ${p.finder === "moon" ? "on" : ""}" data-finder="moon">Moon</button></div>${fin}<div class="note" style="margin-top:8px;">Direction only: it doesn't know how tall the subject is or what stands in between.</div></div>`;
+  }
+  html += skyCardHtml(p, sun, esc);
+  html += `<div class="card" style="margin-bottom:12px;"><div class="label">Share this plan</div><div class="plan-seg" style="margin-bottom:8px;"><button class="plan-seg-b" id="planCopy">🔗 Copy link</button>${navigator.share ? '<button class="plan-seg-b" id="planShare">Share…</button>' : ""}</div>${p.shareMsg ? `<div class="note" style="margin-bottom:6px;color:var(--gold);">${esc(p.shareMsg)}</div>` : ""}<div class="note">Reopens this place${p.subject ? ', the subject pin' : ''} and date in AfterGlow on any phone. No account, and nothing is stored on a server: the plan is inside the link.</div></div>`;
+  if(!p.calMode) p.calMode = "evening";
+  const cw = planShootWindow(pl, p.calMode);
+  html += `<div class="card" style="margin-bottom:12px;"><div class="label">Add to calendar</div><div class="plan-seg" style="margin-bottom:8px;"><button class="plan-seg-b ${p.calMode === "evening" ? "on" : ""}" data-cal="evening">Sunset shoot</button><button class="plan-seg-b ${p.calMode === "morning" ? "on" : ""}" data-cal="morning">Sunrise shoot</button></div><input class="plan-name" id="planCalTitle" value="${esc(p.calTitle || "")}" maxlength="80" placeholder="${esc(planEventTitle({ loc: p.loc, subject: p.subject }))}" aria-label="Event title"><textarea class="plan-name" id="planCalNotes" rows="3" maxlength="600" placeholder="Your notes (optional): gear, who is coming, a reminder" aria-label="Your notes" style="resize:vertical;">${esc(p.calNotes || "")}</textarea>${cw ? `<div class="note" style="margin-bottom:8px;">${planDayLabel(p.date)}, ${fmtZ(cw.start, tz)} to ${fmtZ(cw.end, tz)}: an hour before golden hour through ${p.calMode === "morning" ? "the end of golden hour" : "sunset"}.</div><div class="plan-seg" style="margin:0;"><button class="plan-seg-b" id="planIcs">📅 Add to calendar</button><button class="plan-seg-b" id="planGcal">Google Calendar</button></div>` : `<div class="note">The Sun doesn't ${p.calMode === "morning" ? "rise" : "set"} on this date here, so there's no window to add.</div>`}<div class="note" style="margin-top:8px;">The light times go in the event notes, with a link back to this plan. Times are calculated and exact. The sky score is a snapshot of the forecast today.</div></div>`;
+  loadPlanSky(p);
+  p.live = null;
+  const sunRise = sun.rise ? `${fmtZ(sun.rise, tz)} <small>${Math.round(sun.riseAz)}° ${compassDir(sun.riseAz)}</small>` : `<small>${sun.polar === "up" ? "Sun stays up all day" : "Sun stays down all day"}</small>`;
+  const sunSet = sun.set ? `${fmtZ(sun.set, tz)} <small>${Math.round(sun.setAz)}° ${compassDir(sun.setAz)}</small>` : `<small>${sun.polar === "up" ? "Sun doesn't set" : "No sunset"}</small>`;
+  const gm = sun.gMorn && sun.rise ? fmtRangeZ(sun.rise, sun.gMorn, tz) : "—";
+  const ge = sun.gEve && sun.set ? fmtRangeZ(sun.gEve, sun.set, tz) : "—";
+  html += `<div class="plan-grid">
+    <div class="card"><div class="label">☀ Sunrise</div><div class="value">${sunRise}</div></div>
+    <div class="card"><div class="label">☀ Sunset</div><div class="value">${sunSet}</div></div>
+    <div class="card"><div class="label">Golden hour AM</div><div class="value" style="font-size:15px;">${gm}</div></div>
+    <div class="card"><div class="label">Golden hour PM</div><div class="value" style="font-size:15px;">${ge}</div></div>
+  </div>`;
+  const mRise = moon.moonrise ? `${fmtZ(moon.moonrise, tz)} <small>${Math.round(moon.moonriseAz)}° ${compassDir(moon.moonriseAz)}</small>` : `<small>Doesn't rise today</small>`;
+  const mSet = moon.moonset ? `${fmtZ(moon.moonset, tz)} <small>${Math.round(moon.moonsetAz)}° ${compassDir(moon.moonsetAz)}${moon.moonsetNextDay ? " · next day" : ""}</small>` : `<small>Doesn't set today</small>`;
+  html += `<div class="card" style="margin-bottom:12px;">
+    <div class="label">${moon.emoji} ${moon.phaseName} · ${moon.illumPct}% lit</div>
+    <div class="plan-grid" style="margin:10px 0 0;"><div><div class="label">Moonrise</div><div class="value">${mRise}</div></div><div><div class="label">Moonset</div><div class="value">${mSet}</div></div></div>
+  </div>`;
+  html += `<div class="card" style="margin-bottom:12px;"><div class="label">Sky view · you are at the center</div>${planDialSVG(pl, tz)}
+    <div class="map-note" style="text-align:center;">North is up. The closer to the center, the higher in the sky; the edge is the horizon. Orange is the Sun with hour marks, dotted blue is the Moon.</div></div>`;
+  html += `<div class="map-note">Directions and times are calculated, so they are exact for any date, but this is geometry only: there is no sky forecast past about ten days. Rise and set times are for a flat horizon; hills and buildings change what you actually see.${esc(tzNote)}</div>`;
+  app.innerHTML = html;
+
+  destroySunMap();
+  const mapEl = $("sunMap");
+  const { lat, lon } = p.loc;
+  if(mapEl && typeof L !== "undefined"){
+    try{
+      sunMapInstance = L.map(mapEl, { attributionControl: true }).setView(p.view ? [p.view.lat, p.view.lng] : [lat, lon], p.view ? p.view.z : 13);
+      sunMapInstance.on("moveend", () => { const c = sunMapInstance.getCenter(); p.view = { lat: c.lat, lng: c.lng, z: sunMapInstance.getZoom() }; });
+      sunMapInstance.on("click", (ev) => {
+        if(p.tap === "you"){ p.loc = { name: "Dropped pin", lat: ev.latlng.lat, lon: ev.latlng.lng, tz: p.loc.tz }; p.scan = null; }
+        else p.subject = { name: (p.subject && p.subject.name) || "Subject", lat: ev.latlng.lat, lon: ev.latlng.lng };
+        render();
+      });
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' }).addTo(sunMapInstance);
+      L.circleMarker([lat, lon], { radius: 6, color: "#F2B84B", weight: 2, fillColor: "#F2B84B", fillOpacity: 1 }).addTo(sunMapInstance);
+      if(p.subject){
+        const bd = bearingDist(lat, lon, p.subject.lat, p.subject.lon), sj = [p.subject.lat, p.subject.lon];
+        L.polyline([[lat, lon], sj], { interactive: false, color: "#e8553a", weight: 3, dashArray: "7 6" }).addTo(sunMapInstance);
+        const pin = '<svg width="26" height="34" viewBox="0 0 26 34"><path d="M13 33C5 22 2 17 2 12.5 2 6.7 6.9 2 13 2s11 4.7 11 10.5C24 17 21 22 13 33z" fill="#e8553a" stroke="#fff" stroke-width="2"/><circle cx="13" cy="12.5" r="4.5" fill="#fff"/></svg>';
+        const mk = L.marker(sj, { draggable: true, icon: L.divIcon({ className: "plan-pin", iconSize: [26, 34], iconAnchor: [13, 32], html: pin }) }).addTo(sunMapInstance);
+        mk.on("dragend", () => { const ll = mk.getLatLng(); p.subject.lat = ll.lat; p.subject.lon = ll.lng; render(); });
+        const mid = [(lat + sj[0]) / 2, (lon + sj[1]) / 2];
+        L.marker(mid, { icon: L.divIcon({ className: "plan-lbl", iconSize: [0, 0], html: `<span style="color:#ff8a70">${(p.subject.name || "Subject").replace(/[<>&]/g, "")} · ${Math.round(bd.brg)}° · ${fmtDist(bd.km).split(" · ")[0]}</span>` }), interactive: false }).addTo(sunMapInstance);
+      }
+      const KM = 1.5;
+      const line = (az, color, text, dashed) => {
+        if(az == null) return;
+        const e = projectPoint(lat, lon, az, KM);
+        L.polyline([[lat, lon], [e.lat, e.lon]], { interactive: false, color: color, weight: 4, opacity: 0.95, dashArray: dashed ? "2 8" : null, lineCap: "round" }).addTo(sunMapInstance);
+        L.marker([e.lat, e.lon], { icon: L.divIcon({ className: "plan-lbl", iconSize: [0, 0], html: `<span style="color:${color}">${text}</span>` }), interactive: false }).addTo(sunMapInstance);
+      };
+      line(sun.riseAz, "#F2B84B", `Sunrise ${Math.round(sun.riseAz)}°`, false);
+      line(sun.setAz, "#FF6B35", `Sunset ${Math.round(sun.setAz)}°`, false);
+      line(moon.moonriseAz, "#9db4e8", `Moonrise ${moon.moonriseAz == null ? "" : Math.round(moon.moonriseAz) + "°"}`, true);
+      p.live = {};
+      [["sun", "#FF6B35", "#F2B84B"], ["moon", "#6f8fd8", "#dfe8ff"]].forEach(([k, lc, fc]) => {
+        const ln = L.polyline([[lat, lon], [lat, lon]], { interactive: false, color: lc, weight: 4, opacity: 0, lineCap: "round" }).addTo(sunMapInstance);
+        const mk = L.circleMarker([lat, lon], { radius: 11, color: "#fff", weight: 2, fillColor: fc, fillOpacity: 0, opacity: 0, interactive: false }).addTo(sunMapInstance);
+        p.live[k] = { ln, mk };
+      });
+      line(moon.moonsetAz, "#9db4e8", `Moonset ${moon.moonsetAz == null ? "" : Math.round(moon.moonsetAz) + "°"}`, true);
+    }catch(e){
+      console.error("Plan map failed to initialize:", e);
+      sunMapInstance = null;
+      mapEl.innerHTML = '<div class="loading" style="padding-top:40%;">Map couldn\'t load — the sky view below still works.</div>';
+    }
+  } else if(mapEl){
+    mapEl.innerHTML = '<div class="loading" style="padding-top:40%;">Map tiles unavailable — the sky view below still works.</div>';
+  }
+  function applyTime(min, touched){
+    if(touched) p.minSet = true;
+    p.min = min;
+    if(touched) saveUi();
+    const t = new Date(pl.t0.getTime() + min * 60000), la = p.loc.lat, lo = p.loc.lon;
+    const S = bodyHorizontal(Astronomy.Body.Sun, t, la, lo), M = bodyHorizontal(Astronomy.Body.Moon, t, la, lo);
+    const desc = h => h.alt >= 0 ? `${Math.round(h.az)}° ${compassDir(h.az)} · ${Math.round(h.alt)}° up` : "below the horizon";
+    const clock = $("planTime"); if(clock) clock.textContent = fmtZ(t, tz);
+    const lbl = $("planReadLbl"); if(lbl) lbl.textContent = "At " + fmtZ(t, tz);
+    let rows = `<div class="plan-row2"><span>Sun</span><b>${desc(S)}</b></div><div class="plan-row2"><span>Moon</span><b>${desc(M)}</b></div>`;
+    if(p.subject){
+      const bd = bearingDist(la, lo, p.subject.lat, p.subject.lon);
+      const lp = S.alt >= 0 ? lightPhrase(S.az, bd.brg) : null;
+      rows += `<div class="plan-row2"><span>Light on ${esc(p.subject.name || "Subject")}</span><b class="${lp ? lp.c : ""}">${lp ? lp.t : "the Sun is below the horizon"}</b></div>`;
+    }
+    const ro = $("planReadout"); if(ro) ro.innerHTML = rows;
+    const sl = $("planSlider"); if(sl && +sl.value !== min) sl.value = min;
+    if(p.live){
+      [["sun", S, "#FF6B35"], ["moon", M, "#9db4e8"]].forEach(([k, h]) => {
+        const L1 = p.live[k]; if(!L1) return;
+        const vis = h.alt >= 0, e = projectPoint(la, lo, h.az, 1.2);
+        L1.ln.setLatLngs([[la, lo], [e.lat, e.lon]]); L1.mk.setLatLng([e.lat, e.lon]);
+        L1.ln.setStyle({ opacity: vis ? 0.95 : 0 }); L1.mk.setStyle({ opacity: vis ? 1 : 0, fillOpacity: vis ? 1 : 0 });
+      });
+    }
+    const dial = (id, h) => {
+      const c = $(id); if(!c) return;
+      if(h.alt < 0){ c.style.display = "none"; return; }
+      const r = (90 - h.alt) / 90 * 130, a = h.az * Math.PI / 180;
+      c.setAttribute("cx", (160 + r * Math.sin(a)).toFixed(1)); c.setAttribute("cy", (160 - r * Math.cos(a)).toFixed(1)); c.style.display = "";
+    };
+    dial("planDialSun", S); dial("planDialMoon", M);
+  }
+  const slider = $("planSlider");
+  if(slider) slider.addEventListener("input", () => applyTime(+slider.value, true));
+  document.querySelectorAll("[data-jump]").forEach(b => b.addEventListener("click", () => applyTime(+b.dataset.jump, true)));
+  applyTime(p.min, false);
+  const center = $("planCenter");
+  if(center) center.addEventListener("click", () => { if(sunMapInstance) sunMapInstance.setView([lat, lon], sunMapInstance.getZoom()); });
+
+  document.querySelectorAll(".plan-seg-b[data-tap]").forEach(b => b.addEventListener("click", () => { p.tap = b.dataset.tap; render(); }));
+  document.querySelectorAll(".plan-seg-b[data-finder]").forEach(b => b.addEventListener("click", () => { p.finder = b.dataset.finder; render(); }));
+  const sn = $("planSubjName");
+  if(sn) sn.addEventListener("change", () => { p.subject.name = sn.value.trim().slice(0, 40) || "Subject"; render(); });
+  const doShare = async (mode) => {
+    const url = planLink(p);
+    if(mode === "share"){ try{ await navigator.share({ title: "AfterGlow plan", text: p.loc.name + " · " + planDayLabel(p.date), url }); return; }catch(e){ if(e && e.name === "AbortError") return; } }
+    try{ await navigator.clipboard.writeText(url); p.shareMsg = "Link copied."; }
+    catch(e){ p.shareMsg = "Couldn't copy. Select and copy: " + url; }
+    render();
+  };
+  document.querySelectorAll(".plan-seg-b[data-cal]").forEach(b => b.addEventListener("click", () => { p.calMode = b.dataset.cal; render(); }));
+  const ct = $("planCalTitle"), cn = $("planCalNotes");
+  if(ct) ct.addEventListener("input", () => { p.calTitle = ct.value; saveUi(); });
+  if(cn) cn.addEventListener("input", () => { p.calNotes = cn.value; saveUi(); });
+  const gb = $("planGcal");
+  if(gb) gb.addEventListener("click", () => { const u = planGcalUrl(p, pl, p.calMode); if(u) window.open(u, "_blank", "noopener"); });
+  const ib = $("planIcs");
+  if(ib) ib.addEventListener("click", () => {
+    const ics = planIcs(p, pl, p.calMode); if(!ics) return;
+    const fname = "afterglow-shoot-" + p.date + ".ics";
+    saveIcs(ics, fname);
+  });
+  const cb = $("planCopy"); if(cb) cb.addEventListener("click", () => doShare("copy"));
+  const sb = $("planShare"); if(sb) sb.addEventListener("click", () => doShare("share"));
+  const go = (d) => { if(/^\d{4}-\d{2}-\d{2}$/.test(d)){ p.date = d; p.msg = ""; render(); } };
+  $("planPrev").addEventListener("click", () => go(planShift(p.date, -1)));
+  $("planNext").addEventListener("click", () => go(planShift(p.date, 1)));
+  $("planToday").addEventListener("click", () => go(planToday(p.loc.tz)));
+  $("planDate").addEventListener("change", (e) => go(e.target.value));
+  $("planPlaceBtn").addEventListener("click", () => { p.searching = !p.searching; p.results = []; p.msg = ""; render(); if(p.searching){ const q = $("planQ"); if(q) q.focus(); } });
+  const setPlace = (loc) => { addRecent(loc); p.calTitle = ""; p.calNotes = ""; p.loc = loc; p.subject = null; p.view = null; p.scan = null; p.searching = false; p.results = []; p.msg = ""; p.date = p.date || planToday(loc.tz); render(); };
+  const saved = $("planSaved");
+  if(saved) saved.addEventListener("click", () => setPlace({ name: state.loc.name, lat: state.loc.lat, lon: state.loc.lon, tz: state.tz || null }));
+  document.querySelectorAll(".plan-res[data-recent]").forEach(b => b.addEventListener("click", () => {
+    const r = recentsFor(p.loc)[+b.dataset.recent];
+    if(!r) return;
+    if(r.tz){ setPlace({ name: r.name, lat: r.lat, lon: r.lon, tz: r.tz }); return; }
+    p.msg = "Looking up the time zone…"; render();
+    planTimeZoneFor(r.lat, r.lon).then(z => setPlace({ name: r.name, lat: r.lat, lon: r.lon, tz: z }));
+  }));
+  document.querySelectorAll(".plan-res[data-i]").forEach(b => b.addEventListener("click", () => {
+    const r = p.results[+b.dataset.i];
+    setPlace({ name: r.name + (r.admin1 ? ", " + r.admin1 : ""), lat: r.latitude, lon: r.longitude, tz: r.timezone || null });
+  }));
+  const form = $("planForm");
+  if(form) form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const q = $("planQ").value.trim();
+    if(!q) return;
+    const ll = parseLatLon(q);
+    if(!ll && looksLikeCoords(q)){ p.msg = "That doesn't look like coordinates. Latitude is -90 to 90 and longitude is -180 to 180, for example 35.7672, -78.6631."; render(); return; }
+    if(ll){
+      const la = ll.lat, lo = ll.lon;
+      p.msg = "Looking up the time zone…"; render();
+      const ztz = await planTimeZoneFor(la, lo);
+      setPlace({ name: la.toFixed(4) + ", " + lo.toFixed(4), lat: la, lon: lo, tz: ztz });
+      return;
+    }
+    p.msg = "Searching…"; render();
+    try{
+      const res = await geocode(q);
+      p.results = res;
+      p.msg = res.length ? "" : "No matches. Try a nearby town, or paste coordinates from Google Maps like 35.7672, -78.6631.";
+    }catch(err){ p.results = []; p.msg = "Search didn't go through. Check your connection and try again."; }
+    p.searching = true; render();
+    const q2 = $("planQ"); if(q2) q2.value = q;
+  });
+}
+
 function var2color(val, ref, sweetOrMax, inverse){
   // returns a hex for the bar fill
   let pct;
@@ -1899,7 +2610,7 @@ function cacheForecast(loc, data, sample){
     localStorage.setItem(CACHE_KEY, JSON.stringify({
       savedAt: Date.now(),
       loc: { lat: loc.lat, lon: loc.lon, name: loc.name },
-      daily: data.daily, hourly: data.hourly,
+      daily: data.daily, hourly: data.hourly, tz: data.timezone || null,
       windAvailable: !!data.windAvailable,
       sample: sample || { morning: null, evening: null }
     }));
@@ -1970,6 +2681,7 @@ async function boot(loc){
     );
     state.daily = data.daily;
     state.hourly = data.hourly;
+    state.tz = data.timezone || null;
     // Sun-path samples need the sunrise/sunset instants to compute an azimuth,
     // so they go out after core. Both are optional — a failure just falls back
     // to the blind ceiling rather than costing us the forecast.
@@ -1988,6 +2700,7 @@ async function boot(loc){
     if(cached){
       state.daily = cached.daily;
       state.hourly = cached.hourly;
+      state.tz = cached.tz || null;
       state.sample = cached.sample || { morning: null, evening: null };
       const initial = pickInitialView(cached.daily, loc.lat, loc.lon);
       state.activeDay = initial.activeDay;
@@ -2011,7 +2724,7 @@ async function boot(loc){
 
 /* ---------- Location modal ---------- */
 const backdrop = $("modalBackdrop");
-$("locBtn").addEventListener("click", () => { backdrop.classList.add("open"); $("locInput").focus(); });
+$("locBtn").addEventListener("click", () => { backdrop.classList.add("open"); $("locInput").value = ""; showRecentPlaces(); $("locInput").focus(); });
 $("closeModal").addEventListener("click", () => backdrop.classList.remove("open"));
 backdrop.addEventListener("click", (e) => { if(e.target === backdrop) backdrop.classList.remove("open"); });
 
@@ -2179,10 +2892,34 @@ $("notifSave").addEventListener("click", async () => {
 updateNotifButtonIndicator();
 
 let searchTimeout;
+function showRecentPlaces(){
+  const esc = t => String(t).replace(/[<>&"]/g, c => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;" }[c]));
+  const list = recentsFor(state.loc);
+  $("locResults").innerHTML = list.length ? '<div class="modal-result" style="cursor:default;color:var(--slate);font-size:12px;">Recent places</div>' + list.map((r, i) =>
+    `<div class="modal-result" data-recent="${i}">📍 ${esc(r.name)}</div>`).join("") : "";
+  document.querySelectorAll(".modal-result[data-recent]").forEach(el => el.addEventListener("click", () => {
+    const r = list[+el.dataset.recent], loc = { name: r.name, lat: r.lat, lon: r.lon };
+    saveLoc(loc); backdrop.classList.remove("open"); boot(loc);
+  }));
+}
 $("locInput").addEventListener("input", (e) => {
   clearTimeout(searchTimeout);
   const q = e.target.value.trim();
-  if(q.length < 2){ $("locResults").innerHTML = ""; return; }
+  if(q.length < 2){ showRecentPlaces(); return; }
+  const ll = parseLatLon(q);
+  if(ll){
+    const nm = ll.lat.toFixed(4) + ", " + ll.lon.toFixed(4);
+    $("locResults").innerHTML = `<div class="modal-result" data-lat="${ll.lat}" data-lon="${ll.lon}" data-name="${nm}">Use these coordinates: ${nm}</div>`;
+    document.querySelectorAll(".modal-result[data-lat]").forEach(el => {
+      el.addEventListener("click", () => {
+        const loc = { name: el.dataset.name, lat: parseFloat(el.dataset.lat), lon: parseFloat(el.dataset.lon) };
+        saveLoc(loc);
+        backdrop.classList.remove("open");
+        boot(loc);
+      });
+    });
+    return;
+  }
   searchTimeout = setTimeout(async () => {
     try{
       const results = await geocode(q);
@@ -2235,7 +2972,17 @@ function linkLoc(){
 
 // Init
 function initLocation(){
+  restoreUi();
   const fromLink = linkLoc();
+  const planLinkData = planFromLink();
+  if(planLinkData){
+    try{ history.replaceState(null, "", location.pathname); }catch(e){}
+    state.view = "plan";
+    state.plan = planLinkData;
+    const base = loadLoc() || { name: planLinkData.loc.name, lat: planLinkData.loc.lat, lon: planLinkData.loc.lon };
+    boot(base);
+    return;
+  }
   if(fromLink){
     // Drop the place from the address bar so a refresh or bookmark doesn't keep it.
     try{ history.replaceState(null, "", location.pathname); }catch(e){}
