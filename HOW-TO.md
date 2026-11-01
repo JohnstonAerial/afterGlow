@@ -30,15 +30,9 @@ Use the **Sunrise** / **Sunset** toggle to switch between the two. You'll see a 
 
 The **Outlook** tab lists the next seven sunrises and sunsets, color-coded by score, so you can spot the best day of the week.
 
-## 4. See the sun's direction on the Map
+## 4. Plan a shoot for any date or place
 
-The **Map** tab shows where the sun will be, by compass direction and height, at any point in the day. Use the arrows to change the day and the ⌖ button to re-center on your location. It's handy for choosing where to stand or fly.
-
-On a phone or tablet, one finger scrolls the page even when it starts on the map; use two fingers to move or zoom the map. Tapping the map still drops a pin. On a computer, drag the map with the mouse as usual.
-
-## 5. Plan a shoot for any date or place
-
-The **Plan** tab works for any date and any place, and it's separate from your saved location, so your alerts stay put.
+The **Plan** tab works for any date and any place, and it's separate from your saved location, so your alerts stay put. It replaces the old Map tab: it opens on your saved location and today's date, shows where the Sun and Moon will be on a map, and has a time slider for the whole day. On a phone or tablet, one finger scrolls the page even when it starts on the map; use two fingers to move or zoom the map. Tapping the map still drops a pin. On a computer, drag the map with the mouse as usual.
 
 1. Tap the place button to search a town or paste coordinates from Google Maps (for example `35.7672, -78.6631`). Places you've used before are listed under **Recent places**.
 2. Pick the date with the arrows or the calendar. The map shows where the Sun and Moon rise and set that day.
@@ -60,14 +54,14 @@ The **Plan** tab works for any date and any place, and it's separate from your s
 
 Plan doesn't know the real horizon: hills, tree height and buildings are only what you enter. The subject's own height isn't known either.
 
-## 6. Add it to your Home Screen
+## 5. Add it to your Home Screen
 
 - **iPhone / iPad (Safari):** tap Share, then **Add to Home Screen**.
 - **Android (Chrome):** open the menu, then **Install app** or **Add to Home screen**.
 
 It then opens like a normal app and works offline for the app itself. Forecast data is always fetched fresh when you're online.
 
-## 7. Turn on notifications (optional)
+## 6. Turn on notifications (optional)
 
 1. Open Afterglow **from your Home Screen icon**. Notifications won't turn on from a regular browser tab.
 2. Tap the 🔔 bell.
