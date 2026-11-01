@@ -46,7 +46,11 @@ The **Plan** tab works for any date and any place, and it's separate from your s
 6. **Sky outlook** scores the sunrise and sunset when the date is within about ten days. Further out, directions and times are still exact, but there is no sky forecast.
 7. **Share this plan** copies a link that reopens the same place, subject, date and time. **Add to calendar** downloads a calendar entry (or use **Google Calendar**), with the light times in the notes. You can change the title and add your own notes first.
 
-Plan shows direction only. It doesn't know how tall your subject is or what stands in between.
+8. **Viewing from** sets Ground or Drone and a height above takeoff (it starts at 400 ft; use the buttons or type your own). The **Sun at the horizon** card then shows sunrise and sunset from the ground and from that height. From the air the horizon drops a little, so the Sun stays visible about a minute or two longer.
+9. **Things in the way at this spot** lets you add trees, buildings or a hill: what it is, the compass range it covers, how tall it is and how far away. The app works out how much sky each one blocks from the ground and from your drone height, and shows when the Sun is lost behind it at sunset or clears it at sunrise. Entries are saved on your device with that spot.
+10. **Print a shoot card** makes a one-page card with the compass, light times, subject, height, things in the way, your notes and a QR code that reopens the plan. Choose Save as PDF in the print screen to keep it. The QR code opens the plan in any web browser. It carries the place, date, time and subject pin, but not your notes, height or entries.
+
+Plan doesn't know the real horizon: hills, tree height and buildings are only what you enter. The subject's own height isn't known either.
 
 ## 6. Add it to your Home Screen
 
