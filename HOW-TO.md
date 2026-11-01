@@ -7,7 +7,7 @@ Afterglow forecasts how good tonight's sunset or tomorrow's sunrise is likely to
 ## 1. Choose your location
 
 Tap the location button near the top. You can:
-- search by city, state or ZIP, or
+- search by city, state or ZIP. You can add the state, province or country, like `Raleigh, NC`, `Toronto ON` or `Munich, Germany`, and short forms like `Mt Pleasant` work too, or
 - tap **Use current location** (your browser will ask permission).
 
 Your choice is saved on your device. Change it any time with the same button.
@@ -32,9 +32,9 @@ The **Outlook** tab lists the next seven sunrises and sunsets, color-coded by sc
 
 ## 4. Plan a shoot for any date or place
 
-The **Plan** tab works for any date and any place, and it's separate from your saved location, so your alerts stay put. It replaces the old Map tab: it opens on your saved location and today's date, shows where the Sun and Moon will be on a map, and has a time slider for the whole day. On a phone or tablet, one finger scrolls the page even when it starts on the map; use two fingers to move or zoom the map. Tapping the map still drops a pin. On a computer, drag the map with the mouse as usual.
+The **Plan** tab works for any date and any place, and it's separate from your saved location, so your alerts stay put. The Plan tab has its own place button, so the saved-location button is hidden here; change your saved location on Today or Outlook. It replaces the old Map tab: it opens on your saved location and today's date, shows where the Sun and Moon will be on a map, and has a time slider for the whole day. On a phone or tablet, one finger scrolls the page even when it starts on the map; use two fingers to move or zoom the map. Tapping the map still drops a pin. On a computer, drag the map with the mouse as usual.
 
-1. Tap the place button to search a town or paste coordinates from Google Maps (for example `35.7672, -78.6631`). Places you've used before are listed under **Recent places**.
+1. Tap the place button to search a town (add the state or country if you like, for example `Raleigh, NC` or `Toronto ON`) or paste coordinates from Google Maps (for example `35.7672, -78.6631`). Places you've used before are listed under **Recent places**.
 2. Pick the date with the arrows or the calendar. The map shows where the Sun and Moon rise and set that day.
 3. Tap the map to drop a pin on what you want to shoot, and give it a name. You'll see its direction and distance, and how the Sun and Moon sit against it: behind it (backlit), to the side, or behind you (front-lit). Drag the pin to move it, or switch **Tap the map to place** to **My spot** to move where you're standing.
 4. Under **Find the dates it lines up**, choose Sun or Moon to see the dates when it rises or sets behind your subject, or lines up with it.
