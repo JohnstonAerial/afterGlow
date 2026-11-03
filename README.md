@@ -8,18 +8,30 @@ Afterglow predicts how good a sunrise or sunset is actually going to look — no
 
 ☕ **Free to use.** If it helped you catch an epic shot — sunrise, sunset, or a moon timelapse — you can [buy me a coffee](https://buymeacoffee.com/JohnstonAerial).
 
+## What's new in 2.0
+
+Afterglow 2.0 is a big redesign of the Plan tab, with a few new tools.
+
+- **Plan tab, rebuilt.** A time bar that stays at the top, a clear "Planning from" place, a **Subject** and **Your spot** you place on the map, a sky view, and less clutter. Rarely used tools are folded away until you need them.
+- **Calendar, your way.** Add a shoot to your calendar at sunrise or sunset, or choose **Custom**: start 2 hours before sunset, 30 minutes before moonrise, at a clock time, or at the time on the bar, for as long as you like.
+- **Alerts with a minimum forecast.** Sunrise and sunset alerts can wait until the forecast is Good, Great or Epic, and tell you the score. Poor skies stay quiet.
+- **My location**, everywhere. One button in the place pickers, and your saved place only changes when you tap it.
+- **Larger text** with the **Aa** button.
+- **Easier Today and Outlook.** Day arrows on Today, past times dimmed on Outlook, and tap a day to open it.
+- **Kinder to computers.** Scrolling over the map scrolls the page. Zoom with +/−, or ⌘/Ctrl + scroll.
+- **Fixes.** Location works on Chrome for Mac, and the Plan sky forecast no longer gets stuck on "Reading the sky…".
+
 ## Features
 
 - **Sky quality scoring** — a heuristic model based on published sunset-photography guidance: mid/high cloud in the right range catches color, low cloud blocks it, haze flattens it. Scores are checked against real shoots and still being refined. Like any forecast, it can miss, especially on high cloud.
 - **Golden & blue hour, precisely** — computed from actual solar angle (civil twilight math), not flat clock-time offsets. Nautical and astronomical twilight times shown when they fall that day.
-- **7-day outlook** — the next seven sunrises and sunsets, each scored.
-- **Any location** — search by city, state or ZIP (you can add the state, province or country, like `Raleigh, NC`, `Toronto ON` or `Munich, Germany`), or use your current position, and switch any time with the location button. Your chosen location stays on your device. Opening Afterglow from the [Drone Preflight Checklist](https://checklist.johnstonaerial.com) weather card takes you straight to the flight site you were checking there.
+- **Outlook** — the coming sunrises and sunsets, each scored, with past times dimmed.
+- **Any location** — search by city, state or ZIP, or use your current position, and switch any time with the location button. Your chosen location stays on your device.
 - **Moon conditions** — phase, illumination, moonrise/moonset with compass headings, and a callout for the "big warm moon on the horizon" alignment window. Includes an hourly timelapse-conditions score.
-- **Interactive sun and moon map** — on the Plan tab, a free, keyless Leaflet/OpenStreetMap view showing the Sun's and Moon's compass directions and heights at any point across the day, for any place and date. On touch screens one finger scrolls the page and two fingers move the map, so the map never traps your scrolling.
-- **Outlook tab** — a day-by-day agenda view of upcoming sunrises and sunsets, color-coded by score. The app has three views: Today, Outlook and Plan.
-- **Plan a shoot** — pick any date and any place in the world (search a town or paste coordinates from Google Maps, like `35.7672, -78.6631`) and see where the Sun and Moon rise and set on a map, with times in that place's own time zone and a sky-view dial. Drop a pin on a subject, such as a skyline or a tower, to see its direction and distance, the light on it at sunrise and sunset, and the dates the Sun or Moon lines up with it. A time slider moves the Sun and Moon through the day (a second one sits on the sky view, so you can watch the dial as you drag), the sky outlook scores dates inside the forecast window, and you can share the plan as a link or add the shoot to your calendar with the light times in the notes. Directions and times are calculated, so they are exact for any date; there is no sky forecast past about ten days, and the subject's height and anything in the way are not known. You can set whether you're viewing from the ground or a drone (and at what height), add trees, buildings or hills that are in the way, and see when the Sun is lost or clears them from each height. A one-page printable shoot card, with a QR code that reopens the plan, can be printed or saved as a PDF. Recent places are kept on your device, and a refresh returns you to the same tab and plan.
+- **Plan tab** — Sun and Moon direction and height at any time, on any date, anywhere, on a free, keyless Leaflet/OpenStreetMap map. Place a subject, find the dates the Sun or Moon lines up with it, allow for height and obstructions, share a link, add the shoot to your calendar, or print a shoot card.
+- **Three tabs** — Today, Outlook and Plan.
 - **Installable app (PWA)** — add it to your Home Screen on iOS or Android for a real standalone app experience, with offline support for the app itself (forecast data always pulls fresh, never stale).
-- **Push notifications** — optional alerts before sunrise, sunset, or golden hour (morning and evening), sent right to your phone. You choose which alerts you want and how far ahead: 15, 30, 60 or 90 minutes. Notifications need the app added to your Home Screen (see the [how-to](HOW-TO.md)).
+- **Push notifications** — optional alerts before sunrise, sunset, or golden hour (morning and evening), sent right to your phone. You choose which alerts you want and how far ahead: 15, 30, 60 or 90 minutes, and sunrise and sunset alerts can wait for a minimum forecast (Good or better, Great or better, or Epic only). Notifications need the app installed (Home Screen on a phone or tablet, Dock or app window on a computer) (see the [how-to](HOW-TO.md)).
 - **Built-in resilience** — automatic retry with backoff, cached last-known data with a clear "stale" indicator, and plain-language error messages instead of raw failures.
 
 ## How it works
@@ -47,11 +59,7 @@ Actively used and evolving. Scoring constants (cloud sweet-spot ranges, murk-pen
 
 ## Privacy
 
-Afterglow has no accounts and no ads. Your chosen location, recent places and Plan stay on your device, except when you turn on notifications: then that location, your alert choices and your phone's push address are stored so the alerts can be sent, and they're removed when you turn notifications off. The page also uses Cloudflare Web Analytics, a privacy-focused visit counter. It counts visits and rough details like country and device type, with no cookies and no personal information, so I can see whether Afterglow is being used.
-
-## License and security
-
-Afterglow is open source under the [MIT License](LICENSE). To report a security problem, see [SECURITY.md](SECURITY.md).
+Afterglow has no accounts and no ads. Your chosen location stays on your device, except when you turn on notifications: then that location, your alert choices and your phone's push address are stored so the alerts can be sent, and they're removed when you turn notifications off. The page also uses Cloudflare Web Analytics, a privacy-focused visit counter. It counts visits and rough details like country and device type, with no cookies and no personal information, so I can see whether Afterglow is being used.
 
 ## Support this project
 
