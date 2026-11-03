@@ -1,4 +1,4 @@
-<!-- Afterglow v2.0.0 -->
+<!-- Afterglow v2.0.1 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -196,6 +196,7 @@
   .plan-row .grow{ flex:1; min-width:0; }
   .plan-btn{ background: var(--card); border:1px solid var(--line); color: var(--sand); border-radius: 12px; padding: 9px 12px; font-size: 14px; cursor:pointer; font-family: inherit; }
   .plan-btn.round{ width:36px; height:36px; padding:0; border-radius:50%; font-size:16px; }
+  .plan-saved-note{ margin:0 0 8px; font-size:13px; }
   .plan-place{ flex:1; min-width:0; text-align:left; display:flex; flex-direction:column; align-items:flex-start; gap:1px; }
   .plan-place .pl-from{ font-size:11.5px; color: var(--slate); line-height:1.2; }
   .plan-place .pl-name{ max-width:100%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
@@ -401,7 +402,7 @@
 
   <header>
     <div class="hdr-top">
-    <div class="brand">After<em>glow</em><span class="version">v2.0.0</span></div>
+    <div class="brand">After<em>glow</em><span class="version">v2.0.1</span></div>
     <div class="header-actions">
       <a class="hdr-coffee" href="https://buymeacoffee.com/JohnstonAerial" target="_blank" rel="noopener" aria-label="Buy me a coffee (opens in a new tab)">☕ Buy me a coffee</a>
       <a class="hdr-help" href="https://github.com/JohnstonAerial/afterGlow#readme" target="_blank" rel="noopener" aria-label="Help and about (opens the README in a new tab)" title="Help &amp; about">ⓘ About</a>
@@ -435,6 +436,7 @@
 <div class="modal-backdrop" id="notifBackdrop">
   <div class="modal">
     <h3>Notifications</h3>
+    <div class="note" id="notifPlace" style="display:none;margin:-4px 0 12px;"></div>
     <div class="notif-row has-sub">
       <label for="notifSunrise">Alert before sunrise</label>
       <span class="switch">
@@ -1781,6 +1783,14 @@ function splitBlurb(t){
   const m = String(t).match(/^([\s\S]*?[.!?])\s+([\s\S]+)$/);
   return m ? [m[1], m[2]] : [t, ""];
 }
+// One place control in the same spot on every tab. On Plan it is "Planning from" (a place that can differ
+// from the saved one); on Today and Outlook it is the saved place.
+function syncLocLabel(){
+  const ln = $("locName"), lb = $("locBtn"); if(!ln) return;
+  const onPlan = state.view === "plan" && state.plan && state.plan.loc;
+  ln.textContent = onPlan ? "Planning from: " + state.plan.loc.name : ((state.loc && state.loc.name) || "Choose location");
+  if(lb) lb.setAttribute("aria-label", onPlan ? "Change planning place" : "Change location");
+}
 function render(){
   const app = $("app");
   if(!state.daily){ app.innerHTML = '<div class="loading">Reading the sky…</div>'; return; }
@@ -1803,8 +1813,7 @@ function render(){
   document.querySelectorAll(".view-tab").forEach(b => b.addEventListener("click", () => {
     state.view = b.dataset.view; render();
   }));
-  // The Plan tab has its own place box, so the saved-location box is hidden there (two boxes looked like two places to set).
-  const lb = $("locBtn"); if(lb) lb.style.display = state.view === "plan" ? "none" : "";
+  syncLocLabel();
   saveUi();
 }
 
@@ -2650,7 +2659,9 @@ function renderPlan(app, tabsHtml){
   const parts = {};
   const cap = (k, i0) => { parts[k] = (parts[k] || "") + html.slice(i0); html = html.slice(0, i0); };
   if(!p.fold) p.fold = {};
-  html += `<div class="plan-row"><button class="plan-btn plan-place" id="planPlaceBtn" aria-label="Change planning place"><small class="pl-from">Planning from</small><span class="pl-name">📍 ${esc(p.loc.name)} · Change ▾</span></button></div>`;
+  syncLocLabel();
+  // About 2 km: a fresh "My location" lookup moves a little each time, and that is still the same place.
+  const sameAsSaved = Math.abs(state.loc.lat - p.loc.lat) < 0.02 && Math.abs(state.loc.lon - p.loc.lon) < 0.02;
   if(p.searching){
     html += `<form class="plan-search" id="planForm"><input id="planQ" type="search" placeholder="Town, state or country, or lat, lon" autocomplete="off" autocapitalize="words" enterkeyhint="search"><button class="plan-btn" type="submit">Search</button></form>`;
     if(!p.results.length && !p.msg){
@@ -2659,8 +2670,7 @@ function renderPlan(app, tabsHtml){
     }
     html += p.results.map((r, i) => `<button type="button" class="plan-btn plan-res" data-i="${i}">${esc(r.name)}${r.admin1 ? ", " + esc(r.admin1) : ""}${r.country ? " · " + esc(r.country) : ""}</button>`).join("");
     html += `<button type="button" class="plan-btn plan-res" id="planGps">📍 ${p.loc.name === MYLOC ? "Update my location" : "My location"}</button>`;
-    const sameAsSaved = Math.abs(state.loc.lat - p.loc.lat) < 0.0005 && Math.abs(state.loc.lon - p.loc.lon) < 0.0005;
-    if(!sameAsSaved) html += `<button type="button" class="plan-btn plan-res" id="planSaved">Back to my saved place (${esc(state.loc.name)})</button>`;
+    if(!sameAsSaved) html += `<button type="button" class="plan-btn plan-res" id="planSaved">Back to ${esc(state.loc.name)}</button>`;
   }
   if(p.msg) html += `<div class="plan-msg">${esc(p.msg)}</div>`;
   html += `<div class="plan-row"><button class="plan-btn round" id="planPrev" aria-label="Previous day">‹</button><input class="plan-date" type="date" id="planDate" value="${p.date}" min="1900-01-01" max="2100-12-31" aria-label="Date"><button class="plan-btn round" id="planNext" aria-label="Next day">›</button><button class="plan-btn" id="planToday">Today</button></div>`;
@@ -2929,7 +2939,6 @@ function renderPlan(app, tabsHtml){
   $("planNext").addEventListener("click", () => go(planShift(p.date, 1)));
   $("planToday").addEventListener("click", () => go(planToday(p.loc.tz)));
   $("planDate").addEventListener("change", (e) => go(e.target.value));
-  $("planPlaceBtn").addEventListener("click", () => { p.searching = !p.searching; p.results = []; p.msg = ""; render(); if(p.searching){ const q = $("planQ"); if(q) q.focus(); } });
   const setPlace = (loc) => { addRecent(loc); p.calTitle = ""; p.calNotes = ""; p.loc = loc; p.subject = null; p.view = null; p.scan = null; p.searching = false; p.results = []; p.msg = ""; p.date = p.date || planToday(loc.tz); render(); };
   const gpsBtn = $("planGps");
   if(gpsBtn) gpsBtn.addEventListener("click", () => {
@@ -3176,7 +3185,10 @@ async function boot(loc){
 
 /* ---------- Location modal ---------- */
 const backdrop = $("modalBackdrop");
-$("locBtn").addEventListener("click", () => { backdrop.classList.add("open"); $("locInput").value = ""; showRecentPlaces(); $("locInput").focus(); });
+$("locBtn").addEventListener("click", () => {
+  if(state.view === "plan" && state.plan){ const p = state.plan; p.searching = !p.searching; p.results = []; p.msg = ""; render(); if(p.searching){ const q = $("planQ"); if(q) q.focus(); } return; }
+  backdrop.classList.add("open"); $("locInput").value = ""; showRecentPlaces(); $("locInput").focus();
+});
 $("closeModal").addEventListener("click", () => backdrop.classList.remove("open"));
 backdrop.addEventListener("click", (e) => { if(e.target === backdrop) backdrop.classList.remove("open"); });
 
@@ -3317,9 +3329,27 @@ $("notifBtn").addEventListener("click", () => {
   $("notifMinSunrise").value = String(prefs.minScore.sunrise);
   $("notifMinSunset").value = String(prefs.minScore.sunset);
   syncNotifSubs();
+  showNotifPlace(prefs);
   setNotifStatus("");
   notifBackdrop.classList.add("open");
 });
+// Which place the alerts are for, and a nudge when the place being looked at has changed since.
+function showNotifPlace(prefs) {
+  const el = $("notifPlace"); if (!el) return;
+  const on = !!(prefs.sunrise || prefs.sunset || prefs.goldenMorning || prefs.goldenEvening);
+  if (!on) { el.style.display = "none"; return; }
+  const cur = state.loc && state.loc.name ? state.loc.name : "your place";
+  let msg;
+  if (prefs.loc && prefs.loc.name) {
+    msg = "Alerts are set for: " + prefs.loc.name + ".";
+    if (state.loc && (Math.abs(state.loc.lat - prefs.loc.lat) >= 0.02 || Math.abs(state.loc.lon - prefs.loc.lon) >= 0.02)) {
+      msg += " You're now looking at " + cur + ". Tap Save to move your alerts there.";
+    }
+  } else {
+    msg = "Alerts are set for the place you last saved them from. Tap Save to set them for " + cur + ".";
+  }
+  el.textContent = msg; el.style.display = "";
+}
 // The "only if the forecast is" choices are dimmed until their alert is switched on.
 function syncNotifSubs() {
   $("notifMinSunriseRow").classList.toggle("off", !$("notifSunrise").checked);
@@ -3353,7 +3383,9 @@ $("notifSave").addEventListener("click", async () => {
   setNotifStatus("Enabling notifications…");
   const ok = await subscribeToPush(prefs);
   if (ok) {
+    prefs.loc = { name: state.loc.name, lat: state.loc.lat, lon: state.loc.lon };
     saveNotifPrefs(prefs);
+    showNotifPlace(prefs);
     // Say plainly what the sky choices mean, so a quiet evening isn't mistaken for a broken alert.
     const names = { 44: "Good or better", 70: "Great or better", 85: "Epic" };
     const bits = [];

@@ -12,7 +12,7 @@ Tap the location button near the top. You can:
 - tap **My location** (your browser will ask permission), or
 - search by city, state or ZIP.
 
-Your choice is saved on your device. If you tap **My location** again later it says **Update my location**, and your saved place only changes when you tap it, never on its own.
+Your choice is saved on your device. If you tap **My location** again later it says **Update my location**, and your place only changes when you tap it, never on its own.
 
 ## 2. Read the Today view
 
@@ -34,7 +34,7 @@ The **Outlook** tab lists the coming sunrises and sunsets in order, color-coded 
 
 The **Plan** tab is for working out where the light will be. It uses pure sun and moon geometry, so it works years ahead and anywhere in the world. Nothing here needs a weather forecast.
 
-- **Planning from** shows the place you're planning for. Tap it to search for another place, use **My location**, or go **Back to my saved place**. Planning somewhere else never changes your saved place or your alerts.
+- **Planning from** shows the place you're planning for. Tap it to search for another place, use **My location**, or go back to your own place. Plan can look at any place without changing the one Today, Outlook and your alerts use.
 - **Date**: pick any day with the date row.
 - **The map**: tap it to drop a pin. Use **Tap the map to place** to choose whether the next tap sets your **Subject** (what you want to shoot, such as a water tower) or **Your spot** (where you will stand or fly from).
 - **The time bar** stays at the top as you scroll. Drag the slider, or tap **Now**, to move the Sun and Moon lines on the map and the dots on the sky view. **Jump to** buttons take you straight to sunrise, golden hour, sunset, moonrise and moonset.
@@ -51,8 +51,8 @@ On a computer, scrolling over the map scrolls the page. To zoom the map, use the
 - **iPhone / iPad (Safari):** tap Share, then **Add to Home Screen**.
 - **Android (Chrome):** open the menu, then **Install app** or **Add to home screen**.
 - **Mac (Safari, macOS Sonoma 14 or newer):** click the Share button in the toolbar, then **Add to Dock**.
-- **Mac (Chrome):** open the menu, then **Cast, save and share → Install page as app** (a copy goes in your Dock).
-- **Windows (Chrome):** open the menu, then **Cast, save and share → Install page as app**.
+- **Mac (Chrome):** click **Install** at the right end of the address bar, then **Next**, then **Install**. A Finder window opens showing the app. Drag it to your Dock or Desktop to keep it handy. (If you don't see **Install**, open the menu and choose **Cast, save and share → Install page as app**.)
+- **Windows (Chrome):** click **Install** at the right end of the address bar and follow the prompts. (Or open the menu and choose **Cast, save and share → Install page as app**.)
 - **Windows (Edge):** click the **App available** icon at the right end of the address bar, then **Install**. (You can also open the menu, then **Apps → Install this site as an app**.)
 
 Firefox on a computer can't install web apps, so alerts won't work there. Use Chrome, Edge or Safari for that.
@@ -68,7 +68,7 @@ Alerts only work when Afterglow is installed as an app (step 5). They won't turn
 3. Choose what you want: sunrise, sunset, morning golden hour, evening golden hour.
 4. For sunrise and sunset, you can choose **Only if the forecast is** Good or better, Great or better, or Epic only. Afterglow checks the forecast at the moment an alert would go out. If the sky won't be good enough, you're not bothered at all.
 5. Choose how far ahead: 15 minutes, 30 minutes, 1 hour or 90 minutes.
-6. Tap **Save** and allow notifications when asked.
+6. Tap **Save** and allow notifications when asked. The top of the bell window says which place your alerts are for. If you later change your location, open the bell and tap **Save** again to move your alerts to the new place.
 
 When an alert has a minimum, the message includes the forecast, for example "Sunset in 60 minutes: Good (52)". To stop, open the bell again and turn the alerts off. Your details are then removed from the notification service.
 
