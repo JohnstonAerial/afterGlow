@@ -1,4 +1,4 @@
-<!-- Afterglow v2.0.4 -->
+<!-- Afterglow v2.1.0 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -22,6 +22,17 @@
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="theme-color" content="#1B1F3B">
+<script>
+// Theme (2.1.0): Auto follows the device, or the saved choice (Light / Dark). Runs early so the page never flashes the wrong colors.
+(function(){
+  var pref = "auto";
+  try{ var v = localStorage.getItem("ag_theme"); if(v === "light" || v === "dark" || v === "auto") pref = v; }catch(e){}
+  var light = pref === "light";
+  if(pref === "auto"){ try{ light = !!(window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches); }catch(e){} }
+  var h = document.documentElement; h.setAttribute("data-theme", light ? "light" : "dark"); h.setAttribute("data-theme-pref", pref);
+  var m = document.querySelector('meta[name="theme-color"]'); if(m) m.setAttribute("content", light ? "#f7f1e7" : "#1B1F3B");
+})();
+</script>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Afterglow">
@@ -41,6 +52,9 @@
     --slate-dim: #7b849f;
     --line: rgba(245,230,211,0.14);
     --card: rgba(245,230,211,0.05);
+    --panel: #1b1f3b;
+    --ring: rgba(245,230,211,0.3); --ring2: rgba(245,230,211,0.14);
+    --moon: #9db4e8; --moon-fill: #dfe8ff; --sun: var(--gold);
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
@@ -222,7 +236,7 @@
   .plan-row{ display:flex; align-items:center; gap:8px; margin-bottom:12px; }
   .plan-row .grow{ flex:1; min-width:0; }
   .plan-btn{ background: var(--card); border:1px solid var(--line); color: var(--sand); border-radius: 12px; padding: 9px 12px; font-size: 14px; cursor:pointer; font-family: inherit; }
-  .plan-btn.round{ width:36px; height:36px; padding:0; border-radius:50%; font-size:16px; }
+  .plan-btn.round{ width:36px; min-width:36px; flex:0 0 36px; height:36px; padding:0; border-radius:50%; font-size:16px; }
   .plan-saved-note{ margin:0 0 8px; font-size:13px; }
   .plan-place{ flex:1; min-width:0; text-align:left; display:flex; flex-direction:column; align-items:flex-start; gap:1px; }
   .plan-place .pl-from{ font-size:11.5px; color: var(--slate); line-height:1.2; }
@@ -265,6 +279,11 @@
   .plan-seg-b.on{ color: var(--sand); border-color: var(--gold); }
   .cal-row{ display:flex; gap:6px; align-items:center; margin-bottom:8px; }
   .plan-name.cal-sel{ width:auto; flex:1 1 0; min-width:0; margin-bottom:0; padding:9px 6px; }
+  /* 2.1.0b: hours and minutes fit their text, before/after takes the rest so "before" is never cut off; wraps on very narrow phones */
+  .cal-row:has(#calDir){ flex-wrap:wrap; }
+  #calOffH.cal-sel, #calOffM.cal-sel{ flex:0 0 auto; width:auto; padding-right:2px; }
+  #calAnchor.cal-sel{ font-size:14px; padding-left:8px; padding-right:4px; text-overflow:ellipsis; }
+  #calDir.cal-sel{ flex:1 1 7.5em; min-width:7.5em; }
   .plan-name.cal-num{ width:62px; flex:none; margin-bottom:0; text-align:center; padding:9px 4px; }
   .cal-row .cal-t{ font-size:14px; color:var(--slate); }
   .plan-name{ width:100%; background: var(--card); border:1px solid var(--line); color: var(--sand); border-radius:12px; padding:9px 12px; font-size:16px; font-family: inherit; margin-bottom:10px; }
@@ -388,6 +407,22 @@
   .hdr-help{ background: transparent; border: 1px solid var(--line); border-radius: 10px; color: var(--sand);
     font-size: 13px; padding: 7px 12px; text-decoration: none; line-height: 1; white-space: nowrap; }
   .hdr-help:hover{ color: var(--gold); border-color: var(--slate); }
+  /* ---------- Theme button and dropdown (2.1.0) ---------- */
+  .header-actions{ position: relative; }
+  .hdr-help{ font-weight: 700; font-size: 15px; padding: 6px 12px; min-width: 36px; text-align:center; }
+  #themeBtn{ background: transparent; border: 1px solid var(--line); border-radius: 10px; color: var(--sand); padding: 6px 10px; cursor: pointer; line-height: 1; display:inline-flex; align-items:center; justify-content:center; }
+  #themeBtn:hover{ color: var(--gold); border-color: var(--slate); }
+  #themeBtn[aria-expanded="true"]{ border-color: var(--gold); color: var(--gold); }
+  .header-actions .hdr-help, #notifBtn, #textBtn, #themeBtn{ padding-left: 9px; padding-right: 9px; }
+  .theme-panel{ position:absolute; right:0; top: calc(100% + 8px); z-index: 6000; width: 230px; padding: 10px; border-radius: 14px; background: var(--panel); border: 1px solid var(--line); box-shadow: 0 12px 32px rgba(0,0,0,0.35); }
+  .theme-panel[hidden]{ display:none; }
+  .theme-title{ font-family:'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--slate); margin: 2px 4px 8px; }
+  .theme-opt{ display:flex; align-items:center; gap:12px; width:100%; margin-bottom:6px; padding: 12px 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--card); color: var(--sand); font-family: inherit; font-size: 15px; cursor:pointer; text-align:left; }
+  .theme-opt .ti{ display:inline-flex; width:20px; justify-content:center; }
+  .theme-opt .tck{ margin-left:auto; visibility:hidden; color: var(--gold); font-weight:700; }
+  .theme-opt.on{ border-color: var(--gold); }
+  .theme-opt.on .tck{ visibility:visible; }
+  .theme-note{ font-size: 12.5px; color: var(--slate); margin: 6px 4px 2px; line-height: 1.35; }
   .notif-row{ display:flex; align-items:center; justify-content:space-between; padding: 10px 0; border-bottom: 1px solid var(--line); }
   .notif-row:last-of-type{ border-bottom: none; }
   .notif-row label{ font-size: 14px; }
@@ -418,6 +453,39 @@
     .score-num{ font-size: 54px; }
     .grid{ grid-template-columns: 1fr 1fr; }
   }
+
+  /* ---------- Light theme (2.1.0) ---------- */
+  html[data-theme="light"]{
+    color-scheme: light;
+    --ink: #f7f1e7; --ink-2: #fffaf1; --sand: #262b45; --slate: #566079; --slate-dim: #78809a;
+    --gold: #a35f08; --ember: #c4431a; --rose: #bf3a66;
+    --line: rgba(30,35,70,0.18); --card: rgba(255,253,248,0.7); --panel: #fffaf1;
+    --ring: rgba(30,35,70,0.30); --ring2: rgba(30,35,70,0.16);
+    --moon: #3a56a0; --moon-fill: #a9bfe8; --sun: #d9730d;
+  }
+  html[data-theme="light"]{ background: #efe6d8; }
+  html[data-theme="light"] body{ background: linear-gradient(180deg, #fbf6ec 0%, #f4ecdf 55%, #eadfce 100%); }
+  html[data-theme="light"] #locBtn{ background: rgba(255,255,255,0.7); }
+  html[data-theme="light"] .bar, html[data-theme="light"] .agenda-bar{ background: rgba(30,35,70,0.10); }
+  /* The sky card and the map overlays keep their dark look in both themes */
+  html[data-theme="light"] .hero{ --sand:#F5E6D3; --slate:#a2abc1; --gold:#F2B84B; --line: rgba(245,230,211,0.14); --card: rgba(245,230,211,0.05); color:#F5E6D3; }
+  html[data-theme="light"] .plan-dock{ background: var(--panel); box-shadow: 0 2px 14px rgba(30,35,70,0.16); }
+  html[data-theme="light"] .plan-date{ color-scheme: light; }
+  html[data-theme="light"] .map-wrap.full .map-fs-panel{ background: rgba(255,250,241,0.96); }
+  html[data-theme="light"] .theme-panel{ box-shadow: 0 12px 30px rgba(30,35,70,0.22); }
+  html[data-theme="light"] .modal input{ background: rgba(255,255,255,0.8); }
+  html[data-theme="light"] .modal-result:hover{ background: rgba(30,35,70,0.07); }
+  html[data-theme="light"] .modal-backdrop{ background: rgba(30,35,70,0.45); }
+  html[data-theme="light"] .map-pinhint, html[data-theme="light"] .map-hint, html[data-theme="light"] .map-tap{ --sand:#F5E6D3; --slate:#a2abc1; --line: rgba(245,230,211,0.14); color:#F5E6D3; }
+  html[data-theme="light"] .plan-good{ color: #116329; }
+  html[data-theme="light"] .brand em{ color: #d9730d; }
+  html[data-theme="light"] .cup path:nth-child(1){ fill: #262b45; }
+  html[data-theme="light"] .cup path:nth-child(2){ stroke: #262b45; }
+  html[data-theme="light"] .cup path:nth-child(3){ fill: #b0703c; }
+  html[data-theme="light"] .cup path:nth-child(4){ stroke: #566079; }
+  @media (display-mode: standalone){
+    html[data-theme="light"] body::before{ content:""; position:fixed; top:0; left:0; right:0; height: env(safe-area-inset-top, 0px); background:#1B1F3B; z-index: 7000; }
+  }
 </style>
 <!-- Leaflet: free, keyless map tiles for the Map tab's sun-direction view.
      Loaded synchronously so `L` is guaranteed defined before renderPlan() runs. -->
@@ -432,9 +500,17 @@
     <div class="brand">After<em>glow</em><span class="tagline">Plan your shoot around the sky</span></div>
     <div class="header-actions">
       <a class="hdr-coffee" href="https://buymeacoffee.com/JohnstonAerial" target="_blank" rel="noopener" aria-label="Buy me a coffee (opens in a new tab)">☕ Buy me a coffee</a>
-      <a class="hdr-help" href="https://github.com/JohnstonAerial/afterGlow#readme" target="_blank" rel="noopener" aria-label="Help and about (opens the README in a new tab)" title="Help &amp; about">ⓘ About</a>
+      <a class="hdr-help" href="https://github.com/JohnstonAerial/afterGlow#readme" target="_blank" rel="noopener" aria-label="Help and about (opens the README in a new tab)" title="Help and about">?</a>
       <button id="textBtn" title="Larger text" aria-label="Larger text" aria-pressed="false">Aa</button>
+      <button id="themeBtn" title="Theme" aria-label="Theme: Auto" aria-haspopup="true" aria-expanded="false"></button>
       <button id="notifBtn" title="Notifications" aria-label="Notifications">🔔</button>
+      <div id="themePanel" class="theme-panel" role="radiogroup" aria-label="Theme" hidden>
+        <div class="theme-title">Theme</div>
+        <button type="button" class="theme-opt" role="radio" data-theme-pref="auto"><span class="ti" data-ico="auto"></span><span>Auto</span><span class="tck" aria-hidden="true">✓</span></button>
+        <button type="button" class="theme-opt" role="radio" data-theme-pref="light"><span class="ti" data-ico="light"></span><span>Light</span><span class="tck" aria-hidden="true">✓</span></button>
+        <button type="button" class="theme-opt" role="radio" data-theme-pref="dark"><span class="ti" data-ico="dark"></span><span>Dark</span><span class="tck" aria-hidden="true">✓</span></button>
+        <div class="theme-note">Auto follows your device setting.</div>
+      </div>
     </div>
     </div>
     <button id="locBtn" aria-label="Change location"><span aria-hidden="true">📍</span><span class="loc-name" id="locName">Choose location</span><span class="loc-change">Change ▾</span></button>
@@ -446,7 +522,7 @@
     Forecasts via Open&#8209;Meteo · Moon times by Astronomy Engine · not a substitute for checking the sky yourself.<br>
     <a href="https://github.com/JohnstonAerial/afterGlow/blob/main/HOW-TO.md" target="_blank" rel="noopener">How to use Afterglow</a> · <a href="https://github.com/JohnstonAerial/afterGlow#readme" target="_blank" rel="noopener">About, how it's scored &amp; privacy</a> · <a href="https://buymeacoffee.com/JohnstonAerial" target="_blank" rel="noopener" style="white-space:nowrap">Buy me a coffee <svg class="cup" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" style="vertical-align:-2px"><path d="M3 9h14v5a5 5 0 0 1-5 5H8a5 5 0 0 1-5-5z" fill="#f3e3c8"/><path d="M17 10h1.5a2.5 2.5 0 0 1 0 5H17" fill="none" stroke="#f3e3c8" stroke-width="1.8"/><path d="M3 9h14v2.2H3z" fill="#7a4a2b"/><path d="M7 2.5c-1 1.2 1 2.2 0 3.4M11 2.5c-1 1.2 1 2.2 0 3.4M15 2.5c-1 1.2 1 2.2 0 3.4" fill="none" stroke="#a2abc1" stroke-width="1.2" stroke-linecap="round"/></svg></a> if this helped you catch an epic sky.<br>
     Also from Johnston Aerial:<br><a href="https://checklist.johnstonaerial.com/" target="_blank" rel="noopener">Free Drone Preflight Checklist</a>
-    <span class="version">v2.0.4</span>
+    <span class="version">v2.1.0</span>
   </footer>
 </div>
 
@@ -2644,16 +2720,16 @@ function planDialSVG(pl, tz){
   const dirs = [["N", 0, 0, -8], ["E", 90, 11, 4], ["S", 180, 0, 16], ["W", 270, -11, 4]]
     .map(([t, , dx, dy], i) => { const a = [0, 90, 180, 270][i] * Math.PI / 180; return `<text x="${(cx + (R) * Math.sin(a) + dx).toFixed(1)}" y="${(cy - R * Math.cos(a) + dy).toFixed(1)}" font-size="13" font-weight="700" fill="var(--sand)" text-anchor="middle">${t}</text>`; }).join("");
   return `<svg class="plan-dial" viewBox="0 0 320 320" role="img" aria-label="Sun and Moon paths across the sky">
-    <circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="rgba(245,230,211,0.3)" stroke-width="1.5"/>
-    <circle cx="${cx}" cy="${cy}" r="${R * 2 / 3}" fill="none" stroke="rgba(245,230,211,0.14)" stroke-dasharray="3 4"/>
-    <circle cx="${cx}" cy="${cy}" r="${R / 3}" fill="none" stroke="rgba(245,230,211,0.14)" stroke-dasharray="3 4"/>
-    <line x1="${cx}" y1="${cy - R}" x2="${cx}" y2="${cy + R}" stroke="rgba(245,230,211,0.14)"/><line x1="${cx - R}" y1="${cy}" x2="${cx + R}" y2="${cy}" stroke="rgba(245,230,211,0.14)"/>
+    <circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="var(--ring)" stroke-width="1.5"/>
+    <circle cx="${cx}" cy="${cy}" r="${R * 2 / 3}" fill="none" stroke="var(--ring2)" stroke-dasharray="3 4"/>
+    <circle cx="${cx}" cy="${cy}" r="${R / 3}" fill="none" stroke="var(--ring2)" stroke-dasharray="3 4"/>
+    <line x1="${cx}" y1="${cy - R}" x2="${cx}" y2="${cy + R}" stroke="var(--ring2)"/><line x1="${cx - R}" y1="${cy}" x2="${cx + R}" y2="${cy}" stroke="var(--ring2)"/>
     <text x="${cx + 4}" y="${cy - R / 3 + 11}" font-size="9" fill="var(--slate)">60°</text><text x="${cx + 4}" y="${cy - 2 * R / 3 + 11}" font-size="9" fill="var(--slate)">30°</text>
-    <path d="${arc(pl.moonPts)}" fill="none" stroke="#9db4e8" stroke-width="3" stroke-linecap="round" stroke-dasharray="1 6"/>
-    <path d="${arc(pl.sunPts)}" fill="none" stroke="var(--gold)" stroke-width="3.5" stroke-linecap="round"/>
-    ${ticks(pl.moonPts, 3, "#9db4e8", 13)}${ticks(pl.sunPts, 2, "var(--gold)", -7)}
+    <path d="${arc(pl.moonPts)}" fill="none" stroke="var(--moon)" stroke-width="3" stroke-linecap="round" stroke-dasharray="1 6"/>
+    <path d="${arc(pl.sunPts)}" fill="none" stroke="var(--sun)" stroke-width="3.5" stroke-linecap="round"/>
+    ${ticks(pl.moonPts, 3, "var(--moon)", 13)}${ticks(pl.sunPts, 2, "var(--sun)", -7)}
     ${dirs}<circle cx="${cx}" cy="${cy}" r="4" fill="var(--sand)"/>
-    <circle id="planDialMoon" r="7" fill="#dfe8ff" stroke="#9db4e8" stroke-width="2" style="display:none"/><circle id="planDialSun" r="8" fill="var(--gold)" stroke="#fff" stroke-width="2" style="display:none"/></svg>`;
+    <circle id="planDialMoon" r="7" fill="var(--moon-fill)" stroke="var(--moon)" stroke-width="2" style="display:none"/><circle id="planDialSun" r="8" fill="var(--sun)" stroke="#fff" stroke-width="2" style="display:none"/></svg>`;
 }
 
 async function planTimeZoneFor(lat, lon){
@@ -2665,6 +2741,16 @@ async function planTimeZoneFor(lat, lon){
   }catch(e){ return null; }
 }
 
+// Frame your spot and your subject together; in full screen leave room for the bottom panel and the top hint
+function planFitMap(map, lat, lon, p, animate){
+  try{
+    const pts = [[lat, lon]]; if(p.subject) pts.push([p.subject.lat, p.subject.lon]);
+    const tl = p.full ? [44, 110] : [44, 44], br = p.full ? [64, 240] : [64, 44];
+    if(pts.length > 1) map.fitBounds(pts, { paddingTopLeft: tl, paddingBottomRight: br, maxZoom: 16, animate: !!animate });
+    else if(p.full){ const z = map.getZoom(); map.setView([lat, lon], z, { animate: false }); map.panBy([0, (br[1] - tl[1]) / 2], { animate: false }); }
+    else map.setView([lat, lon], map.getZoom(), { animate: !!animate });
+  }catch(e){}
+}
 function renderPlan(app, tabsHtml){
   if(!state.plan){
     state.plan = { loc: { name: state.loc.name, lat: state.loc.lat, lon: state.loc.lon, tz: state.tz || null }, date: null, searching: false, results: [], msg: "" };
@@ -2814,13 +2900,9 @@ function renderPlan(app, tabsHtml){
       sunMapInstance = L.map(mapEl, { attributionControl: true }).setView(p.view ? [p.view.lat, p.view.lng] : [lat, lon], p.view ? p.view.z : 13);
       touchMapMode(sunMapInstance, mapEl);
       // Coming back from full screen: re-fit so your spot and your subject are both in view
-      if(p.fit && !p.full){
+      if(p.fit){
         p.fit = false;
-        try{
-          const pts = [[lat, lon]]; if(p.subject) pts.push([p.subject.lat, p.subject.lon]);
-          if(pts.length > 1) sunMapInstance.fitBounds(pts, { paddingTopLeft: [44, 44], paddingBottomRight: [64, 44], maxZoom: 16, animate: false });
-          else sunMapInstance.setView([lat, lon], p.view ? p.view.z : 13, { animate: false });
-        }catch(e){}
+        planFitMap(sunMapInstance, lat, lon, p, false);
       }
       sunMapInstance.on("moveend", () => { const c = sunMapInstance.getCenter(); p.view = { lat: c.lat, lng: c.lng, z: sunMapInstance.getZoom() }; });
       sunMapInstance.on("click", (ev) => {
@@ -2926,9 +3008,9 @@ function renderPlan(app, tabsHtml){
     // On a dropped pin, the crosshair takes you back to your saved place (subject pin stays); otherwise it just centers
     if(p.loc.name === "Dropped pin" && (p.homeLoc || state.loc)){
       const h = p.homeLoc || { name: state.loc.name, lat: state.loc.lat, lon: state.loc.lon, tz: state.tz || p.loc.tz };
-      p.loc = { name: h.name, lat: h.lat, lon: h.lon, tz: h.tz || p.loc.tz }; p.homeLoc = null; p.scan = null; p.view = null; render(); return;
+      p.loc = { name: h.name, lat: h.lat, lon: h.lon, tz: h.tz || p.loc.tz }; p.homeLoc = null; p.scan = null; p.view = null; p.fit = true; render(); return;
     }
-    if(sunMapInstance) sunMapInstance.setView([lat, lon], sunMapInstance.getZoom());
+    if(sunMapInstance) planFitMap(sunMapInstance, lat, lon, p, true);
   });
 
   document.querySelectorAll(".plan-seg-b[data-tap]").forEach(b => b.addEventListener("click", () => { p.tap = b.dataset.tap; render(); }));
@@ -3583,6 +3665,42 @@ function initLocation(){
   );
 }
 initLocation();
+
+// ---------- Theme: Auto / Light / Dark (2.1.0) ----------
+(function(){
+  const KEY = "ag_theme";
+  const ICO = {
+    auto: '<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg>',
+    light: '<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2" fill="currentColor"/><g stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2.5v2.6M12 18.9v2.6M2.5 12h2.6M18.9 12h2.6M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/></g></svg>',
+    dark: '<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.2A8.6 8.6 0 0 1 9.8 3.5a8.6 8.6 0 1 0 10.7 10.7z" fill="currentColor"/></svg>'
+  };
+  const NAME = { auto: "Auto", light: "Light", dark: "Dark" };
+  const btn = document.getElementById("themeBtn"), panel = document.getElementById("themePanel");
+  if(!btn || !panel) return;
+  const getPref = () => { let v = "auto"; try{ const x = localStorage.getItem(KEY); if(x === "light" || x === "dark" || x === "auto") v = x; }catch(e){} return v; };
+  const mq = (() => { try{ return window.matchMedia("(prefers-color-scheme: light)"); }catch(e){ return null; } })();
+  function apply(pref){
+    const light = pref === "light" || (pref === "auto" && !!(mq && mq.matches));
+    const h = document.documentElement; h.setAttribute("data-theme", light ? "light" : "dark"); h.setAttribute("data-theme-pref", pref);
+    const m = document.querySelector('meta[name="theme-color"]'); if(m) m.setAttribute("content", light ? "#f7f1e7" : "#1B1F3B");
+    btn.innerHTML = ICO[pref]; btn.setAttribute("aria-label", "Theme: " + NAME[pref]); btn.title = "Theme: " + NAME[pref];
+    panel.querySelectorAll(".theme-opt").forEach(o => { const on = o.dataset.themePref === pref; o.setAttribute("aria-checked", on ? "true" : "false"); o.classList.toggle("on", on); });
+  }
+  panel.querySelectorAll(".ti").forEach(e => { e.innerHTML = ICO[e.dataset.ico]; });
+  function open(on){ panel.hidden = !on; btn.setAttribute("aria-expanded", on ? "true" : "false"); }
+  btn.addEventListener("click", (e) => { e.stopPropagation(); open(panel.hidden); });
+  panel.addEventListener("click", (e) => e.stopPropagation());
+  panel.querySelectorAll(".theme-opt").forEach(o => o.addEventListener("click", () => {
+    const pref = o.dataset.themePref;
+    try{ localStorage.setItem(KEY, pref); }catch(e){}
+    apply(pref); open(false); btn.focus();
+  }));
+  document.addEventListener("click", () => { if(!panel.hidden) open(false); });
+  document.addEventListener("keydown", (e) => { if(e.key === "Escape" && !panel.hidden){ open(false); btn.focus(); } });
+  const onSys = () => { if(getPref() === "auto") apply("auto"); };
+  if(mq){ if(mq.addEventListener) mq.addEventListener("change", onSys); else if(mq.addListener) mq.addListener(onSys); }
+  apply(getPref());
+})();
 
 // ---------- Larger text (v1.5.0i) ----------
 // Scales every font size set in this page's own stylesheet by 1.2 (the map's library styles are left alone).

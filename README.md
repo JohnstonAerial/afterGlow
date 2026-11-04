@@ -10,6 +10,12 @@ Afterglow predicts how good a sunrise or sunset is actually going to look — no
 
 ## What's new
 
+**2.1.0**
+- **Light mode.** A new button in the header opens a **Theme** menu with **Auto**, **Light** and **Dark**. Auto follows your device setting and is the default. The big sky card stays dark on purpose in light mode.
+- The **ⓘ About** button is now a small **?** that opens this README.
+- The map's locate button (full screen) now frames your spot and your subject together above the bottom panel.
+- The calendar before/after box is no longer cut off, and a few smaller light-mode touches (coffee cup, card tint, round date arrows).
+
 **2.0.4**
 - **Full screen map.** On the Plan tab, tap **⤢** on the map to fill the whole screen. A panel along the bottom has the time slider, **Now**, quick jumps (sunrise, golden hour, sunset, moonrise) and a **Subject / Your spot** switch, so you can watch the Sun and Moon lines move across the map. Tap **✕** (or press Esc) to close it, and the small map re-fits so your spot and your subject are both in view.
 

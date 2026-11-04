@@ -77,6 +77,10 @@ When an alert has a minimum, the message includes the forecast, for example "Sun
 
 Tap **Aa** near the top to make all the text bigger. Tap it again to go back. Afterglow remembers your choice in that browser or installed app. Each one keeps its own setting, so if you use Afterglow in Safari and from your Home Screen, set it in both.
 
+## 8. Light or dark (Theme)
+
+Tap the theme button near the top (next to **Aa**) and choose **Auto**, **Light** or **Dark**. Auto follows your phone or computer setting, so Afterglow switches along with it. Afterglow remembers your choice in that browser or installed app. The **?** button opens the README.
+
 ## Good to know
 
 - If the forecast can't load, Afterglow shows the last one it got, clearly marked as old, with a **Refresh** button.
