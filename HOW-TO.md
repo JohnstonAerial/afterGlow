@@ -28,14 +28,14 @@ Use the **Sunrise** / **Sunset** toggle at the top to switch between the two. Us
 
 ## 3. Look ahead with Outlook
 
-The **Outlook** tab lists the coming sunrises and sunsets in order, color-coded by score, so you can spot the best day. Times that have already passed are dimmed, and "best" only points at one still ahead. Tap any row to open that day in Today.
+The **Outlook** tab lists the coming sunrises and sunsets in order, color-coded by score, so you can spot the best day. It looks 10 days out; days 8 to 10 have a dashed outline because forecasts that far ahead are less certain. A Flat or Fair day shows a short reason underneath. Times that have already passed are dimmed, and "best" only points at one still ahead. Tap any row to open that day in Today.
 
 ## 4. Plan a shoot with Plan
 
 The **Plan** tab is for working out where the light will be. It uses pure sun and moon geometry, so it works years ahead and anywhere in the world. Nothing here needs a weather forecast.
 
 - **Planning from** shows the place you're planning for. Tap it to search for another place, use **My location**, or go back to your own place. Plan can look at any place without changing the one Today, Outlook and your alerts use.
-- **Date**: pick any day with the date row.
+- **Date**: pick today or any later day with the date row.
 - **The map**: tap it to drop a pin. Use **Tap the map to place** to choose whether the next tap sets your **Subject** (what you want to shoot, such as a water tower) or **Your spot** (where you will stand or fly from).
 - **Full screen**: tap **⤢** on the map to open it full screen. The time slider, **Now**, quick jumps and the **Subject / Your spot** switch are along the bottom, so you can move the time and watch where the Sun and Moon lines fall. Tap **✕** to close it. The small map re-fits to show your spot and your subject, and the **⌖** button returns to the place you were planning from before you dropped a pin.
 - **The time bar** stays at the top as you scroll. Drag the slider, or tap **Now**, to move the Sun and Moon lines on the map and the dots on the sky view. **Jump to** buttons take you straight to sunrise, golden hour, sunset, moonrise and moonset.

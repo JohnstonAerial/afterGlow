@@ -10,6 +10,14 @@ Afterglow predicts how good a sunrise or sunset is actually going to look — no
 
 ## What's new
 
+**2.1.1**
+- **Outlook shows 10 days.** Days 8 to 10 have a dashed outline and a note that they are less certain, because forecasts shift most that far out. Today shows the same note on those days.
+- **Outlook says why.** A Flat or Fair day gets a short reason underneath (low cloud, sun blocked, overcast, rain likely, hazy, clear sky).
+- **Closed sections say more.** Sky breakdown, Moon & timelapse, Height & things in the way and Find dates now show a one-line summary in their header.
+- **Close links.** Open sections have a **Close ▲** link at the bottom so you don't have to scroll back up.
+- **Plan no longer lets you pick days in the past**, and the date row fits small screens with Larger text on.
+- Today's date line, the Things in the way form and a few long messages were tightened so nothing is cut off on narrow phones.
+
 **2.1.0**
 - **Light mode.** A new button in the header opens a **Theme** menu with **Auto**, **Light** and **Dark**. Auto follows your device setting and is the default. The big sky card stays dark on purpose in light mode.
 - The **ⓘ About** button is now a small **?** that opens this README.
