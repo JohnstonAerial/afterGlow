@@ -12,6 +12,10 @@ Afterglow predicts how good a sunrise or sunset is actually going to look — no
 
 ## What's new
 
+**2.4.1**
+- **View from your spot is the right size on a big screen.** On a Mac, iPad or other wide window the picture stops growing, so its text no longer gets huge.
+- **Shorter Sun and Moon tags.** When the Sun or Moon is off the side of the picture, the tag now reads like "← Sun · 112° · 28° up". The arrow shows the side, and the rows under the picture give the full details. The tags also stay clear of the Subject label and of each other.
+
 **2.4.0**
 - **Drone Preflight Checklist button.** A blue button on **Today** (under Moon & timelapse) and on **Plan** (under the Sky forecast) opens the free Drone Preflight Checklist with the weather and airspace for your place already loaded. It says which place it will use. On Plan it uses the place you're planning from. The checklist's own **AfterGlow** button works the other way and opens Afterglow at the checklist's place, on Today.
 - **A new look.** In dark mode, a soft gold glow along the right edge, like light at the horizon. In light mode, the page has a dawn-sky wash, from pale blue at the top through cream to a soft peach, with the same gold glow. The text, buttons and colors of the score card are unchanged.
