@@ -4,11 +4,25 @@
 
 🔗 [afterglow.johnstonaerial.com](https://afterglow.johnstonaerial.com)
 
+📖 **[How to use Afterglow](HOW-TO.md)** — installing, notifications, the Plan tab and reading the score
+
 Afterglow predicts how good a sunrise or sunset is actually going to look — not just whether the sun is up, but whether the sky will put on a show. Built for planning drone shoots, timelapses, and just knowing when to grab a camera.
 
 ☕ **Free to use.** If it helped you catch an epic shot — sunrise, sunset, or a moon timelapse — you can [buy me a coffee](https://buymeacoffee.com/JohnstonAerial).
 
 ## What's new
+
+**2.4.0**
+- **Drone Preflight Checklist button.** A blue button on **Today** (under Moon & timelapse) and on **Plan** (under the Sky forecast) opens the free Drone Preflight Checklist with the weather and airspace for your place already loaded. It says which place it will use. On Plan it uses the place you're planning from. The checklist's own **AfterGlow** button works the other way and opens Afterglow at the checklist's place, on Today.
+- **A new look.** In dark mode, a soft gold glow along the right edge, like light at the horizon. In light mode, the page has a dawn-sky wash, from pale blue at the top through cream to a soft peach, with the same gold glow. The text, buttons and colors of the score card are unchanged.
+- **View from your spot.** On the Plan tab, a new card under the time bar draws a flat horizon facing your Subject, with the Sun and Moon where they will be at the time on the bar. A dotted line shows each one's path. If the Sun or Moon is off the side or above the picture, a small tag says which way and how far. With no Subject pin, it faces the nearer of sunrise or sunset. The **Jump to** buttons (sunrise, golden hour, sunset, moonrise, moonset) sit at the top of the card as a row you can swipe sideways.
+- **Draw what's in the way.** Trees, buildings, hills, towers and walls you add under Things in the way are drawn in the picture at their real direction and height, and the Sun or Moon row says when one is behind them. Pick a "Looks like" shape for your Subject (water tower, bridge, lighthouse, steeple, turbine and more) and it is drawn in the middle.
+- **Type coordinates any way you have them.** Decimal degrees, degrees/minutes/seconds, survey style, compact aviation style (351230N 0783015W) or a pasted Google or Apple Maps link all work, in the Change location box and in Plan's search. In the US the place is named "Near <town>, ST".
+- **Return works in Change location.** Press Go on the keyboard to pick the top result.
+- **My location** is the same button, with a crosshair icon, on Today and Plan.
+- **Plan page order.** View from your spot, Things in the way, the Subject card, Sky forecast, the checklist button, Find dates, then the top-down Sky view (closed) and Share, calendar & print. The forecast now sits close to the picture, so you can read it as you step from date to date.
+- **Name this spot** moved up, to a row under the map-tap buttons, and appears once you've dropped a Subject pin.
+- **The footer link** to the Drone Preflight Checklist now reads "Free Drone Preflight Checklist".
 
 **2.1.1**
 - **Outlook shows 10 days.** Days 8 to 10 have a dashed outline and a note that they are less certain, because forecasts shift most that far out. Today shows the same note on those days.
@@ -59,7 +73,7 @@ Afterglow 2.0 is a big redesign of the Plan tab, with a few new tools.
 - **Sky quality scoring** — a heuristic model based on published sunset-photography guidance: mid/high cloud in the right range catches color, low cloud blocks it, haze flattens it. Scores are checked against real shoots and still being refined. Like any forecast, it can miss, especially on high cloud.
 - **Golden & blue hour, precisely** — computed from actual solar angle (civil twilight math), not flat clock-time offsets. Nautical and astronomical twilight times shown when they fall that day.
 - **Outlook** — the coming sunrises and sunsets, each scored, with past times dimmed.
-- **Any location** — search by city, state or ZIP, or use your current position, and switch any time with the location button. Your chosen location stays on your device.
+- **Any location** — search by city, state or ZIP, type coordinates, or use your current position, and switch any time with the location button. Your chosen location stays on your device.
 - **Moon conditions** — phase, illumination, moonrise/moonset with compass headings, and a callout for the "big warm moon on the horizon" alignment window. Includes an hourly timelapse-conditions score.
 - **Plan tab** — Sun and Moon direction and height at any time, on any date, anywhere, on a free, keyless Leaflet/OpenStreetMap map that also opens full screen. Place a subject, find the dates the Sun or Moon lines up with it, allow for height and obstructions, share a link, add the shoot to your calendar, or print a shoot card.
 - **Three tabs** — Today, Outlook and Plan.

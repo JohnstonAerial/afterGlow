@@ -1,4 +1,4 @@
-<!-- Afterglow v2.1.1 -->
+<!-- Afterglow v2.4.0 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -60,7 +60,9 @@
   html,body{margin:0;padding:0;}
   html{ background: #0d0f1e; }
   body{
-    background: radial-gradient(120% 90% at 50% -10%, #262b4d 0%, var(--ink) 45%, #0d0f1e 100%);
+    /* 2.3.1i: a faint gold glow low on the right of the first screen (like sky under a horizon), matching the gold glow on the checklist's Afterglow button; dark only (light mode sets its own background) */
+    background: radial-gradient(70% 40% at 112% 54%, rgba(242,184,75,0.46) 0%, rgba(242,184,75,0.20) 38%, rgba(242,184,75,0) 78%) top / 100% 100vh no-repeat,
+                radial-gradient(120% 90% at 50% -10%, #262b4d 0%, var(--ink) 45%, #0d0f1e 100%);
     color: var(--sand);
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     min-height: 100vh;
@@ -305,6 +307,16 @@
   .cal-row .cal-t{ font-size:14px; color:var(--slate); }
   .plan-name{ width:100%; background: var(--card); border:1px solid var(--line); color: var(--sand); border-radius:12px; padding:9px 12px; font-size:16px; font-family: inherit; margin-bottom:10px; }
   .plan-pin{ background:none; border:none; }
+  .hz-head{ display:flex; flex-wrap:wrap; align-items:baseline; justify-content:space-between; gap:2px 8px; margin-bottom:8px; }
+  .hz-head .label{ margin:0; }
+  .hz-jumps{ display:flex; flex-wrap:nowrap; gap:6px; margin:0 -2px 8px; padding:0 2px 4px; overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+  .hz-jumps::-webkit-scrollbar{ display:none; }
+  .hz-jumps .plan-seg-b.jump{ flex:0 0 auto; padding:6px 12px; white-space:nowrap; }
+  .plan-row2 b.nw{ white-space:nowrap; flex:none; }
+  .plan-row2 span{ min-width:0; }
+  .plan-row2 b small.by{ display:block; font-weight:400; font-size:12px; color:var(--slate); }
+  .hz-face{ font-family: ui-monospace, Menlo, monospace; font-size:11px; letter-spacing:.08em; color:var(--slate); white-space:nowrap; }
+  .hz-svg{ display:block; width:100%; height:auto; border-radius:12px; margin-bottom:6px; }
   .plan-row2{ display:flex; justify-content:space-between; gap:12px; padding:8px 0; border-top:1px solid var(--line); font-size:13.5px; line-height:1.4; }
   .plan-row2:first-of-type{ border-top:0; }
   .plan-row2 b{ font-weight:600; text-align:right; }
@@ -380,7 +392,13 @@
   .modal-actions button{
     background:none; border: none; color: var(--slate); font-size: 13px; cursor: pointer; padding: 6px;
   }
-  .modal-actions button.gps{ color: var(--gold); }
+  .modal-actions{ justify-content: flex-end; }
+  .chk-btn{ display:flex; align-items:center; gap:12px; box-sizing:border-box; width:100%; margin:14px 0 12px; padding:12px 14px; border-radius:14px; background: linear-gradient(100deg, #4aa8f0 0%, #2a64cf 45%, #1c2575 100%); color:#fff; text-shadow:0 1px 3px rgba(0,0,0,.5); font-size:15px; font-weight:700; line-height:1.25; text-decoration:none; text-align:left; }
+  .chk-btn small{ display:block; margin-top:2px; font-size:12.5px; font-weight:500; opacity:.9; }
+  .chk-btn svg{ width:30px; height:30px; flex:none; }
+  .loc-ico{ width:18px; height:18px; flex:none; }
+  #planGps, .modal-gps{ display:flex; align-items:center; gap:10px; }
+  .modal-gps{ width:100%; text-align:left; margin:8px 0 4px; background: var(--card); border:1px solid var(--line); color: var(--sand); border-radius: 12px; padding: 9px 12px; font-size: 14px; cursor:pointer; font-family: inherit; }
 
   /* v1.5.0i: Plan time dock, pin hint on the map, Today/Outlook touches, Larger text */
   .map-wrap{ height: clamp(190px, 28vh, 235px); }
@@ -393,6 +411,10 @@
   .dock-top .plan-seg-b{ margin-left:auto; }
   .plan-dock .plan-range{ margin:0; height:34px; }
   .plan-dock .plan-ticks{ margin-top:-2px; }
+  .plan-subjname{ margin:0 0 10px; }
+  .ob-types{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; margin:0 0 8px; }
+  .ob-type{ display:flex; flex-direction:column; align-items:center; gap:3px; padding:8px 4px; border:1px solid var(--line); border-radius:12px; background:transparent; color:var(--slate); font:inherit; font-size:12.5px; cursor:pointer; }
+  .ob-type.on{ border-color:var(--gold); color:var(--cream, inherit); font-weight:700; background:var(--panel2, rgba(240,178,75,.1)); }
   .plan-name-lbl{ display:block; font-size:12.5px; color: var(--slate); margin: 6px 0 4px; }
   .plan-tap-row{ margin: 0 0 8px; }
   .hdr-top{ flex-wrap: wrap; row-gap: 8px; }
@@ -482,7 +504,10 @@
     --moon: #3a56a0; --moon-fill: #a9bfe8; --sun: #d9730d;
   }
   html[data-theme="light"]{ background: #efe6d8; }
-  html[data-theme="light"] body{ background: linear-gradient(180deg, #fbf6ec 0%, #f4ecdf 55%, #eadfce 100%); }
+  /* 2.3.1n: light mode gets a dawn-sky wash (pale periwinkle at the top, cream, soft peach at the bottom) plus the same gold glow low on the right as dark mode */
+  html[data-theme="light"] body{ background:
+    radial-gradient(70% 40% at 112% 54%, rgba(236,160,48,0.50) 0%, rgba(236,160,48,0.22) 38%, rgba(236,160,48,0) 78%) top / 100% 100vh no-repeat,
+    linear-gradient(180deg, #e9ecf8 0%, #f5f0ea 22%, #f8f1e4 52%, #f2dfc8 100%); }
   html[data-theme="light"] #locBtn{ background: rgba(255,255,255,0.7); }
   html[data-theme="light"] .bar, html[data-theme="light"] .agenda-bar{ background: rgba(30,35,70,0.10); }
   /* The sky card and the map overlays keep their dark look in both themes */
@@ -539,18 +564,18 @@
   <footer>
     Forecasts via Open&#8209;Meteo · Moon times by Astronomy Engine · not a substitute for checking the sky yourself.<br>
     <a href="https://github.com/JohnstonAerial/afterGlow/blob/main/HOW-TO.md" target="_blank" rel="noopener">How to use Afterglow</a> · <a href="https://github.com/JohnstonAerial/afterGlow#readme" target="_blank" rel="noopener">About, how it's scored &amp; privacy</a> · <a href="https://buymeacoffee.com/JohnstonAerial" target="_blank" rel="noopener" style="white-space:nowrap">Buy me a coffee <svg class="cup" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" style="vertical-align:-2px"><path d="M3 9h14v5a5 5 0 0 1-5 5H8a5 5 0 0 1-5-5z" fill="#f3e3c8"/><path d="M17 10h1.5a2.5 2.5 0 0 1 0 5H17" fill="none" stroke="#f3e3c8" stroke-width="1.8"/><path d="M3 9h14v2.2H3z" fill="#7a4a2b"/><path d="M7 2.5c-1 1.2 1 2.2 0 3.4M11 2.5c-1 1.2 1 2.2 0 3.4M15 2.5c-1 1.2 1 2.2 0 3.4" fill="none" stroke="#a2abc1" stroke-width="1.2" stroke-linecap="round"/></svg></a> if this helped you catch an epic sky.<br>
-    Also from Johnston Aerial:<br><a href="https://checklist.johnstonaerial.com/" target="_blank" rel="noopener">Free Drone Preflight Checklist</a>
-    <span class="version">v2.1.1</span>
+    Also from Johnston Aerial:<br><a href="https://checklist.johnstonaerial.com/" id="footChk" target="_blank" rel="noopener" data-reuse="checklist_tab">Free Drone Preflight Checklist</a>
+    <span class="version">v2.4.0</span>
   </footer>
 </div>
 
 <div class="modal-backdrop" id="modalBackdrop">
   <div class="modal">
     <h3>Change location</h3>
-    <input type="text" id="locInput" placeholder="City, state, ZIP, or lat, lon" autocomplete="off">
+    <input type="text" id="locInput" placeholder="City, state, ZIP, or coordinates" autocomplete="off" enterkeyhint="go">
+    <button type="button" class="modal-gps" id="useGps"><svg class="loc-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="6.5"/><circle cx="12" cy="12" r="2" fill="currentColor"/><path d="M12 1.5v4M12 18.5v4M1.5 12h4M18.5 12h4"/></svg><span>My location</span></button>
     <div class="modal-results" id="locResults"></div>
     <div class="modal-actions">
-      <button class="gps" id="useGps">My location</button>
       <button id="closeModal">Cancel</button>
     </div>
   </div>
@@ -1133,20 +1158,98 @@ async function fetchForecast(loc){
   return data;
 }
 
-// Coordinates as Google Maps copies them ("35.7672209, -78.6630545"), with or without
-// brackets, degree signs or N/S/E/W letters. Returns {lat, lon}, or null if it isn't a pair
-// of coordinates in range.
-function parseLatLon(q){
-  const t = String(q).replace(/[()\[\]°]/g, " ").replace(/\s+/g, " ").trim();
-  const m = t.match(/^(-?\d+(?:\.\d+)?)\s*([NS])?\s*[, ]\s*(-?\d+(?:\.\d+)?)\s*([EW])?$/i);
-  if(!m) return null;
-  let lat = parseFloat(m[1]), lon = parseFloat(m[3]);
-  if(m[2] && m[2].toUpperCase() === "S") lat = -Math.abs(lat);
-  if(m[4] && m[4].toUpperCase() === "W") lon = -Math.abs(lon);
-  if(!isFinite(lat) || !isFinite(lon) || Math.abs(lat) > 90 || Math.abs(lon) > 180) return null;
-  return { lat: lat, lon: lon };
+// Coordinates typed or pasted in any common form (same parser as the Drone Preflight Checklist, 4.3.5):
+// decimal degrees ("35.59, -78.50"), degrees/minutes/seconds ("35°12'30"N 78°30'15"W"), survey style
+// ("35 07 03.1763(N) 078 49 59.0882(W)"), compact aviation (351230N 0783015W), or a pasted Google or
+// Apple Maps link. Returns {lat, lon}, or null if it isn't a pair of coordinates in range.
+function parseCoordsText(q) {
+  let s = String(q).toUpperCase()
+    .replace(/[′’‘`´]/g, "'").replace(/[″”“]/g, '"').replace(/[º˚]/g, '°').replace(/''/g, '"')
+    .replace(/[°'"()]/g, ' ').replace(/[−–—]/g, '-');
+  const re = /([NSEW])?\s*(-)?\s*(\d+(?:\.\d+)?)(?:\s+(\d+(?:\.\d+)?))?(?:\s+(\d+(?:\.\d+)?))?\s*([NSEW])?/g;
+  const parts = []; let m, last = 0;
+  while ((m = re.exec(s)) !== null) {
+    if (m[0] === '') { re.lastIndex++; continue; }
+    // "N 35 12 30 W 78 ...": the letter after the first number belongs to the next coordinate
+    if (m[1] && m[6]) re.lastIndex -= (m[0].length - m[0].lastIndexOf(m[6]));
+    const between = s.slice(last, m.index);
+    if (between.replace(/[\s,;]/g, '') !== '') return null;
+    last = re.lastIndex;
+    const d = parseFloat(m[3]), mi = m[4] != null ? parseFloat(m[4]) : 0, se = m[5] != null ? parseFloat(m[5]) : 0;
+    if (mi >= 60 || se >= 60) return null;
+    let v = d + mi / 60 + se / 3600;
+    const h = (m[1] && m[6]) ? m[1] : (m[1] || m[6] || null);
+    if (h) { if (h === 'S' || h === 'W') v = -v; } else if (m[2]) v = -v;
+    parts.push({ v, h });
+    if (parts.length > 2) return null;
+  }
+  if (s.slice(last).replace(/[\s,;]/g, '') !== '' || parts.length !== 2) return null;
+  let lat = parts[0], lon = parts[1];
+  const isLat = (p) => p.h === 'N' || p.h === 'S', isLon = (p) => p.h === 'E' || p.h === 'W';
+  if (isLon(parts[0]) || isLat(parts[1])) { if (isLat(parts[0]) || isLon(parts[1])) return null; lat = parts[1]; lon = parts[0]; }
+  else if (isLat(parts[0]) && isLon(parts[1])) { /* normal order */ }
+  else if ((parts[0].h && !parts[1].h) || (!parts[0].h && parts[1].h)) return null;
+  if (Math.abs(lat.v) > 90 || Math.abs(lon.v) > 180) return null;
+  return { lat: lat.v, lon: lon.v };
 }
-function looksLikeCoords(q){ return /^[\s\d.,()\[\]°\-NSEWnsew]+$/.test(q) && (String(q).match(/\d+/g) || []).length >= 2; }
+function parseCoords(q) {
+  const ok = (la, lo) => (isFinite(la) && isFinite(lo) && Math.abs(la) <= 90 && Math.abs(lo) <= 180) ? { lat: la, lon: lo } : null;
+  const t = String(q).trim();
+  if (/^https?:\/\//i.test(t)) {
+    let u = t; try { u = decodeURIComponent(t); } catch (e) {}
+    const n = '(-?\\d{1,3}(?:\\.\\d+)?)';
+    const pats = [
+      new RegExp('!3d' + n + '!4d' + n),                       // Google place pin
+      new RegExp('@' + n + ',' + n),                           // Google map centre
+      new RegExp('[?&](?:q|ll|query|center|sll|destination|daddr|coordinate)=\\s*' + n + '\\s*[, +]\\s*' + n)   // Google and Apple Maps
+    ];
+    for (const re of pats) { const m = u.match(re); if (m) return ok(parseFloat(m[1]), parseFloat(m[2])); }
+    return null;
+  }
+  const c = t.toUpperCase().replace(/[°'"′″]/g, '').match(/^(\d{2})(\d{2})(\d{2}(?:\.\d+)?)?\s*([NS])[\s,;]*(\d{3})(\d{2})(\d{2}(?:\.\d+)?)?\s*([EW])$/);
+  if (c) {
+    if (+c[2] >= 60 || +c[6] >= 60 || +(c[3] || 0) >= 60 || +(c[7] || 0) >= 60) return null;
+    const la = (+c[1] + +c[2] / 60 + +(c[3] || 0) / 3600) * (c[4] === 'S' ? -1 : 1);
+    const lo = (+c[5] + +c[6] / 60 + +(c[7] || 0) / 3600) * (c[8] === 'W' ? -1 : 1);
+    return ok(la, lo);
+  }
+  return parseCoordsText(q);
+}
+function parseLatLon(q){ return parseCoords(q); }
+// "Near Angier, NC" for typed coordinates. US only (National Weather Service, the same lookup as the
+// checklist's 4.3.5); anywhere else, or if it can't be reached in a few seconds, the coordinates stay as the name.
+const nearCache = {};
+async function nearName(lat, lon){
+  const key = lat.toFixed(4) + "," + lon.toFixed(4);
+  if(key in nearCache) return nearCache[key];
+  let out = "";
+  try{
+    const ctl = new AbortController(), tm = setTimeout(() => ctl.abort(), 8000);
+    const r = await fetch("https://api.weather.gov/points/" + key, { signal: ctl.signal });
+    clearTimeout(tm);
+    if(r.status === 404){ nearCache[key] = ""; return ""; }
+    if(r.ok){
+      const d = await r.json(), rl = d && d.properties && d.properties.relativeLocation && d.properties.relativeLocation.properties;
+      if(rl && rl.city) out = "Near " + String(rl.city).slice(0, 40) + (rl.state ? ", " + String(rl.state).slice(0, 2) : "");
+    }
+  }catch(e){ return ""; /* no name this time (slow or offline): the coordinates still work, and a later try can still name it */ }
+  if(out) nearCache[key] = out;
+  return out;
+}
+// A place saved with just its coordinates as the name picks up "Near <town>" when the lookup answers,
+// even if it answers after the place was chosen.
+function upgradeCoordName(la, lo, getLoc){
+  nearName(la, lo).then(nn => {
+    const l = getLoc();
+    if(!nn || !l || Math.abs(l.lat - la) > 1e-6 || Math.abs(l.lon - lo) > 1e-6 || !/^-?\d/.test(String(l.name))) return;
+    l.name = nn;
+    if(l === state.loc) saveLoc(l); else addRecent(l);
+    syncLocLabel();
+  });
+}
+function isMapLink(q){ return /^https?:\/\//i.test(String(q).trim()); }
+const MAP_LINK_MSG = "That link doesn't show coordinates (short links like maps.app.goo.gl can't be read). Open it, copy the long address from the browser bar, or type the coordinates.";
+function looksLikeCoords(q){ return /^[\s\d.,;()\[\]°'"′″\-NSEWnsew]+$/.test(q) && (String(q).match(/\d+/g) || []).length >= 2; }
 // Place search (the same logic as the Drone Preflight Checklist's search, from its 4.2.4b):
 //  - "Raleigh NC", "Raleigh, North Carolina", trailing "USA"
 //  - "Toronto ON", "Calgary, Alberta", "Sydney NSW" (restricts to that country, province first)
@@ -1917,9 +2020,36 @@ function splitBlurb(t){
 }
 // One place control in the same spot on every tab. On Plan it is "Planning from" (a place that can differ
 // from the saved one); on Today and Outlook it is the saved place.
+// The Flight Checklist, opened on a spot: it reads ?lat=&lon=&name= and uses that place for its weather (checklist 4.3.6).
+// "My location" sends nothing, so the checklist keeps using the phone's own position.
+const CHECKLIST_BASE = "https://checklist.johnstonaerial.com/";
+function checklistLink(loc){
+  if(!loc || loc.name === MYLOC || !isFinite(loc.lat) || !isFinite(loc.lon)) return CHECKLIST_BASE;
+  return CHECKLIST_BASE + "?lat=" + loc.lat.toFixed(4) + "&lon=" + loc.lon.toFixed(4) + "&name=" + encodeURIComponent(String(loc.name || "").slice(0, 60));
+}
+const CHK_ICON = '<svg viewBox="0 0 32 32" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="5" width="20" height="23" rx="3"/><path d="M12 4h8v4h-8zM11 17l3.2 3.2L21 13.5"/></svg>';
+// The big blue button to the Flight Checklist (blue is the checklist's color, as orange is Afterglow's), used on Today and Plan.
+function checklistBtnHtml(loc, id){
+  const here = !loc || loc.name === MYLOC || !isFinite(loc.lat) || !isFinite(loc.lon);
+  const place = here ? "where you are" : String(loc.name || "this spot").slice(0, 40).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  return `<a class="chk-btn" ${id ? 'id="' + id + '" ' : ""}href="${checklistLink(loc).replace(/&/g, "&amp;")}" target="_blank" rel="noopener" data-reuse="checklist_tab">${CHK_ICON}<span>Drone Preflight Checklist<small>Weather, airspace and checks for ${place}&nbsp;›</small></span></a>`;
+}
+// 2.3.1p: checklist links. Computer (mouse): reuse one named tab. Phone or tablet in a browser: open in the same tab (Back returns; no tab pile-up). Installed Home Screen app: plain new-tab link (opens the in-app browser). A shared named tab on phones felt like a dead button, so that is avoided.
+document.addEventListener("click", ev => {
+  try{
+    const a = ev.target.closest && ev.target.closest("a[data-reuse]");
+    if(!a || ev.defaultPrevented || ev.button || ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.altKey) return;
+    if(window.matchMedia("(display-mode: standalone)").matches || navigator.standalone) return;   // installed app: leave it to open the in-app browser as before
+    if(!window.matchMedia || !matchMedia("(hover: hover) and (pointer: fine)").matches){ ev.preventDefault(); location.href = a.href; return; }   // phone or tablet in a browser: same tab, Back returns here
+    const w = window.open(a.href, a.dataset.reuse);
+    if(w){ ev.preventDefault(); try{ w.focus(); }catch(e){} }
+  }catch(e){}
+});
 function syncLocLabel(){
   const ln = $("locName"), lb = $("locBtn"); if(!ln) return;
   const onPlan = state.view === "plan" && state.plan && state.plan.loc;
+  const fc = $("footChk");
+  if(fc) fc.href = checklistLink(null);
   if(onPlan){ ln.textContent = ""; const sm = document.createElement("small"); sm.className = "loc-from"; sm.textContent = "Planning from"; ln.appendChild(sm); ln.appendChild(document.createTextNode(state.plan.loc.name)); }
   else ln.textContent = (state.loc && state.loc.name) || "Choose location";
   if(lb) lb.setAttribute("aria-label", onPlan ? "Change planning place" : "Change location");
@@ -2065,6 +2195,7 @@ function renderToday(app, tabsHtml){
   }
   html += uiFold("moon", `${moon.emoji} Moon &amp; timelapse <span class="sub">${moon.phaseName} · <span class="nw">${moon.illumPct}% lit</span>${tlSum}</span>`, `<div class="grid">${moonCardHTML(moon)}${timelapseCardHTML(timelapse)}</div>`);
 
+  html += checklistBtnHtml(state.loc, "todayChk");
   app.innerHTML = html;
 
   document.querySelectorAll(".toggle-btn").forEach(b => b.addEventListener("click", () => {
@@ -2467,6 +2598,57 @@ const FT_M = 0.3048, OBST_KEY = "afterglow_obst";
 function dipDeg(hFt){ return hFt > 0 ? 1.76 * Math.sqrt(hFt * FT_M) / 60 : 0; }
 function obstAngle(o, hFt){ return Math.atan2(o.h - hFt, o.d) * 180 / Math.PI; }
 function inArc(az, a1, a2){ az = ((az % 360) + 360) % 360; return a1 <= a2 ? (az >= a1 && az <= a2) : (az >= a1 || az <= a2); }
+const OB_TYPES = [["trees","Trees"],["tree","Big tree"],["building","Building"],["hill","Hill"],["tower","Tower or pole"],["wall","Wall or fence"]];
+const SUBJ_TYPES = [["marker","Plain marker"],["tower","Water tower"],["building","Building"],["bridge","Bridge"],["tree","Lone tree"],["mast","Tower or mast"],["lighthouse","Lighthouse"],["steeple","Church steeple"],["house","House or barn"],["turbine","Wind turbine"],["pier","Pier or dock"]];
+const SUBJ_TOP = { marker: 14, tower: 24, building: 26, bridge: 14, tree: 25, mast: 34, lighthouse: 37, steeple: 38, house: 22, turbine: 48, pier: 8 };
+// Simple dark silhouette for the Subject, standing on the horizon at x = cx.
+function subjShapeSvg(type, cx, hy){
+  const f = "#070a14", R = (x, y, w, h) => `<rect x="${(cx + x).toFixed(1)}" y="${(hy - y).toFixed(1)}" width="${w}" height="${h}" fill="${f}"/>`;
+  const P = (pts) => `<polygon points="${pts.map(q => (cx + q[0]).toFixed(1) + "," + (hy - q[1]).toFixed(1)).join(" ")}" fill="${f}"/>`;
+  const C = (x, y, r) => `<circle cx="${(cx + x).toFixed(1)}" cy="${(hy - y).toFixed(1)}" r="${r}" fill="${f}"/>`;
+  switch(type){
+    case "tower": return `<ellipse cx="${cx}" cy="${hy - 19}" rx="9" ry="5" fill="${f}"/>` + R(-9, 19, 18, 5) + R(-6, 14, 2, 14) + R(4, 14, 2, 14) + R(-1, 14, 2, 14);
+    case "building": return R(-9, 26, 12, 26) + R(3, 16, 9, 16) + `<g fill="#2a2f55">${[-6, -1].map(x => [20, 12, 5].map(y => `<rect x="${cx + x}" y="${hy - y - 3}" width="3" height="3"/>`).join("")).join("")}</g>`;
+    case "bridge": return R(-22, 12, 44, 3) + R(-14, 9, 3, 9) + R(0, 9, 3, 9) + R(14, 9, 3, 9) + `<path d="M${cx - 20} ${hy - 12} Q${cx - 10} ${hy - 22} ${cx} ${hy - 12} Q${cx + 10} ${hy - 22} ${cx + 20} ${hy - 12}" fill="none" stroke="${f}" stroke-width="2"/>`;
+    case "tree": return R(-1.5, 9, 3, 9) + C(0, 17, 8) + C(-6, 12, 6) + C(6, 12, 6);
+    case "mast": return P([[-3, 0], [3, 0], [1, 34], [-1, 34]]) + R(-8, 26, 16, 1.5) + R(-6, 18, 12, 1.5);
+    case "lighthouse": return P([[-5, 0], [5, 0], [3, 26], [-3, 26]]) + R(-5, 31, 10, 5) + P([[-5, 31], [0, 37], [5, 31]]);
+    case "steeple": return R(-10, 12, 14, 12) + R(4, 22, 7, 22) + P([[3, 22], [7.5, 38], [12, 22]]);
+    case "house": return R(-12, 10, 24, 10) + P([[-14, 10], [0, 22], [14, 10]]);
+    case "turbine": return P([[-1.5, 0], [1.5, 0], [0.8, 30], [-0.8, 30]]) + C(0, 30, 2) + [[0, -17], [14.7, 8.5], [-14.7, 8.5]].map(q => `<line x1="${cx}" y1="${hy - 30}" x2="${(cx + q[0]).toFixed(1)}" y2="${(hy - 30 + q[1]).toFixed(1)}" stroke="${f}" stroke-width="2" stroke-linecap="round"/>`).join("");
+    case "pier": return R(-24, 5, 48, 2.5) + [-22, -14, -6, 2, 10, 18].map(x => R(x, 5, 1.8, 5)).join("");
+    default: return `<polygon points="${cx},${hy - 3} ${cx - 6},${hy - 14} ${cx + 6},${hy - 14}" fill="#fff3dc"/>`;
+  }
+}
+// An obstacle drawn across x = xs..xe (px) at height hp (px) on the horizon at hy.
+function obstShapeSvg(o, xs, xe, hp, hy){
+  const f = "#070a14", t = OB_TYPES.some(q => q[0] === o.type) ? o.type : "trees";
+  let w = xe - xs, xm = (xs + xe) / 2;
+  if(w < 4){ xs = xm - 2; xe = xm + 2; w = 4; }
+  const F = n => n.toFixed(1);
+  if(t === "tree"){
+    const r = Math.max(4, Math.min(26, hp * 0.4)), cy = hy - hp + r, tw = Math.max(1.5, r * 0.18);
+    return `<rect x="${F(xm - tw)}" y="${F(cy)}" width="${F(tw * 2)}" height="${F(hy - cy)}" fill="${f}"/><circle cx="${F(xm)}" cy="${F(cy)}" r="${F(r)}" fill="${f}"/><circle cx="${F(xm - r * 0.7)}" cy="${F(cy + r * 0.45)}" r="${F(r * 0.7)}" fill="${f}"/><circle cx="${F(xm + r * 0.7)}" cy="${F(cy + r * 0.45)}" r="${F(r * 0.7)}" fill="${f}"/>`;
+  }
+  if(t === "trees"){
+    const r = Math.max(4, hp * 0.55); let step = r * 1.3; if(w / step > 60) step = w / 60;
+    let out = `<rect x="${F(xs)}" y="${F(hy - hp + r)}" width="${F(w)}" height="${F(Math.max(0, hp - r))}" fill="${f}"/>`;
+    for(let i = 0, x = xs + r * 0.6; x < xe + r * 0.6 && i < 80; i++, x += step) out += `<circle cx="${F(Math.min(x, xe))}" cy="${F(hy - hp + r + ((i * 37) % 5 - 2))}" r="${F(r)}" fill="${f}"/>`;
+    return out;
+  }
+  if(t === "building"){
+    let out = `<rect x="${F(xs)}" y="${F(hy - hp)}" width="${F(w)}" height="${F(hp)}" fill="${f}"/>`;
+    if(hp >= 18 && w >= 14){ out += `<g fill="#2a2f55">`; let n = 0; for(let x = xs + 4; x < xe - 5 && n < 80; x += 8) for(let y = hy - hp + 5; y < hy - 6 && n < 80; y += 9, n++) out += `<rect x="${F(x)}" y="${F(y)}" width="3" height="3"/>`; out += `</g>`; }
+    return out;
+  }
+  if(t === "hill") return `<path d="M${F(xs)} ${hy} C${F(xs + w * 0.25)} ${F(hy - hp * 0.9)} ${F(xs + w * 0.35)} ${F(hy - hp)} ${F(xm)} ${F(hy - hp)} C${F(xm + w * 0.15)} ${F(hy - hp)} ${F(xe - w * 0.25)} ${F(hy - hp * 0.6)} ${F(xe)} ${hy}Z" fill="${f}"/>`;
+  if(t === "tower"){
+    const bw = Math.max(1.5, hp * 0.05), cb = Math.max(4, hp * 0.18);
+    return `<polygon points="${F(xm - bw * 2)},${hy} ${F(xm + bw * 2)},${hy} ${F(xm + bw * 0.6)},${F(hy - hp)} ${F(xm - bw * 0.6)},${F(hy - hp)}" fill="${f}"/><rect x="${F(xm - cb)}" y="${F(hy - hp * 0.8)}" width="${F(cb * 2)}" height="1.5" fill="${f}"/><rect x="${F(xm - cb * 0.7)}" y="${F(hy - hp * 0.55)}" width="${F(cb * 1.4)}" height="1.5" fill="${f}"/>`;
+  }
+  const th = Math.max(3, hp);
+  return `<rect x="${F(xs)}" y="${F(hy - th)}" width="${F(w)}" height="${F(th)}" fill="${f}"/>`;
+}
 function horizonAt(az, hFt, obs){
   let m = -0.8333 - dipDeg(hFt), who = null;
   obs.forEach(o => { if(inArc(az, o.a1, o.a2)){ const a = obstAngle(o, hFt); if(a > m){ m = a; who = o.name; } } });
@@ -2515,10 +2697,10 @@ function planViewCardHtml(p, pl, esc){
     let r = `<div class="plan-row2"><span>Flat ground, as above</span><b>${ft(flat.t)}</b></div>`;
     if(drone){ const dv = planVisibility(p, pl, hFt, mode, []); if(dv) r += `<div class="plan-row2"><span>From ${lenOut(hFt, unit)}</span><b>${ft(dv.t)}</b></div>`; }
     if(obs.length){
-      const fmt = (v) => !v ? "no sun" : v.blocked ? `${mode === "evening" ? "sun lost" : "sun clears"} ${ft(v.t)}${v.by ? " (" + esc(v.by) + ")" : ""}` : `not blocked: ${ft(v.t)}`;
+      const fmt = (v) => !v ? "no sun" : v.blocked ? `${mode === "evening" ? "sun lost" : "sun clears"} ${ft(v.t)}${v.by ? "<small class=\"by\">" + esc(v.by) + "</small>" : ""}` : `clear at ${ft(v.t)}`;
       const g = planVisibility(p, pl, 0, mode, obs), d = drone ? planVisibility(p, pl, hFt, mode, obs) : null;
-      r += `<div class="plan-row2"><span>With what's in the way, from the ground</span><b class="${g && g.blocked ? "plan-warn" : "plan-good"}">${fmt(g)}</b></div>`;
-      if(drone) r += `<div class="plan-row2"><span>With what's in the way, from ${lenOut(hFt, unit)}</span><b class="${d && d.blocked ? "plan-warn" : "plan-good"}">${fmt(d)}</b></div>`;
+      r += `<div class="plan-row2"><span>With what's in the way, from the ground</span><b class="nw ${g && g.blocked ? "plan-warn" : "plan-good"}">${fmt(g)}</b></div>`;
+      if(drone) r += `<div class="plan-row2"><span>With what's in the way, from ${lenOut(hFt, unit)}</span><b class="nw ${d && d.blocked ? "plan-warn" : "plan-good"}">${fmt(d)}</b></div>`;
       if(g && d){ const mins = Math.round(Math.abs(d.t - g.t) / 60000); if(mins >= 2) r += `<div class="note" style="font-size:12.5px;margin-top:6px;">${mode === "evening" ? "From the drone you get about " + mins + " more minutes of direct sun here." : "From the drone the sun is clear about " + mins + " minutes " + (d.t < g.t ? "earlier" : "later") + "."}</div>`; }
     }
     return `<div class="label" style="margin-top:8px;">${label}</div>${r}`;
@@ -2530,7 +2712,7 @@ function planViewCardHtml(p, pl, esc){
     h += `<div class="plan-row2"><span><b>${esc(o.name)}</b> · ${Math.round(o.a1)}° to ${Math.round(o.a2)}°<br><span style="color:var(--slate);font-size:12.5px;">${lenOut(o.h, unit)} tall, ${lenOut(o.d, unit)} away</span></span><b>${Math.max(0, obstAngle(o, 0)).toFixed(0)}° from the ground${drone ? `<br><span style="color:var(--slate);font-weight:400;font-size:12.5px;">${Math.max(0, obstAngle(o, hFt)).toFixed(0)}° at ${lenOut(hFt, unit)}</span>` : ""}<br><button class="plan-seg-b" data-delobs="${i}" style="margin-top:4px;padding:3px 10px;font-size:12px;">Remove</button></b></div>`;
   });
   if(p.addObs){
-    h += `<div style="margin-top:8px;"><input class="plan-name" id="obName" maxlength="30" placeholder="What is it? (trees, building)">
+    h += `<div style="margin-top:8px;"><div class="note" style="font-size:12.5px;margin:0 0 4px;">What is it?</div><div class="ob-types"><button type="button" class="ob-type${p.obType === 'trees' || (!p.obType && 'trees' === 'trees') ? " on" : ""}" data-obtype="trees"><svg viewBox="0 0 40 24" width="40" height="24" aria-hidden="true" fill="currentColor"><circle cx="8" cy="14" r="6"/><circle cx="17" cy="12" r="7"/><circle cx="27" cy="14" r="6"/><circle cx="34" cy="15" r="5"/><rect x="3" y="14" width="34" height="8"/></svg>Trees</button><button type="button" class="ob-type${p.obType === 'tree' || (!p.obType && 'tree' === 'trees') ? " on" : ""}" data-obtype="tree"><svg viewBox="0 0 40 24" width="40" height="24" aria-hidden="true" fill="currentColor"><rect x="18.5" y="14" width="3" height="9"/><circle cx="20" cy="10" r="7"/><circle cx="14" cy="14" r="5"/><circle cx="26" cy="14" r="5"/></svg>Big tree</button><button type="button" class="ob-type${p.obType === 'building' || (!p.obType && 'building' === 'trees') ? " on" : ""}" data-obtype="building"><svg viewBox="0 0 40 24" width="40" height="24" aria-hidden="true" fill="currentColor"><rect x="8" y="5" width="14" height="17"/><rect x="22" y="12" width="10" height="10"/></svg>Building</button><button type="button" class="ob-type${p.obType === 'hill' || (!p.obType && 'hill' === 'trees') ? " on" : ""}" data-obtype="hill"><svg viewBox="0 0 40 24" width="40" height="24" aria-hidden="true" fill="currentColor"><path d="M2 22 Q12 4 22 12 Q32 2 38 16 L38 22 Z"/></svg>Hill</button><button type="button" class="ob-type${p.obType === 'tower' || (!p.obType && 'tower' === 'trees') ? " on" : ""}" data-obtype="tower"><svg viewBox="0 0 40 24" width="40" height="24" aria-hidden="true" fill="currentColor"><polygon points="18,22 22,22 21,2 19,2"/><rect x="13" y="8" width="14" height="1.5"/></svg>Tower</button><button type="button" class="ob-type${p.obType === 'wall' || (!p.obType && 'wall' === 'trees') ? " on" : ""}" data-obtype="wall"><svg viewBox="0 0 40 24" width="40" height="24" aria-hidden="true" fill="currentColor"><rect x="3" y="14" width="34" height="8"/></svg>Wall</button></div><input class="plan-name" id="obName" maxlength="30" placeholder="Name it (optional)">
       <div class="plan-row"><span style="font-size:13px;">From</span><input class="plan-date" type="number" inputmode="decimal" id="obA1" placeholder="240" aria-label="From compass degrees"><span style="font-size:13px;">to</span><input class="plan-date" type="number" inputmode="decimal" id="obA2" placeholder="260" aria-label="To compass degrees"><span style="font-size:13px;">°</span></div>
       <div class="plan-row"><span class="ob-lbl" style="font-size:13px;">Height</span><input class="plan-date" type="number" inputmode="decimal" id="obH" placeholder="70" aria-label="Height"><span style="font-size:13px;">${unit}</span></div>
       <div class="plan-row"><span class="ob-lbl" style="font-size:13px;">Distance</span><input class="plan-date" type="number" inputmode="decimal" id="obD" placeholder="700" aria-label="Distance"><span style="font-size:13px;">${unit}</span></div>
@@ -2752,6 +2934,95 @@ function fmtRangeZ(a, b, tz){
   const sx = x.slice(-2), sy = y.slice(-2);
   return (sx === sy && /^[AP]M$/i.test(sx) ? x.slice(0, -3).trim() : x) + " – " + y;
 }
+// ---- View from your spot: a flat-horizon picture of the Sun and Moon, facing the Subject (or the nearer of sunrise/sunset).
+function planHorizonInner(p, pl, tz, t, S, M, sun){
+  const esc = x => String(x).replace(/[<>&"]/g, c => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;" }[c]));
+  const W = 342, H = 200, HY = 160, K = 3.4, HALF = 75, la = p.loc.lat, lo = p.loc.lon;
+  const hasSub = !!p.subject;
+  let face, label;
+  if(hasSub){ face = bearingDist(la, lo, p.subject.lat, p.subject.lon).brg; label = "FACING " + compassDir(face) + " · " + Math.round(face) + "°"; }
+  else {
+    let ev = null;
+    if(sun.rise && sun.set) ev = (Math.abs(t - sun.rise) <= Math.abs(t - sun.set)) ? ["SUNRISE", sun.riseAz] : ["SUNSET", sun.setAz];
+    else if(sun.rise) ev = ["SUNRISE", sun.riseAz]; else if(sun.set) ev = ["SUNSET", sun.setAz];
+    if(ev && ev[1] != null){ face = ev[1]; label = "FACING " + ev[0] + " · " + compassDir(face) + " " + Math.round(face) + "°"; }
+    else { face = S.az; label = "FACING THE SUN · " + compassDir(face) + " " + Math.round(face) + "°"; }
+  }
+  const xOf = az => ((angDiff(az, face) + HALF) / (2 * HALF)) * W, yOf = alt => HY - alt * K;
+  const a = S.alt;
+  const stops = a >= 12 ? [["#cfe3f5",0],["#8fbbe6",.45],["#4f86c9",1]]
+    : a >= 4 ? [["#f7c58c",0],["#a9c6e6",.4],["#5f93d0",1]]
+    : a >= -4 ? [["#f2a65a",0],["#e0714f",.14],["#8a4a7a",.38],["#3a3f86",.7],["#1b2150",1]]
+    : a >= -12 ? [["#d9806a",0],["#6a4a8a",.25],["#2c3472",.6],["#151a42",1]]
+    : [["#1a2147",0],["#0e1331",.6],["#080b1f",1]];
+  const grad = `<defs><linearGradient id="hzSky" x1="0" y1="1" x2="0" y2="0">${stops.map(q => `<stop offset="${q[1]}" stop-color="${q[0]}"/>`).join("")}</linearGradient></defs>`;
+  const path = (pts, col, w, dash) => {
+    let d = "", prev = false;
+    pts.forEach(q => {
+      if(q.alt < 0 || Math.abs(angDiff(q.az, face)) > HALF + 8){ prev = false; return; }
+      d += (prev ? "L" : "M") + xOf(q.az).toFixed(1) + " " + yOf(q.alt).toFixed(1) + " "; prev = true;
+    });
+    return d ? `<path d="${d}" fill="none" stroke="${col}" stroke-width="${w}" stroke-linecap="round"${dash ? ` stroke-dasharray="${dash}"` : ""}/>` : "";
+  };
+  let out = `<svg class="hz-svg" viewBox="0 0 ${W} ${H}" role="img" aria-label="Flat horizon facing ${compassDir(face)}. ${S.alt >= 0 ? "The Sun is " + Math.round(S.alt) + " degrees up." : "The Sun is below the horizon."} ${M.alt >= 0 ? "The Moon is " + Math.round(M.alt) + " degrees up." : "The Moon is below the horizon."}">${grad}<rect width="${W}" height="${H}" fill="url(#hzSky)"/>`;
+  out += path(pl.sunPts, "rgba(255,225,160,.6)", 1.6, "4 4") + path(pl.moonPts, "rgba(200,215,255,.55)", 1.6, "2 5");
+  if(hasSub) out += `<line x1="${W / 2}" y1="26" x2="${W / 2}" y2="${HY}" stroke="rgba(255,243,220,.3)" stroke-dasharray="3 4"/>`;
+  const tags = [], taken = { L: [], R: [], T: [] };
+  const place = (side, y) => { let yy = y; taken[side].forEach(v => { if(Math.abs(v - yy) < 24) yy = v + 24; }); taken[side].push(yy); return Math.min(yy, 150); };
+  const bodies = [["Sun", S, "#ffe3a6", false], ["Moon", M, "#dfe7ff", true]];
+  let discs = "";
+  bodies.forEach(([name, h, col, isMoon]) => {
+    if(h.alt < (isMoon ? 0 : -4)) return;
+    const dd = angDiff(h.az, face), inWin = Math.abs(dd) <= HALF - 3, y = yOf(h.alt), high = y < 12;
+    if(inWin && !high){
+      const x = xOf(h.az);
+      if(!isMoon) discs += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="22" fill="rgba(255,190,90,.35)"/><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="12" fill="#ffd98a"/>`;
+      else {
+        const ph = Astronomy.MoonPhase(t), k = (1 - Math.cos(ph * Math.PI / 180)) / 2, r = 11, rx = Math.abs(Math.cos(ph * Math.PI / 180)) * r, wax = ph < 180;
+        const lit = `M0 ${-r} A${r} ${r} 0 0 1 0 ${r} A${rx.toFixed(2)} ${r} 0 0 ${k < 0.5 ? 0 : 1} 0 ${-r}Z`;
+        discs += `<g transform="translate(${x.toFixed(1)} ${y.toFixed(1)})${wax ? "" : " scale(-1 1)"}"><circle r="${r}" fill="rgba(20,28,70,.55)" stroke="rgba(223,231,255,.5)"/><path d="${lit}" fill="#f3ead2"/></g>`;
+      }
+    } else {
+      const side = !inWin ? (dd < 0 ? "L" : "R") : "T";
+      const txt = (side === "L" ? "← " : side === "R" ? "" : "↑ ") + name + " · " + (!inWin ? Math.round(Math.abs(dd)) + "° " + (dd < 0 ? "left" : "right") + " · " : "") + Math.round(h.alt) + "° up" + (inWin && hasSub ? " · " + Math.round(Math.abs(dd)) + "° " + (dd < 0 ? "left" : "right") : "") + (side === "R" ? " →" : "");
+      const w = txt.length * 6.9 + 18, yy = side === "T" ? place("T", 14) : place(side, Math.max(16, Math.min(150, y)));
+      const x = side === "L" ? 6 : side === "R" ? W - 6 - w : Math.max(6, Math.min(W - 6 - w, xOf(h.az) - w / 2));
+      tags.push(`<g><rect x="${x.toFixed(1)}" y="${(yy - 11).toFixed(1)}" width="${w.toFixed(1)}" height="22" rx="11" fill="rgba(10,13,24,.82)"/><text x="${(x + 8).toFixed(1)}" y="${(yy + 4).toFixed(1)}" font-size="11" font-family="ui-monospace,Menlo,monospace" fill="${col}">${esc(txt)}</text></g>`);
+    }
+  });
+  out += discs;
+  // Subject (farthest), then the obstacles in front of it, then the ground.
+  const st = hasSub && SUBJ_TYPES.some(q => q[0] === p.subject.type) ? p.subject.type : "marker";
+  if(hasSub) out += subjShapeSvg(st, W / 2, HY);
+  let obLabels = "";
+  loadObst(p.loc).forEach(o => {
+    const dd1 = angDiff(o.a1, face), span = (((o.a2 - o.a1) % 360) + 360) % 360, xs = ((dd1 + HALF) / (2 * HALF)) * W, xe = xs + (span / (2 * HALF)) * W;
+    if(xe < -30 || xs > W + 30) return;
+    const hp = Math.max(1.5, Math.min(HY - 4, obstAngle(o, 0) * K));
+    out += obstShapeSvg(o, xs, xe, hp, HY);
+    const wpx = xe - xs, single = o.type === "tree" || o.type === "tower";
+    if(o.name && o.name !== "Obstruction" && (wpx >= 34 || single)){
+      const lx = Math.max(24, Math.min(W - 24, (xs + xe) / 2)), nm = String(o.name), nmS = nm.length > 16 ? nm.slice(0, 15) + "…" : nm;
+      obLabels += `<text x="${lx.toFixed(1)}" y="${(HY - hp - 4).toFixed(1)}" font-size="9" font-family="ui-monospace,Menlo,monospace" text-anchor="middle" fill="${a >= 4 ? "#0a0d18" : "#fff3dc"}">${esc(nmS)}</text>`;
+    }
+  });
+  out += `<rect y="${HY}" width="${W}" height="${H - HY}" fill="#0a0d18"/><line x1="0" y1="${HY}" x2="${W}" y2="${HY}" stroke="#1d2340"/>` + obLabels;
+  if(hasSub){
+    const cx = W / 2, nm = String(p.subject.name || "Subject"), nmS = nm.length > 14 ? nm.slice(0, 13) + "…" : nm;
+    out += `<text x="${cx - 16}" y="${HY - 18}" font-size="10" font-family="ui-monospace,Menlo,monospace" text-anchor="end" fill="${a >= 4 ? "#0a0d18" : "#fff3dc"}">${esc(nmS)}</text>`;
+  } else {
+    const msg = "Drop a Subject pin to center this view", w = msg.length * 6.4 + 20;
+    out += `<g><rect x="${(W - w) / 2}" y="52" width="${w}" height="28" rx="10" fill="rgba(10,13,24,.8)"/><text x="${W / 2}" y="70" font-size="11.5" text-anchor="middle" fill="#fff3dc">${msg}</text></g>`;
+  }
+  [["N",0],["NE",45],["E",90],["SE",135],["S",180],["SW",225],["W",270],["NW",315]].forEach(([nm, az]) => {
+    const dd = angDiff(az, face); if(Math.abs(dd) > HALF - 8) return;
+    const x = xOf(az);
+    out += `<line x1="${x.toFixed(1)}" y1="${HY}" x2="${x.toFixed(1)}" y2="${HY + 5}" stroke="#a9b2d0"/><text x="${x.toFixed(1)}" y="${HY + 19}" font-size="10" font-family="ui-monospace,Menlo,monospace" text-anchor="middle" fill="#a9b2d0">${nm}</text>`;
+  });
+  out += tags.join("") + "</svg>";
+  return { svg: out, label };
+}
+
 function planDialSVG(pl, tz){
   const R = 130, cx = 160, cy = 160;
   const xy = (alt, az) => { const r = (90 - Math.max(alt, 0)) / 90 * R, a = az * Math.PI / 180; return [cx + r * Math.sin(a), cy - r * Math.cos(a)]; };
@@ -2833,18 +3104,19 @@ function renderPlan(app, tabsHtml){
   // About 2 km: a fresh "My location" lookup moves a little each time, and that is still the same place.
   const sameAsSaved = Math.abs(state.loc.lat - p.loc.lat) < 0.02 && Math.abs(state.loc.lon - p.loc.lon) < 0.02;
   if(p.searching){
-    html += `<form class="plan-search" id="planForm"><input id="planQ" type="search" placeholder="Town, state or country, or lat, lon" autocomplete="off" autocapitalize="words" enterkeyhint="search"><button class="plan-btn" type="submit">Search</button></form>`;
+    html += `<form class="plan-search" id="planForm"><input id="planQ" type="search" placeholder="City, state, ZIP, or coordinates" autocomplete="off" autocapitalize="words" enterkeyhint="search"><button class="plan-btn" type="submit">Search</button></form>`;
+    html += `<button type="button" class="plan-btn plan-res" id="planGps" style="margin-top:8px;"><svg class="loc-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="6.5"/><circle cx="12" cy="12" r="2" fill="currentColor"/><path d="M12 1.5v4M12 18.5v4M1.5 12h4M18.5 12h4"/></svg><span>${p.loc.name === MYLOC ? "Update my location" : "My location"}</span></button>`;
     if(!p.results.length && !p.msg){
       const rl = recentsFor(p.loc);
       if(rl.length) html += `<div class="note" style="margin:8px 0 4px;">Recent places</div>` + rl.map((r, i) => `<button type="button" class="plan-btn plan-res" data-recent="${i}">📍 ${esc(r.name)}</button>`).join("");
     }
     html += p.results.map((r, i) => `<button type="button" class="plan-btn plan-res" data-i="${i}">${esc(r.name)}${r.admin1 ? ", " + esc(r.admin1) : ""}${r.country ? " · " + esc(r.country) : ""}</button>`).join("");
-    html += `<button type="button" class="plan-btn plan-res" id="planGps">📍 ${p.loc.name === MYLOC ? "Update my location" : "My location"}</button>`;
     if(!sameAsSaved) html += `<button type="button" class="plan-btn plan-res" id="planSaved">Back to ${esc(state.loc.name)}</button>`;
   }
   if(p.msg) html += `<div class="plan-msg">${esc(p.msg)}</div>`;
   html += `<div class="plan-row plan-daterow"><button class="plan-btn round" id="planPrev" aria-label="Previous day"${p.date <= planToday(tz) ? " disabled" : ""}>‹</button><input class="plan-date" type="date" id="planDate" value="${p.date}" min="${planToday(tz)}" max="2100-12-31" aria-label="Date"><button class="plan-btn round" id="planNext" aria-label="Next day">›</button><button class="plan-btn" id="planToday">Today</button></div>`;
   html += `<div class="plan-seg plan-tap-row" role="group" aria-label="What a map tap places"><span class="plan-seg-l">Tap the map to place:</span><button class="plan-seg-b ${p.tap === "subject" ? "on" : ""}" data-tap="subject">Subject</button><button class="plan-seg-b ${p.tap === "you" ? "on" : ""}" data-tap="you">Your spot</button></div>`;
+  if(p.subject){ const nv = (p.subject.name && p.subject.name !== "Subject") ? p.subject.name : ""; html += `<input class="plan-name plan-subjname" id="planSubjName" value="${esc(nv)}" maxlength="40" placeholder="Name this spot (optional), e.g. Water tower" aria-label="Name this spot (optional)">`; html += `<div class="plan-row plan-subjname"><span style="font-size:13px;flex:0 0 auto;">Looks like</span><select class="plan-name" id="planSubjType" aria-label="What the subject looks like in the picture" style="margin:0;">${SUBJ_TYPES.map(q => `<option value="${q[0]}"${(p.subject.type || "marker") === q[0] ? " selected" : ""}>${q[1]}</option>`).join("")}</select></div>`; }
   html += `<div class="map-wrap${p.full ? " full" : ""}"><div id="sunMap"></div><button type="button" class="map-center-btn" id="planCenter" title="${p.loc.name === 'Dropped pin' ? 'Back to ' + esc((p.homeLoc || state.loc).name) : 'Center on place'}" aria-label="${p.loc.name === 'Dropped pin' ? 'Back to ' + esc((p.homeLoc || state.loc).name) : 'Center on place'}">⌖</button><button type="button" class="map-center-btn map-full-btn" id="planFull" title="${p.full ? 'Close full screen' : 'Full screen map'}" aria-label="${p.full ? 'Close full screen map' : 'Open full screen map'}">${p.full ? '✕' : '⤢'}</button><!--FSPANEL-->${p.subject ? "" : '<div class="map-pinhint">Tap to drop a pin on what you want to shoot</div>'}</div>`;
 
   const dayMin = Math.max(60, Math.round((pl.t1 - pl.t0) / 60000));
@@ -2870,10 +3142,13 @@ function renderPlan(app, tabsHtml){
   html += `<div class="plan-dock"><div class="dock-top"><div class="dock-main"><div class="plan-clock" id="planTime">&nbsp;</div><div class="dock-lbl">${dockDay} · drag to move the lines</div></div><button class="plan-seg-b jump" id="planNow">Now</button></div>
     <input type="range" class="plan-range" id="planSlider" min="0" max="${dayMin - 1}" step="1" value="${p.min}" aria-label="Time of day" style="--track:${track}">
     <div class="plan-ticks"><span>12a</span><span>6a</span><span>12p</span><span>6p</span><span>12a</span></div></div>`;
-  html += `<div class="card" style="margin-bottom:10px;"><div class="label">Jump to</div>
-    <div class="plan-seg" style="margin:6px 0 4px;">${jumps2.map(j => `<button class="plan-seg-b jump" data-jump="${Math.round((j[1] - pl.t0) / 60000)}">${j[0]}<small>${fmtZ(j[1], tz)}</small></button>`).join("")}</div>
-    <div id="planReadout"></div>${planDialSVG(pl, tz)}<div class="map-note" style="text-align:center;">Sky view, you at the center, north up. Closer to the middle is higher in the sky; the edge is the horizon. Orange is the Sun, dotted blue the Moon.</div></div>`;
   cap("time", i0);
+  i0 = html.length;
+  html += `<div class="card" style="margin-bottom:10px;"><div class="hz-head"><div class="label">View from your spot</div><span class="hz-face" id="planHzFace"></span></div><div class="plan-seg hz-jumps" aria-label="Jump to">${jumps2.map(j => `<button class="plan-seg-b jump" data-jump="${Math.round((j[1] - pl.t0) / 60000)}">${j[0]}<small>${fmtZ(j[1], tz)}</small></button>`).join("")}</div><div id="planHz"></div><div id="planReadout"></div><div class="map-note" style="margin-top:2px;">Flat horizon, no buildings or terrain. Moves with the time bar.</div></div>`;
+  cap("hz", i0);
+  i0 = html.length;
+  cap("jump", i0);
+  parts.dial = `${planDialSVG(pl, tz)}<div class="map-note" style="text-align:center;">You at the center, north up. Closer to the middle is higher in the sky; the edge is the horizon. Orange is the Sun, dotted blue the Moon.</div>`;
   i0 = html.length;
   if(p.subject){
     const bd = bearingDist(p.loc.lat, p.loc.lon, p.subject.lat, p.subject.lon), sname = p.subject.name || "Subject";
@@ -2883,18 +3158,23 @@ function renderPlan(app, tabsHtml){
     if(sun.set) { const lp = lightPhrase(sun.setAz, bd.brg); rows.push(`<div class="plan-row2"><span>Sun at sunset (${fmtZ(sun.set, tz)})</span><b class="${lp.c}">${lp.t}</b></div>`); }
     if(moon.moonrise) { const dd = angDiff(moon.moonriseAz, bd.brg); rows.push(`<div class="plan-row2"><span>Moonrise (${fmtZ(moon.moonrise, tz)})</span><b>${Math.round(Math.abs(dd))}° ${dd > 0 ? "right" : "left"} of the subject</b></div>`); }
     if(moon.moonset) { const dd = angDiff(moon.moonsetAz, bd.brg); rows.push(`<div class="plan-row2"><span>Moonset (${fmtZ(moon.moonset, tz)})</span><b>${Math.round(Math.abs(dd))}° ${dd > 0 ? "right" : "left"} of the subject</b></div>`); }
-    html += `<div class="card" style="margin-bottom:10px;"><div class="label">${esc(sname)} · ${Math.round(bd.brg)}° ${compassDir(bd.brg)} · ${fmtDist(bd.km)}</div><label class="plan-name-lbl" for="planSubjName">Name this spot (optional)</label><input class="plan-name" id="planSubjName" value="${esc(nameVal)}" maxlength="40" placeholder="e.g. Water tower"><div class="note" style="margin-bottom:4px;">Light on the subject, ${planDayLabel(p.date)}. You are facing it from your spot.</div>${rows.join("") || '<div class="note">No sunrise, sunset or moon events on this date.</div>'}</div>`;
+    html += `<div class="card" style="margin-bottom:10px;"><div class="label">${esc(sname)} · ${Math.round(bd.brg)}° ${compassDir(bd.brg)} · ${fmtDist(bd.km)}</div><div class="note" style="margin-bottom:4px;">Light on the subject, ${planDayLabel(p.date)}. You are facing it from your spot.</div>${rows.join("") || '<div class="note">No sunrise, sunset or moon events on this date.</div>'}</div>`;
+    cap("subj", i0);
+    i0 = html.length;
     let fin = "";
     try{ fin = planFinder(p, bd.brg, p.finder); }catch(e){ console.error("Finder failed:", e); fin = '<div class="note">Couldn\'t search the dates.</div>'; }
     html += `<details class="plan-fold two" data-fold="finder"${p.fold.finder ? " open" : ""}><summary>Find the dates it lines up${p.scan && p.scan.sum ? ` <span class="sub">${esc(p.scan.sum)}</span>` : ""}</summary><div class="fold-body"><div class="plan-seg" style="margin-bottom:8px;"><button class="plan-seg-b ${p.finder === "sun" ? "on" : ""}" data-finder="sun">Sun</button><button class="plan-seg-b ${p.finder === "moon" ? "on" : ""}" data-finder="moon">Moon</button></div>${fin}<div class="note" style="margin-top:8px;">Direction only: it doesn't know how tall the subject is or what stands in between.</div>${FOLD_CLOSE}</div></details>`;
   }
-  cap("subj", i0);
+  cap("find", i0);
   i0 = html.length;
   try{ html += planViewCardHtml(p, pl, esc); }catch(e){ console.error('View card failed:', e); }
   cap("view", i0);
   i0 = html.length;
   html += skyCardHtml(p, sun, esc);
   cap("sky", i0);
+  i0 = html.length;
+  html += checklistBtnHtml(p.loc, "planChk");
+  cap("chk", i0);
   i0 = html.length;
   html += `<div class="card" style="margin-bottom:12px;"><div class="label">Share this plan</div><div class="plan-seg" style="margin-bottom:8px;"><button class="plan-seg-b" id="planCopy">🔗 Copy link</button>${navigator.share ? '<button class="plan-seg-b" id="planShare">Share…</button>' : ""}</div>${p.shareMsg ? `<div class="note" style="margin-bottom:6px;color:var(--gold);">${esc(p.shareMsg)}</div>` : ""}<div class="note">Reopens this place${p.subject ? ', the subject pin' : ''} and date in AfterGlow on any phone. Nothing is stored on a server.</div></div>`;
   cap("share", i0);
@@ -2938,8 +3218,10 @@ function renderPlan(app, tabsHtml){
   const foldBody = (key, title, inner, force, cls) => `<details class="plan-fold${cls ? " " + cls : ""}" data-fold="${key}"${(p.fold[key] || force) ? " open" : ""}><summary>${title}</summary><div class="fold-body">${inner}${FOLD_CLOSE}</div></details>`;
   const vDrone = p.vmode !== "ground", vFt = vDrone ? Math.max(0, p.alt == null ? 400 : p.alt) : 0, vObs = loadObst(p.loc).length;
   const vTitle = "Height &amp; things in the way<span class=\"sub\">" + (vDrone ? (p.unit === "m" ? Math.round(vFt * 0.3048) + " m" : Math.round(vFt) + " ft") : "From the ground") + " · " + (vObs ? vObs + " in the way" : "nothing in the way") + "</span>";
-  html += (parts.time || "") + (parts.sky || "") + (parts.subj || "");
+  html += (parts.time || "") + (parts.hz || "");
   html += foldBody("view", vTitle, parts.view || "", false, "two");
+  html += (parts.subj || "") + (parts.sky || "") + (parts.chk || "") + (parts.find || "");
+  html += foldBody("dial", "Sky view<span class=\"sub\">top-down, north up</span>", parts.dial || "", false, "two");
   html += foldBody("tools", "Share, calendar &amp; print", (parts.share || "") + (parts.cal || ""), !!p.shareMsg);
   html += `<div class="map-note" style="margin-top:4px;">Times and directions are calculated for a flat horizon, so hills and buildings change what you see. No sky forecast past about ten days.${esc(tzNote)}</div>`;
   app.innerHTML = html;
@@ -2961,7 +3243,7 @@ function renderPlan(app, tabsHtml){
       sunMapInstance.on("moveend", () => { const c = sunMapInstance.getCenter(); p.view = { lat: c.lat, lng: c.lng, z: sunMapInstance.getZoom() }; });
       sunMapInstance.on("click", (ev) => {
         if(p.tap === "you"){ if(p.loc.name !== "Dropped pin") p.homeLoc = p.loc; p.loc = { name: "Dropped pin", lat: ev.latlng.lat, lon: ev.latlng.lng, tz: p.loc.tz }; p.scan = null; }
-        else p.subject = { name: (p.subject && p.subject.name) || "Subject", lat: ev.latlng.lat, lon: ev.latlng.lng };
+        else p.subject = { name: (p.subject && p.subject.name) || "Subject", type: p.subject && p.subject.type, lat: ev.latlng.lat, lon: ev.latlng.lng };
         render();
       });
       const tl = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' }).addTo(sunMapInstance);
@@ -3013,8 +3295,14 @@ function renderPlan(app, tabsHtml){
     const slF = $("planSliderF"); if(slF && +slF.value !== min) slF.value = min;
     const clock2 = $("planTime2"); if(clock2) clock2.textContent = fmtZ(t, tz);
     const lbl = $("planReadLbl"); if(lbl) lbl.textContent = "At " + fmtZ(t, tz);
-    let rows = `<div class="plan-row2"><span>Sun</span><b>${desc(S)}</b></div><div class="plan-row2"><span>Moon</span><b>${desc(M)}</b></div>`;
-    if(p.subject){
+    const hzo = (() => { try{ return planHorizonInner(p, pl, tz, t, S, M, sun); }catch(e){ console.error("Horizon failed:", e); return null; } })();
+    if(hzo){ const hz = $("planHz"); if(hz) hz.innerHTML = hzo.svg; const hf = $("planHzFace"); if(hf) hf.textContent = hzo.label; }
+    const rel = h => { if(!p.subject || h.alt < 0) return ""; const dd = angDiff(h.az, bearingDist(la, lo, p.subject.lat, p.subject.lon).brg), n = Math.round(Math.abs(dd)); return n < 1 ? " · on your subject" : ` · ${n}° ${dd > 0 ? "right" : "left"} of subject`; };
+    const obsL = loadObst(p.loc);
+    const blk = h => { if(!obsL.length || h.alt < 0) return null; const hz = horizonAt(h.az, 0, obsL); return hz.who && h.alt <= hz.m ? hz.who : null; };
+    const bS = blk(S), bM = blk(M);
+    let rows = `<div class="plan-row2"><span>Sun</span><b${bS ? ' class="plan-warn"' : ""}>${desc(S)}${rel(S)}${bS ? " · behind " + esc(bS) : ""}</b></div><div class="plan-row2"><span>Moon</span><b${bM ? ' class="plan-warn"' : ""}>${desc(M)}${rel(M)}${M.alt >= 0 ? " · " + moonPhaseInfo(t).phaseName.toLowerCase() : ""}${bM ? " · behind " + esc(bM) : ""}</b></div>`;
+    if(p.subject && S.alt >= 0){
       const bd = bearingDist(la, lo, p.subject.lat, p.subject.lon);
       const lp = S.alt >= 0 ? lightPhrase(S.az, bd.brg) : null;
       rows += `<div class="plan-row2"><span>Light on ${esc(p.subject.name || "Subject")}</span><b class="${lp ? lp.c : ""}">${lp ? lp.t : "the Sun is below the horizon"}</b></div>`;
@@ -3069,6 +3357,7 @@ function renderPlan(app, tabsHtml){
 
   document.querySelectorAll(".plan-seg-b[data-tap]").forEach(b => b.addEventListener("click", () => { p.tap = b.dataset.tap; render(); }));
   document.querySelectorAll(".plan-seg-b[data-finder]").forEach(b => b.addEventListener("click", () => { p.finder = b.dataset.finder; render(); }));
+  const stSel = $("planSubjType"); if(stSel) stSel.addEventListener("change", () => { if(p.subject){ p.subject.type = stSel.value; saveUi(); render(); } });
   const sn = $("planSubjName");
   if(sn) sn.addEventListener("change", () => { p.subject.name = sn.value.trim().slice(0, 40) || "Subject"; render(); });
   const doShare = async (mode) => {
@@ -3093,14 +3382,15 @@ function renderPlan(app, tabsHtml){
   document.querySelectorAll("[data-altq]").forEach(b => b.addEventListener("click", () => { p.alt = +b.dataset.altq; saveUi(); render(); }));
   const altIn = $("planAlt");
   if(altIn) altIn.addEventListener("change", () => { const v = parseFloat(altIn.value); if(isFinite(v) && v >= 0) p.alt = lenIn(v, p.unit || "ft"); saveUi(); render(); });
-  const oAdd = $("obAdd"); if(oAdd) oAdd.addEventListener("click", () => { p.addObs = true; p.obMsg = ""; render(); });
+  const oAdd = $("obAdd"); if(oAdd) oAdd.addEventListener("click", () => { p.addObs = true; p.obMsg = ""; p.obType = "trees"; render(); });
+  document.querySelectorAll(".ob-type").forEach(b => b.addEventListener("click", () => { p.obType = b.dataset.obtype; document.querySelectorAll(".ob-type").forEach(x => x.classList.toggle("on", x === b)); }));
   const oCan = $("obCancel"); if(oCan) oCan.addEventListener("click", () => { p.addObs = false; p.obMsg = ""; render(); });
   const oSave = $("obSave");
   if(oSave) oSave.addEventListener("click", () => {
-    const u = p.unit || "ft", n = ($("obName").value || "").replace(/[<>&"]/g, "").trim().slice(0, 30) || "Obstruction";
+    const u = p.unit || "ft", ty = OB_TYPES.some(q => q[0] === p.obType) ? p.obType : "trees", n = ($("obName").value || "").replace(/[<>&"]/g, "").trim().slice(0, 30) || OB_TYPES.find(q => q[0] === ty)[1];
     const a1 = parseFloat($("obA1").value), a2 = parseFloat($("obA2").value), hh = parseFloat($("obH").value), dd = parseFloat($("obD").value);
     if(![a1, a2, hh, dd].every(isFinite) || a1 < 0 || a1 > 360 || a2 < 0 || a2 > 360 || hh <= 0 || dd <= 0){ p.obMsg = "Fill in the compass range (0 to 360), the height and the distance, all above zero."; render(); return; }
-    const list = loadObst(p.loc); list.push({ name: n, a1: a1 % 360, a2: a2 % 360, h: lenIn(hh, u), d: lenIn(dd, u) });
+    const list = loadObst(p.loc); list.push({ name: n, type: ty, a1: a1 % 360, a2: a2 % 360, h: lenIn(hh, u), d: lenIn(dd, u) });
     saveObst(p.loc, list); p.addObs = false; p.obMsg = ""; render();
   });
   document.querySelectorAll("[data-delobs]").forEach(b => b.addEventListener("click", () => { const list = loadObst(p.loc); list.splice(+b.dataset.delobs, 1); saveObst(p.loc, list); render(); }));
@@ -3173,12 +3463,15 @@ function renderPlan(app, tabsHtml){
     const q = $("planQ").value.trim();
     if(!q) return;
     const ll = parseLatLon(q);
+    if(!ll && isMapLink(q)){ p.msg = MAP_LINK_MSG; render(); return; }
     if(!ll && looksLikeCoords(q)){ p.msg = "That doesn't look like coordinates. Latitude is -90 to 90 and longitude is -180 to 180, for example 35.7672, -78.6631."; render(); return; }
     if(ll){
       const la = ll.lat, lo = ll.lon;
       p.msg = "Looking up the time zone…"; render();
-      const ztz = await planTimeZoneFor(la, lo);
-      setPlace({ name: la.toFixed(4) + ", " + lo.toFixed(4), lat: la, lon: lo, tz: ztz });
+      const nnP = nearName(la, lo);
+      const [ztz, nn] = await Promise.all([planTimeZoneFor(la, lo), Promise.race([nnP, new Promise(r => setTimeout(() => r(""), 4000))])]);
+      setPlace({ name: nn || (la.toFixed(4) + ", " + lo.toFixed(4)), lat: la, lon: lo, tz: ztz });
+      if(!nn) upgradeCoordName(la, lo, () => state.plan && state.plan.loc);
       return;
     }
     p.msg = "Searching…"; render();
@@ -3594,6 +3887,7 @@ $("notifSave").addEventListener("click", async () => {
 updateNotifButtonIndicator();
 
 let searchTimeout;
+let enterWanted = false, shownQ = "";
 function showRecentPlaces(){
   const esc = t => String(t).replace(/[<>&"]/g, c => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;" }[c]));
   const list = recentsFor(state.loc);
@@ -3605,19 +3899,23 @@ function showRecentPlaces(){
   }));
 }
 $("locInput").addEventListener("input", (e) => {
-  clearTimeout(searchTimeout);
+  clearTimeout(searchTimeout); enterWanted = false;
   const q = e.target.value.trim();
   if(q.length < 2){ showRecentPlaces(); return; }
   const ll = parseLatLon(q);
+  if(!ll && isMapLink(q)){ $("locResults").innerHTML = `<div class="modal-result" style="cursor:default;color:var(--slate);white-space:normal;">${MAP_LINK_MSG}</div>`; return; }
   if(ll){
     const nm = ll.lat.toFixed(4) + ", " + ll.lon.toFixed(4);
     $("locResults").innerHTML = `<div class="modal-result" data-lat="${ll.lat}" data-lon="${ll.lon}" data-name="${nm}">Use these coordinates: ${nm}</div>`;
+    shownQ = q;
+    nearName(ll.lat, ll.lon).then(nn => { const el = document.querySelector('#locResults .modal-result[data-lat]'); if(nn && el && +el.dataset.lat === ll.lat && +el.dataset.lon === ll.lon){ el.dataset.name = nn; el.textContent = "Use these coordinates: " + nm + " · " + nn; } });
     document.querySelectorAll(".modal-result[data-lat]").forEach(el => {
       el.addEventListener("click", () => {
         const loc = { name: el.dataset.name, lat: parseFloat(el.dataset.lat), lon: parseFloat(el.dataset.lon) };
         saveLoc(loc);
         backdrop.classList.remove("open");
         boot(loc);
+        if(/^-?\d/.test(loc.name)) upgradeCoordName(loc.lat, loc.lon, () => state.loc);
       });
     });
     return;
@@ -3638,25 +3936,39 @@ $("locInput").addEventListener("input", (e) => {
           boot(loc);
         });
       });
-    }catch(err){ $("locResults").innerHTML = '<div class="modal-result" style="cursor:default;color:var(--rose)">Search failed</div>'; }
+      shownQ = q;
+      if(enterWanted){ enterWanted = false; const first = document.querySelector("#locResults .modal-result[data-lat]"); if(first) first.click(); }
+    }catch(err){ enterWanted = false; $("locResults").innerHTML = '<div class="modal-result" style="cursor:default;color:var(--rose)">Search failed</div>'; }
   }, 350);
 });
+// Return (Go) does what tapping the top result does; if the matches haven't arrived yet it waits for them.
+$("locInput").addEventListener("keydown", (e) => {
+  if(e.key !== "Enter") return;
+  e.preventDefault();
+  const q = e.target.value.trim();
+  if(q.length < 2) return;
+  const first = document.querySelector("#locResults .modal-result[data-lat]");
+  if(first && shownQ === q){ first.click(); return; }
+  enterWanted = true;
+});
 
+const GPS_ICON = '<svg class="loc-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="6.5"/><circle cx="12" cy="12" r="2" fill="currentColor"/><path d="M12 1.5v4M12 18.5v4M1.5 12h4M18.5 12h4"/></svg>';
 const gpsLabel = () => (state.loc && state.loc.name === MYLOC) ? "Update my location" : "My location";
-$("locBtn").addEventListener("click", () => { $("useGps").textContent = gpsLabel(); });
+const setGpsBtn = (txt) => { $("useGps").innerHTML = GPS_ICON + "<span></span>"; $("useGps").lastChild.textContent = txt; };
+$("locBtn").addEventListener("click", () => { setGpsBtn(gpsLabel()); });
 $("useGps").addEventListener("click", () => {
   if(!navigator.geolocation){ alert("Location services aren't available in this browser."); return; }
-  $("useGps").textContent = "Locating…";
+  setGpsBtn("Locating…");
   navigator.geolocation.getCurrentPosition(
     (pos) => {
       const loc = { name: MYLOC, lat: pos.coords.latitude, lon: pos.coords.longitude };
       saveLoc(loc);
       backdrop.classList.remove("open");
-      $("useGps").textContent = gpsLabel();
+      setGpsBtn(gpsLabel());
       boot(loc);
     },
     (err) => {
-      $("useGps").textContent = gpsLabel();
+      setGpsBtn(gpsLabel());
       alert(err && err.code === 1 ? "Location is blocked for this site. Allow it in your browser settings, or search for a place instead."
         : err && err.code === 3 ? "Your location is taking too long to find. Try again, or search for a place instead."
         : "Your location isn't available right now. Try again, or search for a place instead.");
@@ -3696,6 +4008,7 @@ function initLocation(){
     // Drop the place from the address bar so a refresh or bookmark doesn't keep it.
     try{ history.replaceState(null, "", location.pathname); }catch(e){}
     if(!loadLoc()) saveLoc(fromLink);
+    state.view = "today";   // a link with a place always opens on Today, not on whichever tab was open last
     boot(fromLink);
     return;
   }
