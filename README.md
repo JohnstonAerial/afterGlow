@@ -24,6 +24,11 @@ Afterglow predicts how good a sunrise or sunset is actually going to look — no
 
 ## What's new
 
+**2.4.3**
+- **Three new Subject shapes.** Under "Looks like" you can now pick **City skyline**, **Mountain or ridge** or **Smokestack**, and the picture draws it on the horizon where your Subject is.
+- **The Plan map keeps its view.** Changing "Looks like" (or anything else that redraws the page) no longer jumps the map back to your spot, so your spot and Subject stay in frame.
+- **Long Subject names on the printed compass** are no longer cut off at the edge of the card.
+
 **2.4.2**
 - **Share links and the QR code carry more.** A link to a plan (and the QR code on the printed shoot card) now includes your Things in the way, the Subject's shape ("Looks like"), whether you're on the ground or in the air and how high, and the shoot window. When someone opens it, those things are added to that place on their device. Your notes and units are not included.
 - **Saving a thing in the way tells you what's missing.** If a height or distance is blank, the Save form now marks the box and says so instead of doing nothing.
