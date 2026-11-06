@@ -10,6 +10,18 @@ Afterglow predicts how good a sunrise or sunset is actually going to look — no
 
 ☕ **Free to use.** If it helped you catch an epic shot — sunrise, sunset, or a moon timelapse — you can [buy me a coffee](https://buymeacoffee.com/JohnstonAerial).
 
+## Screenshots
+
+<table>
+  <tr>
+    <td align="center" width="33%"><picture><source media="(prefers-color-scheme: dark)" srcset="screenshots/01-today-dark.png"><img src="screenshots/01-today-light.png" alt="The Today tab: a 75 Great sunset score for Coats, North Carolina with the sunset time, last light, direction, golden hour and blue hour, then Sky breakdown, Moon and timelapse, and the blue Drone Preflight Checklist button" width="200"></picture><br><sub><b>Today</b></sub></td>
+    <td align="center" width="33%"><picture><source media="(prefers-color-scheme: dark)" srcset="screenshots/02-outlook-dark.png"><img src="screenshots/02-outlook-light.png" alt="The Outlook tab: ten days of sunrise and sunset scores, each with a short reason such as clear sky or overcast" width="200"></picture><br><sub><b>Outlook</b></sub></td>
+    <td align="center" width="33%"><picture><source media="(prefers-color-scheme: dark)" srcset="screenshots/03-plan-dark.png"><img src="screenshots/03-plan-light.png" alt="The Plan tab: the time bar, then the View from your spot picture with the Sun low in the south-west, a Water Tower Subject and an Oak tree, and the Sun, Moon and light rows" width="200"></picture><br><sub><b>Plan</b></sub></td>
+  </tr>
+</table>
+
+<sub>Pictures use sample forecast numbers and the Coats, NC area. They follow your light or dark setting on GitHub.</sub>
+
 ## What's new
 
 **2.4.1**
