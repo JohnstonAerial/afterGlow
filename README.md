@@ -24,6 +24,11 @@ Afterglow predicts how good a sunrise or sunset is actually going to look — no
 
 ## What's new
 
+**2.4.2**
+- **Share links and the QR code carry more.** A link to a plan (and the QR code on the printed shoot card) now includes your Things in the way, the Subject's shape ("Looks like"), whether you're on the ground or in the air and how high, and the shoot window. When someone opens it, those things are added to that place on their device. Your notes and units are not included.
+- **Saving a thing in the way tells you what's missing.** If a height or distance is blank, the Save form now marks the box and says so instead of doing nothing.
+- **A new printed shoot card.** The compass shows each thing in the way as a shaded wedge, the Subject's distance is on it, and a small picture of the horizon at sunrise or sunset shows where the Sun or Moon will be. The QR code sits at the top right so it is always on page 1. Notes over 200 characters print on page 2.
+
 **2.4.1**
 - **View from your spot is the right size on a big screen.** On a Mac, iPad or other wide window the picture stops growing, so its text no longer gets huge.
 - **Shorter Sun and Moon tags.** When the Sun or Moon is off the side of the picture, the tag now reads like "← Sun · 112° · 28° up". The arrow shows the side, and the rows under the picture give the full details. The tags also stay clear of the Subject label and of each other.
