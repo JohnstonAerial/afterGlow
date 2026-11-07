@@ -24,6 +24,9 @@ Afterglow predicts how good a sunrise or sunset is actually going to look — no
 
 ## What's new
 
+**2.4.3.2**
+- **Turn off counting of your own visits.** Tap the version text at the bottom five times to open a small box with a switch. It does the same as opening the page with `?notrack`, and it works in the app on your Home Screen too, where you cannot type an address.
+
 **2.4.3.1**
 - **Steadier loading.** The page now holds its height while the forecast loads, so the footer and the cards below no longer jump when the Today screen appears.
 
