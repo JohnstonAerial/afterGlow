@@ -24,6 +24,9 @@ Afterglow predicts how good a sunrise or sunset is actually going to look — no
 
 ## What's new
 
+**2.4.3.1**
+- **Steadier loading.** The page now holds its height while the forecast loads, so the footer and the cards below no longer jump when the Today screen appears.
+
 **2.4.3**
 - **Three new Subject shapes.** Under "Looks like" you can now pick **City skyline**, **Mountain or ridge** or **Smokestack**, and the picture draws it on the horizon where your Subject is.
 - **The Plan map keeps its view.** Changing "Looks like" (or anything else that redraws the page) no longer jumps the map back to your spot, so your spot and Subject stay in frame.
