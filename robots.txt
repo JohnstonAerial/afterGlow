@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://afterglow.johnstonaerial.com/sitemap.xml

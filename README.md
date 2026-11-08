@@ -24,6 +24,9 @@ Afterglow predicts how good a sunrise or sunset is actually going to look — no
 
 ## What's new
 
+**2.4.3.3**
+- **Easier to find in search.** A short plain-text description of Afterglow now sits at the bottom of the page, and the page tells search engines what it is. Nothing changes in how the app works.
+
 **2.4.3.2**
 - **Turn off counting of your own visits.** Tap the version text at the bottom five times to open a small box with a switch. It does the same as opening the page with `?notrack`, and it works in the app on your Home Screen too, where you cannot type an address.
 
