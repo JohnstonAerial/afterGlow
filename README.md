@@ -24,6 +24,12 @@ Afterglow predicts how good a sunrise or sunset is actually going to look — no
 
 ## What's new
 
+**2.4.4**
+- **Reality check.** In the last 3 hours before sunrise or sunset, a new card on Today compares the forecast with what is actually being reported toward the sun: recent airport weather reports (METARs) along the sun's direction, and a satellite line (NOAA GOES-19 cloud layers, a beta product) that can see high cloud, the layer that gives color. It says whether the airports agree with the forecast's low cloud. It appears only in that window and then goes away, and a small note on Today explains this when it is hidden. It does not change the score. It collapses and expands like the other cards.
+- **Refresh button.** Today now shows when the forecast was last fetched and has a Refresh button that reloads it, keeping your day and sunrise or sunset choice.
+- **Places in other time zones.** When you look at a place in another time zone (Los Angeles from the East Coast, for example), the sunrise and sunset direction, golden and blue hour, moon times, timelapse window and Reality check now use that place's own clock, and a note on Today says so. The app opens on the place's next sunrise or sunset.
+- **Printing in light mode.** A dark band that could print across the top of the shoot card, when printed from the installed app, is gone. The light-mode status strip at the top of the installed app is gone too, so your phone's own status bar shows.
+
 **2.4.3.3**
 - **Easier to find in search.** A short plain-text description of Afterglow now sits at the bottom of the page, and the page tells search engines what it is. Nothing changes in how the app works.
 
@@ -111,6 +117,7 @@ Afterglow 2.0 is a big redesign of the Plan tab, with a few new tools.
 - **Any location** — search by city, state or ZIP, type coordinates, or use your current position, and switch any time with the location button. Your chosen location stays on your device.
 - **Moon conditions** — phase, illumination, moonrise/moonset with compass headings, and a callout for the "big warm moon on the horizon" alignment window. Includes an hourly timelapse-conditions score.
 - **Plan tab** — Sun and Moon direction and height at any time, on any date, anywhere, on a free, keyless Leaflet/OpenStreetMap map that also opens full screen. Place a subject, find the dates the Sun or Moon lines up with it, allow for height and obstructions, share a link, add the shoot to your calendar, or print a shoot card.
+- **Reality check** — in the 3 hours before sunrise or sunset, a card compares the forecast with recent airport weather reports toward the sun and a satellite view of high cloud. It appears only in that window and does not change the score.
 - **Three tabs** — Today, Outlook and Plan.
 - **Installable app (PWA)** — add it to your Home Screen on iOS or Android for a real standalone app experience, with offline support for the app itself (forecast data always pulls fresh, never stale).
 - **Push notifications** — optional alerts before sunrise, sunset, or golden hour (morning and evening), sent right to your phone. You choose which alerts you want and how far ahead: 15, 30, 60 or 90 minutes, and sunrise and sunset alerts can wait for a minimum forecast (Good or better, Great or better, or Epic only). Notifications need the app installed (Home Screen on a phone or tablet, Dock or app window on a computer) (see the [how-to](HOW-TO.md)).
@@ -123,6 +130,7 @@ Afterglow 2.0 is a big redesign of the Plan tab, with a few new tools.
 - Forecast data comes from [Open-Meteo](https://open-meteo.com/) — free, no API key required.
 - Moon phase, moonrise and moonset are calculated on your device with [Astronomy Engine](https://github.com/cosinekitty/astronomy) (MIT licence, by Don Cross). Nothing about your location is sent anywhere for this, and it works offline. Checked against the US Naval Observatory, rise and set times agree to within a minute.
 - Cloud cover is sampled along the sun's actual azimuth (not just overhead) using great-circle geometry, to judge whether direct light can actually reach the horizon.
+- The Reality check gets airport reports from NOAA's Aviation Weather Center through a small Cloudflare Worker, and satellite cloud layers from NOAA's GOES-19 satellite, boiled down to a small grid by a GitHub Action every 15 minutes (the `sat-data` branch of this repo). Airport reports see cloud below about 12,000 ft; the satellite can see high cloud but shows the sky now, not at sunrise or sunset, and NOAA labels the product beta.
 - Notifications run on a Cloudflare Worker with a scheduled check every 5 minutes, using Web Push — no app store, no third-party notification service.
 
 ## Good to know
@@ -141,7 +149,7 @@ Actively used and evolving. Scoring constants (cloud sweet-spot ranges, murk-pen
 
 ## Privacy
 
-Afterglow has no accounts and no ads. Your chosen location stays on your device, except when you turn on notifications: then that location, your alert choices and your phone's push address are stored so the alerts can be sent, and they're removed when you turn notifications off. The page also uses Cloudflare Web Analytics, a privacy-focused visit counter. It counts visits and rough details like country and device type, with no cookies and no personal information, so I can see whether Afterglow is being used.
+Afterglow has no accounts and no ads. Your chosen location stays on your device, except when you turn on notifications: then that location, your alert choices and your phone's push address are stored so the alerts can be sent, and they're removed when you turn notifications off. The page also uses Cloudflare Web Analytics, a privacy-focused visit counter. It counts visits and rough details like country and device type, with no cookies and no personal information, so I can see whether Afterglow is being used. While the Reality check is showing, a few points along the sun's direction (rounded to about 1 km) are sent to a small Cloudflare Worker that passes them to NOAA's Aviation Weather Center to look up nearby airport reports; they are not stored.
 
 ## Support this project
 

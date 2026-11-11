@@ -1,4 +1,4 @@
-<!-- Afterglow v2.4.3.3 -->
+<!-- Afterglow v2.4.4 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -198,6 +198,34 @@
   .map-readout{ display:flex; gap: 10px; margin-bottom: 14px; }
   .map-readout .card{ flex: 1; text-align: center; }
   .map-note{ font-size: 12.5px; line-height: 1.5; color: var(--slate); }
+  /* Reality check: airport reports toward the sun, shown in the last 3 hours before the event */
+  .rc-hint{ font-size:12px; line-height:1.5; color: var(--slate); text-align:center; margin:22px 10px 22px; }
+  .rc-card{ border:1px solid var(--line); border-left:4px solid var(--rc, var(--slate)); background: var(--card); border-radius:14px; padding:14px 16px 12px; margin:14px 0 12px; }
+  .rc-head{ display:flex; justify-content:space-between; gap:8px; align-items:baseline; font:600 11px/1.2 ui-monospace,Menlo,monospace; letter-spacing:.14em; text-transform:uppercase; color: var(--slate); }
+  .rc-head span:last-child{ font-weight:400; letter-spacing:0; text-transform:none; font-size:12px; }
+  .rc-verdict{ margin-top:10px; font:600 18px/1.25 Georgia,serif; color: var(--rc, var(--slate)); }
+  .rc-text{ margin:6px 0 10px; font-size:14px; line-height:1.45; color: var(--sand); }
+  .rc-row{ display:flex; justify-content:space-between; gap:8px; padding:7px 0; border-top:1px solid var(--line); font:12.5px ui-monospace,Menlo,monospace; color: var(--sand); }
+  .rc-row small{ color: var(--slate); font:inherit; }
+  .rc-row b:last-child{ white-space:nowrap; }
+  .rc-sat{ border-top:1px solid var(--line); margin-top:4px; padding-top:9px; }
+  .rc-sat-head{ display:flex; justify-content:space-between; gap:8px; font:12.5px ui-monospace,Menlo,monospace; color: var(--sand); }
+  .rc-sat-head span:first-child{ letter-spacing:.06em; text-transform:uppercase; color: var(--slate); }
+  .rc-sat .rc-text{ margin:5px 0 8px; }
+  .rc-sat-row{ display:grid; grid-template-columns:repeat(6,1fr); gap:4px; text-align:center; font:12px ui-monospace,Menlo,monospace; color: var(--sand); }
+  .rc-sat-row span{ background: var(--card); border:1px solid var(--line); border-radius:8px; padding:4px 0; }
+  .rc-sat-row small{ display:block; color: var(--slate); font-size:10.5px; }
+  .rc-note{ margin-top:8px; font-size:12px; line-height:1.4; color: var(--slate); }
+  details.rc-card > summary{ list-style:none; cursor:pointer; position:relative; padding-right:26px; }
+  details.rc-card > summary::-webkit-details-marker{ display:none; }
+  details.rc-card > summary::after{ content:"▾"; position:absolute; right:0; top:-1px; color: var(--slate); font-size:14px; transition: transform .15s; }
+  details.rc-card[open] > summary::after{ transform: rotate(180deg); }
+  .rc-sum{ margin-top:8px; font-size:13.5px; line-height:1.4; color: var(--sand); }
+  details.rc-card[open] .rc-sum{ display:none; }
+  .rc-skel > summary{ pointer-events:none; }
+  .rc-skel .rc-sum{ background: var(--line); border-radius:6px; animation: rcPulse 1.4s ease-in-out infinite; }
+  .rc-ok{ --rc:#7bd88f; } .rc-bad{ --rc: var(--ember); } .rc-none{ --rc: var(--slate); }
+  html[data-theme="light"] .rc-ok{ --rc:#116329; }
   .plan-fold{ border:1px solid var(--line); background: var(--card); border-radius:14px; margin-bottom:12px; }
   .plan-fold > summary{ list-style:none; cursor:pointer; padding:14px 16px; font-size:14px; color: var(--sand); display:flex; justify-content:space-between; align-items:center; }
   .plan-fold > summary::-webkit-details-marker{ display:none; }
@@ -275,6 +303,7 @@
   @media print{
     @page{ size: letter; margin: 0.5in; }
     body > *:not(#printRoot){ display:none !important; }
+    body::before, body::after{ display:none !important; content:none !important; }
     html, body{ background:#fff !important; min-height:0 !important; height:auto !important; padding:0 !important; margin:0 !important; overflow:visible !important; }
     #printRoot{ display:block !important; color:#111; font:12.5px -apple-system, "Segoe UI", Roboto, sans-serif; }
     #printRoot h1{ font:700 22px Georgia, serif; margin:0 0 2px; color:#111; }
@@ -359,6 +388,15 @@
 
   /* Keep the page height steady while the forecast loads, so the footer and the cards below don't jump */
   #app{ min-height: 90vh; min-height: 90svh; }
+  /* Placeholder: the real tile's own markup with dummy text, so it is the same height (and grows with the text-size setting) and nothing below jumps when the data arrives */
+  .rc-skel, .rc-skel *{ color: transparent !important; }
+  .rc-skel .rc-head, .rc-skel .rc-head span{ color: var(--slate) !important; }
+  .rc-skel .rc-verdict, .rc-skel .rc-text, .rc-skel .rc-row > span, .rc-skel .rc-row > b, .rc-skel .rc-sat-head span, .rc-skel .rc-sat-row span, .rc-skel .rc-note{ background: var(--line); border-radius:6px; border-color: transparent; }
+  .rc-skel .rc-sat-row span{ background: var(--line); }
+  .rc-skel .rc-row{ border-top-color: transparent; }
+  .rc-skel .rc-verdict, .rc-skel .rc-text, .rc-skel .rc-sat-head, .rc-skel .rc-note{ animation: rcPulse 1.4s ease-in-out infinite; }
+  @keyframes rcPulse{ 0%,100%{ opacity:1 } 50%{ opacity:.45 } }
+  @media (prefers-reduced-motion: reduce){ .rc-skel .rc-verdict, .rc-skel .rc-text, .rc-skel .rc-sat-head, .rc-skel .rc-note{ animation:none; } }
   .about-seo{ margin:0 0 14px; font-size:12px; line-height:1.55; }
   footer{ text-align:center; font-size: 12px; line-height:1.55; color: var(--slate); margin-top: 36px; font-family:'IBM Plex Mono', monospace; }
   footer a{ text-decoration: underline; text-decoration-color: var(--slate); }
@@ -366,6 +404,10 @@
   .loading, .err{ text-align:center; padding: 60px 20px; color: var(--slate); font-size: 14px; }
   .err{ color: var(--rose); }
 
+  .tz-note{ font-size:12px; line-height:1.5; color:var(--slate); text-align:center; margin:22px 10px 22px; }
+  .upd-row{ display:flex; align-items:center; justify-content:flex-end; gap:10px; margin:-6px 2px 12px; font-size:12.5px; color:var(--slate); }
+  .upd-btn{ font:inherit; font-size:12.5px; color:var(--gold); background:transparent; border:1px solid var(--line, rgba(128,128,128,.35)); border-radius:999px; padding:5px 12px; cursor:pointer; min-height:30px; }
+  .upd-btn:disabled{ opacity:.55; cursor:default; }
   .stale-bar{ margin: 0 0 18px; padding: 14px 16px; border-radius: 14px;
     background: rgba(242,184,75,0.08); border: 1px solid rgba(242,184,75,0.30); }
   .stale-head{ font-size: 14px; color: var(--gold); line-height: 1.45; }
@@ -532,9 +574,6 @@
   html[data-theme="light"] .cup path:nth-child(2){ stroke: #262b45; }
   html[data-theme="light"] .cup path:nth-child(3){ fill: #b0703c; }
   html[data-theme="light"] .cup path:nth-child(4){ stroke: #566079; }
-  @media (display-mode: standalone){
-    html[data-theme="light"] body::before{ content:""; position:fixed; top:0; left:0; right:0; height: env(safe-area-inset-top, 0px); background:#1B1F3B; z-index: 7000; }
-  }
 </style>
 <!-- Leaflet: free, keyless map tiles for the Map tab's sun-direction view.
      Loaded synchronously so `L` is guaranteed defined before renderPlan() runs. -->
@@ -572,7 +611,7 @@
     Forecasts via Open&#8209;Meteo · Moon times by Astronomy Engine · not a substitute for checking the sky yourself.<br>
     <a href="https://github.com/JohnstonAerial/afterGlow/blob/main/HOW-TO.md" target="_blank" rel="noopener">How to use Afterglow</a> · <a href="https://github.com/JohnstonAerial/afterGlow#readme" target="_blank" rel="noopener">About, how it's scored &amp; privacy</a> · <a href="https://buymeacoffee.com/JohnstonAerial" target="_blank" rel="noopener" style="white-space:nowrap">Buy me a coffee <svg class="cup" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" style="vertical-align:-2px"><path d="M3 9h14v5a5 5 0 0 1-5 5H8a5 5 0 0 1-5-5z" fill="#f3e3c8"/><path d="M17 10h1.5a2.5 2.5 0 0 1 0 5H17" fill="none" stroke="#f3e3c8" stroke-width="1.8"/><path d="M3 9h14v2.2H3z" fill="#7a4a2b"/><path d="M7 2.5c-1 1.2 1 2.2 0 3.4M11 2.5c-1 1.2 1 2.2 0 3.4M15 2.5c-1 1.2 1 2.2 0 3.4" fill="none" stroke="#a2abc1" stroke-width="1.2" stroke-linecap="round"/></svg></a> if this helped you catch an epic sky.<br>
     Also from Johnston Aerial:<br><a href="https://checklist.johnstonaerial.com/" id="footChk" target="_blank" rel="noopener" data-reuse="checklist_tab">Free Drone Preflight Checklist</a>
-    <span class="version">v2.4.3.3</span>
+    <span class="version">v2.4.4</span>
   </footer>
 </div>
 
@@ -943,6 +982,7 @@ let state = {
   mode: "morning", // or "evening"
   view: "today", // or "outlook" / "plan" — which top-level screen is showing
   sample: { morning: null, evening: null }, // sun-path cloud readings
+  updatedAt: null, // when the forecast on screen was fetched
   stale: null // set when showing a cached forecast we couldn't refresh
 };
 
@@ -1700,6 +1740,29 @@ function solarPosition(date){
   return { decl, eqTime, lambda };
 }
 
+/* ---------- Place time frame ----------
+   The forecast gives sunrise/sunset/hourly times as the PLACE's wall-clock time with no offset, and the app reads them with new Date(iso),
+   which puts them in the viewer's own time zone. That is a "naive" moment: right on screen, but not a real instant unless you are in the
+   place's time zone. Anything that does sun or moon maths needs the real instant, so it converts naive -> real going in (frameR) and
+   real -> naive coming out (frameN), keeping every time on the card in the place's own clock. With no time zone known, or the same zone,
+   both are a no-op. */
+function frameR(d){
+  const tz = state && state.tz;
+  if(!tz || !(d instanceof Date) || isNaN(d)) return d;
+  const p2 = n => String(n).padStart(2, "0");
+  const iso = d.getFullYear() + "-" + p2(d.getMonth() + 1) + "-" + p2(d.getDate()) + "T" + p2(d.getHours()) + ":" + p2(d.getMinutes()) + ":" + p2(d.getSeconds());
+  const ms = placeLocalToMs(iso, tz);
+  return isNaN(ms) ? d : new Date(ms);
+}
+function frameN(d){
+  const tz = state && state.tz;
+  if(!tz || !(d instanceof Date) || isNaN(d)) return d;
+  try{
+    const p = new Intl.DateTimeFormat("en-US", { timeZone: tz, hourCycle: "h23", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit" }).formatToParts(d).reduce((o, x) => (o[x.type] = x.value, o), {});
+    return new Date(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute, +p.second);
+  }catch(e){ return d; }
+}
+
 // Sun's position in the sky (altitude + azimuth) for a given instant, using
 // the same low-precision NOAA/Meeus approach as solarPosition() above. Shared
 // by solarAzimuth() (existing call sites) and the Map tab's altitude readout,
@@ -1729,7 +1792,7 @@ function solarHorizontal(date, lat, lon){
 }
 
 function solarAzimuth(date, lat, lon){
-  return solarHorizontal(date, lat, lon).az;
+  return solarHorizontal(frameR(date), lat, lon).az; // date is a naive place-clock moment (see Place time frame)
 }
 
 function compassDir(deg){
@@ -1743,7 +1806,8 @@ function compassDir(deg){
    instead of a known clock time. "dawn" = first light before sunrise,
    "dusk" = last light after sunset. Returns null in the rare case the sun
    doesn't cross that altitude at all that day (deep polar latitudes). */
-function civilTwilight(eventDate, lat, lon, which, zenith){
+function civilTwilight(eventDateNaive, lat, lon, which, zenith){
+  const eventDate = frameR(eventDateNaive);
   const { decl, eqTime } = solarPosition(eventDate);
   if(zenith == null) zenith = 96;
   const cosHA = (dcos(zenith) - dsin(lat) * dsin(decl)) / (dcos(lat) * dcos(decl));
@@ -1755,7 +1819,7 @@ function civilTwilight(eventDate, lat, lon, which, zenith){
   utcMinutes = ((utcMinutes % 1440) + 1440) % 1440;
 
   const dayStartUTC = Date.UTC(eventDate.getUTCFullYear(), eventDate.getUTCMonth(), eventDate.getUTCDate());
-  return new Date(dayStartUTC + utcMinutes * 60000);
+  return frameN(new Date(dayStartUTC + utcMinutes * 60000));
 }
 
 /* ---------- Blue hour window ----------
@@ -1876,6 +1940,13 @@ function computeMoonInfo(dayStart, lat, lon, sunriseIso, sunsetIso, endAt){
   };
 }
 
+// Today tab: dayStart and the sunrise/sunset strings are the place's wall clock. Work in real time, hand back place wall-clock times.
+function computeMoonInfoPlace(dayStart, lat, lon, sunriseIso, sunsetIso){
+  const next = new Date(dayStart.getFullYear(), dayStart.getMonth(), dayStart.getDate() + 1);
+  const m = computeMoonInfo(frameR(dayStart), lat, lon, frameR(new Date(sunriseIso)).toISOString(), frameR(new Date(sunsetIso)).toISOString(), frameR(next));
+  m.moonrise = frameN(m.moonrise); m.moonset = frameN(m.moonset);
+  return m;
+}
 function moonCardHTML(m){
   const riseStr = m.moonrise ? `${fmt(m.moonrise)} <small>${compassDir(m.moonriseAz)}</small>` : `<small>Doesn't rise today</small>`;
   const setStr  = m.moonset  ? `${fmt(m.moonset)} <small>${compassDir(m.moonsetAz)}${m.moonsetNextDay ? ' · tomorrow' : ''}</small>`   : `<small>Doesn't set today</small>`;
@@ -1950,13 +2021,15 @@ function timelapseLabel(score){
   return "Flat";
 }
 
-function scanTimelapseWindow(dayStart, lat, lon, hourly){
-  const upWindow = findMoonUpWindow(dayStart, lat, lon);
+function scanTimelapseWindow(dayStart, lat, lon, hourly, toReal){
+  // toReal (optional): turns the place's wall-clock moments (dayStart, the hourly times) into real ones. Without it they are used as they are.
+  const real = toReal || (x => x);
+  const upWindow = findMoonUpWindow(real(dayStart), lat, lon);
   if(!upWindow) return null;
 
   const points = [];
   hourly.time.forEach((t, i) => {
-    const ti = new Date(t).getTime();
+    const ti = real(new Date(t)).getTime();
     if(ti < upWindow.start.getTime() || ti > upWindow.end.getTime()) return;
     const cloud = ((hourly.cloud_cover_mid[i] ?? 0) + (hourly.cloud_cover_high[i] ?? 0)) / 2;
     const wind = Array.isArray(hourly.wind_speed_700hPa) ? (hourly.wind_speed_700hPa[i] ?? null) : null;
@@ -2087,6 +2160,192 @@ function render(){
   saveUi();
 }
 
+// ---------- Reality check: real airport reports toward the sun ----------
+// A second opinion for the last 3 hours before sunrise/sunset. It checks for blockers (low and mid cloud
+// that the forecast missed). Airport reports only see cloud below about 12,000 ft, so they can't judge high
+// cloud (the color). The score is never changed by this.
+const AG_METAR_PROXY = "https://uas-metar.fisherofmen58.workers.dev";
+const RC_COVER = { SKC: 0, CLR: 0, NSC: 0, NCD: 0, CAVOK: 0, FEW: 18, SCT: 44, BKN: 75, OVC: 100, OVX: 100, VV: 100 };
+const RC_WORDS = { FEW: "a few clouds", SCT: "scattered cloud", BKN: "a broken deck", OVC: "overcast", OVX: "overcast", VV: "overcast" };
+const rcEsc = t => String(t).replace(/[<>&"]/g, c => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;" }[c]));
+async function rcFetchPoint(lat, lon, again){
+  try{ return await rcFetchPointOnce(lat, lon); }
+  catch(e){ if(again) throw e; await new Promise(r => setTimeout(r, 700)); return rcFetchPoint(lat, lon, true); } // one quiet retry
+}
+async function rcFetchPointOnce(lat, lon){
+  const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), 9000);
+  try{
+    const r = await fetch(`${AG_METAR_PROXY}/metar?lat=${lat.toFixed(2)}&lon=${lon.toFixed(2)}`, { signal: ctl.signal });
+    if(!r.ok) throw new Error("metar " + r.status);
+    const j = await r.json();
+    return Array.isArray(j) ? j : [];
+  } finally { clearTimeout(t); }
+}
+function rcStationSky(st){
+  const layers = (st.clouds || []).map(c => ({ code: String(c.cover || c.code || "").toUpperCase(), base: (c.base != null && isFinite(c.base)) ? c.base : null }))
+    .filter(c => c.code in RC_COVER);
+  // No cloud layers is a clear sky only when the report says so (CLR, SKC...). A station with no sky sensor reports nothing at all: skip it.
+  if(!layers.length){
+    const cov = String(st.cover || "").toUpperCase();
+    if(!(cov in RC_COVER && RC_COVER[cov] === 0) && !/\b(CLR|SKC|NSC|NCD|CAVOK)\b/.test(String(st.rawOb || ""))) return null;
+  }
+  let top = { code: "CLR", base: null, pct: 0 };
+  layers.forEach(l => { const pct = RC_COVER[l.code]; if(pct > top.pct || (pct === top.pct && pct > 0 && l.base != null && (top.base == null || l.base < top.base))) top = { code: l.code, base: l.base, pct }; });
+  return top;
+}
+async function rcLoad(loc, eventIso, az){
+  const pts = [[loc.lat, loc.lon]];
+  [80, 160].forEach(km => { const p = projectPoint(loc.lat, loc.lon, az, km); pts.push([p.lat, p.lon]); });
+  // One lookup failing should not wipe out the stations the others found; only fail when all of them do.
+  const settled = await Promise.allSettled(pts.map(p => rcFetchPoint(p[0], p[1])));
+  if(settled.every(x => x.status === "rejected")) throw new Error("airport reports unavailable");
+  const lists = settled.map(x => x.status === "fulfilled" ? x.value : []);
+  const seen = {}, nowS = Date.now() / 1000, out = [];
+  lists.forEach(l => l.forEach(st => {
+    if(!st || !st.icaoId || seen[st.icaoId] || st.lat == null || st.lon == null) return;
+    seen[st.icaoId] = 1;
+    const age = st.obsTime ? (nowS - st.obsTime) / 60 : null;
+    if(age == null || age > 120 || age < -10) return;
+    const bd = bearingDist(loc.lat, loc.lon, st.lat, st.lon);
+    if(bd.km > 260) return;
+    if(bd.km > 20 && Math.abs(angDiff(az, bd.brg)) > 40) return;
+    const sky = rcStationSky(st);
+    if(!sky) return;
+    out.push({ id: st.icaoId, name: String(st.name || "").split(",")[0].replace(/\s+(Intl|International|Airport|Regional|Rgnl|Municipal|Muni)\b.*$/i, "").trim(), km: bd.km, brg: bd.brg, obs: st.obsTime, sky });
+  }));
+  out.sort((a, b) => a.km - b.km);
+  return out.slice(0, 3);
+}
+// ---------- Satellite cloud layers toward the sun ----------
+// A small grid made every 15 minutes by a GitHub Action from GOES-19 Cloud Cover Layers (NOAA beta).
+// Covers the lower 48 and nearby. Unlike airport reports it sees high cloud, the part that gives color.
+const AG_SAT_URL = "https://raw.githubusercontent.com/JohnstonAerial/afterGlow/sat-data/latest.json";
+const SAT_KM = [0, 40, 80, 120, 160, 240];
+async function satLoad(loc, az){
+  const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), 9000);
+  let j;
+  try{
+    const r = await fetch(AG_SAT_URL, { signal: ctl.signal, cache: "no-cache" });
+    if(!r.ok) throw new Error("sat " + r.status);
+    j = await r.json();
+  } finally { clearTimeout(t); }
+  const scan = new Date(j.scan), age = (Date.now() - scan.getTime()) / 60000;
+  if(!(age >= -10 && age <= 60)) return null;           // a healthy scan is under about 20 minutes old; older means the feed is stuck
+  const g = j.grid, dec = b => { const bin = atob(b), a = new Uint8Array(bin.length); for(let i = 0; i < bin.length; i++) a[i] = bin.charCodeAt(i); return a; };
+  const L = { low: dec(j.layers.low), mid: dec(j.layers.mid), high: dec(j.layers.high), top: dec(j.layers.top) };
+  const pts = [];
+  SAT_KM.forEach(km => {
+    const p = km ? projectPoint(loc.lat, loc.lon, az, km) : { lat: loc.lat, lon: loc.lon };
+    const i = Math.floor((p.lat - g.lat0) / g.step), k = Math.floor((p.lon - g.lon0) / g.step);
+    if(i < 0 || i >= g.nlat || k < 0 || k >= g.nlon) return;
+    const c = i * g.nlon + k, v = { low: L.low[c], mid: L.mid[c], high: L.high[c], top: L.top[c] };
+    if(v.low === 255 || v.mid === 255 || v.high === 255 || v.top === 255) return;
+    pts.push({ km, lowmid: Math.max(v.low, v.mid), high: Math.max(v.high, v.top) });
+  });
+  if(pts.length < 3) return null;                        // outside the satellite's area
+  const avg = f => Math.round(pts.reduce((a, p) => a + p[f], 0) / pts.length);
+  return { scan, pts, high: avg("high"), lowmid: avg("lowmid"), maxHigh: Math.max(...pts.map(p => p.high)) };
+}
+function satHtml(sat, fcHigh, dirTxt){
+  if(!sat) return "";
+  const word = sat.high < 10 ? "little or none" : sat.high < 30 ? "a little" : sat.high < 60 ? "some" : sat.high < 85 ? "a lot" : "a thick layer";
+  const cells = sat.pts.map(p => `<span><small>${Math.round(p.km / 1.609344 / 5) * 5} mi</small><b>${p.high}%</b></span>`).join("");
+  const fcTxt = fcHigh != null ? ` Forecast high cloud: ${fcHigh}%.` : "";
+  return `<div class="rc-sat"><div class="rc-sat-head"><span>Satellite · ${fmt(frameN(sat.scan))}</span><span>High cloud ${sat.high}%</span></div>`
+    + `<div class="rc-text">High cloud ${dirTxt}, as of this scan: ${word} (${sat.maxHigh > sat.high ? `${sat.high}% average, up to ${sat.maxHigh}%` : `${sat.high}%`}). Low and mid cloud: ${sat.lowmid}%.${fcTxt}</div>`
+    + `<div class="rc-sat-row">${cells}</div></div>`;
+}
+function rcCardHtml(rc, mode, minsLeft, fc, where, sat, fcHigh){
+  const evName = mode === "evening" ? "Sunset" : "Sunrise";
+  const h = Math.floor(minsLeft / 60), m = Math.round(minsLeft % 60);
+  const left = h >= 1 ? `${h} h${m ? " " + m + " min" : ""}` : `${Math.max(1, m)} min`;
+  const dirTxt = "toward where the sun will " + (mode === "evening" ? "set" : "rise");
+  const satB = satHtml(sat, fcHigh, dirTxt);
+  const note = sat
+    ? `<div class="rc-note">Airport reports can't see high cloud; the satellite line can, but it shows the sky now, not at ${evName.toLowerCase()}, and NOAA calls it beta. The score is unchanged.</div>`
+    : `<div class="rc-note">Airport reports can't see high cloud, so this checks for blockers, not color. The score is unchanged.</div>`;
+  const head = `<div class="rc-head"><span>Reality check</span><span>${evName} in ${left}</span></div>`;
+  const satSum = sat ? ` · High cloud ${sat.high}%` : "";
+  const openAttr = (state.fold && state.fold.rc === false) ? "" : " open";
+  const wrap = (cls, sum, inner) => `<details class="rc-card ${cls}" data-fold="rc"${openAttr}><summary>${head}<div class="rc-sum">${sum}${satSum}</div></summary>${inner}</details>`;
+  if(rc === null) return wrap("rc-none", "Airport reports unavailable", `<div class="rc-verdict">Airport reports unavailable right now</div><div class="rc-text">The airport lookup didn't answer, so there is nothing to compare with the forecast. Tap Refresh to try again.</div>${satB}${note}`);
+  if(!rc.length) return wrap("rc-none", "No recent airport reports", `<div class="rc-verdict">No recent airport reports ${dirTxt}</div><div class="rc-text">No airport ${dirTxt} has reported in the last 2 hours, so there is nothing to compare with the forecast.</div>${satB}${note}`);
+  const pcts = rc.map(r => r.sky.pct).sort((a, b) => a - b);
+  const agg = pcts.length === 2 ? (pcts[0] + pcts[1]) / 2 : pcts[Math.floor(pcts.length / 2)];
+  const rep = rc.slice().sort((a, b) => Math.abs(a.sky.pct - agg) - Math.abs(b.sky.pct - agg))[0].sky;
+  const baseTxt = rep.base != null ? ` at ${(Math.round(rep.base / 100) * 100).toLocaleString("en-US")} ft` : "";
+  const phr = rep.pct === 0 ? "clear skies below 12,000 ft" : (RC_WORDS[rep.code] || "cloud") + baseTxt;
+  const bad = (agg - fc >= 35 && agg >= 60) || (fc - agg >= 35 && fc >= 60);
+  const rows = rc.map(r => {
+    const code = r.sky.pct === 0 ? "CLR" : r.sky.code + (r.sky.base != null ? " " + (Math.round(r.sky.base / 100) * 100).toLocaleString("en-US") + " ft" : "");
+    return `<div class="rc-row"><span><b>${rcEsc(r.id)}</b> ${rcEsc(r.name)}<br><small>${fmtDist(r.km).split(" · ")[0]} ${compassDir(r.brg)} · ${fmt(frameN(new Date(r.obs * 1000)))}</small></span><b>${code}</b></div>`;
+  }).join("");
+  return wrap(bad ? "rc-bad" : "rc-ok", bad ? "Disagrees with the forecast" : "Agrees with the forecast", `<div class="rc-verdict">${bad ? "Disagrees with the forecast" : "Agrees with the forecast"}</div><div class="rc-text">Forecast says low cloud (below about 10,000 ft) ${fc}% ${where === "toward the sun" ? dirTxt : where}. Airports ${dirTxt} report ${phr}.</div>${rows}${satB}${note}`);
+}
+function rcSkelHtml(mode, minsLeft, where){
+  const ob = Math.floor(Date.now() / 1000);
+  const fake = ["KXXX", "KXXY", "KXXZ"].map(id => ({ id, name: "Placeholder airport name", km: 10, brg: 200, obs: ob, sky: { pct: 0, code: "CLR", base: null } }));
+  const sat = { scan: new Date(), pts: [0, 40, 80, 120, 160, 240].map(km => ({ km, high: 20, lowmid: 5 })), high: 20, lowmid: 5, maxHigh: 30 };
+  return rcCardHtml(fake, mode, minsLeft, 10, where, sat, 20)
+    .replace(/rc-ok|rc-bad/, "rc-none rc-skel")
+    .replace(/(<div class="rc-head"><span>Reality check<\/span><span>)[^<]*/, "$1Checking…");
+}
+// The forecast gives sunrise/sunset as a local time at the PLACE (no offset). Turn that into a real moment using the place's timezone,
+// so the minutes-left count is right when you look at a place in a different time zone than your own.
+function placeLocalToMs(iso, tz){
+  const naive = new Date(iso).getTime(); // read as the browser's own time zone
+  if(!tz || isNaN(naive)) return naive;
+  try{
+    const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(iso);
+    if(!m) return naive;
+    const asUtc = Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]);
+    const off = ms => {
+      const p = new Intl.DateTimeFormat("en-US", { timeZone: tz, hourCycle: "h23", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit" }).formatToParts(new Date(ms)).reduce((o, x) => (o[x.type] = x.value, o), {});
+      return Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute, +p.second) - ms;
+    };
+    let t = asUtc - off(asUtc);
+    t = asUtc - off(t);
+    return t;
+  }catch(e){ return naive; }
+}
+function rcSlot(eventIso, mode, az, fc, where, fcHigh, quiet){
+  const el = document.getElementById("rcSlot");
+  if(!el) return;
+  state.rcArgs = [eventIso, mode, az, fc, where, fcHigh];
+  const minsLeft = (placeLocalToMs(eventIso, state.tz) - Date.now()) / 60000;
+  if(!(minsLeft > 0 && minsLeft <= 180)){ el.innerHTML = '<div class="rc-hint">Reality check appears within 3 hours of sunrise or sunset, comparing airport and satellite reports to the forecast.</div>'; return; }
+  const loc = state.loc, key = [loc.lat.toFixed(2), loc.lon.toFixed(2), eventIso].join("|");
+  const draw = (rc, sat) => { if(!el.isConnected) return; el.innerHTML = rcCardHtml(rc, mode, minsLeft, fc, where, sat, fcHigh); const d = el.querySelector("details.rc-card"); if(d) d.addEventListener("toggle", () => { state.fold = state.fold || {}; state.fold.rc = d.open; }); };
+  if(state.rc && state.rc.key === key && Date.now() - state.rc.at < 600000) { draw(state.rc.list, state.rc.sat); return; }
+  // Hold the card's space while the reports load, so the cards below don't jump when it appears
+  if(!(quiet && el.querySelector("details.rc-card:not(.rc-skel)"))) el.innerHTML = rcSkelHtml(mode, minsLeft, where);
+  Promise.allSettled([rcLoad(loc, eventIso, az), satLoad(loc, az)]).then(([a, b]) => {
+    const list = a.status === "fulfilled" ? a.value : null, sat = b.status === "fulfilled" ? b.value : null;
+    if(!list && !sat){ if(el.isConnected) el.innerHTML = ""; return; }
+    if(list) state.rc = { key, at: Date.now(), list, sat }; // a failed airport lookup is not remembered, so the next draw tries again
+    draw(list, sat);
+  });
+}
+// Keep the Reality check current while the app stays open: the countdown each minute, fresh reports every 10 minutes,
+// and straight away when you come back to the app. Also makes the tile appear on its own at the 3-hour mark.
+// When the place is in another time zone than the phone, say whose clock the times use.
+function tzNoteHtml(){
+  try{
+    const tz = state.tz; if(!tz) return "";
+    const now = new Date(), off = z => { const p = new Intl.DateTimeFormat("en-US", Object.assign({ hourCycle: "h23", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }, z ? { timeZone: z } : {})).formatToParts(now).reduce((o, x) => (o[x.type] = x.value, o), {}); return Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute); };
+    if(off(tz) === off(null)) return "";
+    const abbr = (new Intl.DateTimeFormat("en-US", { timeZone: tz, timeZoneName: "short" }).formatToParts(now).find(x => x.type === "timeZoneName") || {}).value || "";
+    const city = String((state.loc && state.loc.name) || "").split(",")[0].trim();
+    const who = (city && city !== MYLOC) ? city + " time" : "this location's time";
+    return `<div class="tz-note">Times shown are ${rcEsc(who)}${abbr ? " (" + rcEsc(abbr) + ")" : ""}, not your device's.</div>`;
+  }catch(e){ return ""; }
+}
+function rcTick(){
+  if(document.hidden || !state.rcArgs || !document.getElementById("rcSlot")) return;
+  rcSlot(...state.rcArgs, true);
+}
+setInterval(rcTick, 60000);
+document.addEventListener("visibilitychange", () => { if(!document.hidden) rcTick(); });
 function renderToday(app, tabsHtml){
   const { daily, hourly, activeDay, mode, loc } = state;
 
@@ -2150,6 +2409,9 @@ function renderToday(app, tabsHtml){
     <button class="toggle-btn ${mode==='evening'?'active':''}" data-mode="evening">Sunset</button>
   </div>`;
 
+  html += `<div class="upd-row"><span id="updTime">${state.updatedAt ? "Updated " + new Date(state.updatedAt).toLocaleTimeString([], { hour:"numeric", minute:"2-digit" }) : ""}</span><button class="upd-btn" id="updBtn" aria-label="Refresh the forecast">↻ Refresh</button></div>`;
+  html += tzNoteHtml();
+
   html += `<div class="hero">
     <div class="hero-swatch" style="background:${gradient}"></div>
     <div class="hero-content">
@@ -2175,7 +2437,8 @@ function renderToday(app, tabsHtml){
         ${astroTwilight ? `<div class="hero-time-item"><div class="k">${astroLabel}</div><div class="v">${fmt(astroTwilight)}</div></div>` : ""}
       </div>` : ""}
     </div>
-  </div>`;
+  </div>
+  <div id="rcSlot"></div>`;
 
   let skyInner = `<div class="grid">
     ${s.beam != null ? statCard("Toward the sun", Math.max(s.beamLow, s.beamMid), "%",
@@ -2193,8 +2456,8 @@ function renderToday(app, tabsHtml){
   const skyExtra = (s.hazeFromVis ? ` · <span class="nw">Vis ${s.vis < 1609 ? "&lt;1" : Math.round(s.vis / 1609)} mi</span>` : "") + (s.precip >= 20 ? ` · <span class="nw">Rain ${Math.round(s.precip)}%</span>` : "");
   html += uiFold("sky", `Sky breakdown <span class="sub"><span class="nw">High ${s.high}%</span> · <span class="nw">Mid ${s.mid}%</span> · <span class="nw">Low ${s.low}%</span>${skyExtra}</span>`, skyInner);
 
-  const moon = computeMoonInfo(parseLocalDate(daily.time[activeDay]), loc.lat, loc.lon, sunrise, sunset);
-  const timelapse = scanTimelapseWindow(parseLocalDate(daily.time[activeDay]), loc.lat, loc.lon, hourly);
+  const moon = computeMoonInfoPlace(parseLocalDate(daily.time[activeDay]), loc.lat, loc.lon, sunrise, sunset);
+  const timelapse = scanTimelapseWindow(parseLocalDate(daily.time[activeDay]), loc.lat, loc.lon, hourly, frameR);
   let tlSum = "";
   if(timelapse && timelapse.points && timelapse.points.length){
     if(timelapse.bestRun && timelapse.bestRun.avg >= 45){ const bp = timelapse.bestRun.points; tlSum = ` · <span class="nw">Timelapse ${timelapseLabel(Math.round(timelapse.bestRun.avg))}, ${bp.length === 1 ? "~" : ""}${fmt(bp[0].time)}</span>`; }
@@ -2204,6 +2467,8 @@ function renderToday(app, tabsHtml){
 
   html += checklistBtnHtml(state.loc, "todayChk");
   app.innerHTML = html;
+  // Airport sensors only see cloud below 12,000 ft, so they are compared with the forecast's LOW cloud only (mid cloud is mostly above what they can see).
+  rcSlot(eventIso, mode, azimuth, s.beam != null ? s.beamLow : s.low, s.beam != null ? "toward the sun" : "at your spot", s.high);
 
   document.querySelectorAll(".toggle-btn").forEach(b => b.addEventListener("click", () => {
     state.mode = b.dataset.mode; render();
@@ -2215,7 +2480,9 @@ function renderToday(app, tabsHtml){
   const bm = $("blurbMore"); if(bm) bm.addEventListener("click", () => { state.blurbMore = !state.blurbMore; $("blurbRest").hidden = !state.blurbMore; bm.textContent = state.blurbMore ? "Less" : "More"; });
   const mt = $("moreTimes"); if(mt) mt.addEventListener("click", () => { state.moreTimes = !state.moreTimes; $("moreTimesBox").hidden = !state.moreTimes; mt.textContent = state.moreTimes ? "Fewer times" : "More twilight times"; });
   const staleBtn = $("staleRetry");
-  if(staleBtn) staleBtn.addEventListener("click", () => boot(state.loc));
+  if(staleBtn) staleBtn.addEventListener("click", () => boot(state.loc, true));
+  const updBtn = $("updBtn");
+  if(updBtn) updBtn.addEventListener("click", () => { updBtn.disabled = true; updBtn.textContent = "Refreshing…"; boot(state.loc, true); });
 }
 
 /* ---------- Outlook (agenda list) ----------
@@ -2614,7 +2881,7 @@ function planPrintHtml(p, pl, qr){
   if(sun.rise) light += row("Sunrise", az(sun.rise, sun.riseAz));
   if(moon.moonrise) light += row("Moonrise", ft(moon.moonrise) + " · " + Math.round(moon.moonriseAz) + "°");
   if(moon.moonset) light += row("Moonset", ft(moon.moonset) + " · " + Math.round(moon.moonsetAz) + "°");
-  light += `<div class="pr-note">${esc(moon.phaseName || "")}${moon.illumPct != null ? ", " + moon.illumPct + "% lit" : ""}. Times are for ${esc(tz || "your phone's time zone")}, calculated.</div>`;
+  light += `<div class="pr-note">${esc(moon.phaseName || "")}${moon.illumPct != null ? ", " + moon.illumPct + "% lit" : ""}. Times are for ${esc(tz || "your device's time zone")}, calculated.</div>`;
   let subj = "";
   if(p.subject){
     const bd = bearingDist(p.loc.lat, p.loc.lon, p.subject.lat, p.subject.lon);
@@ -3173,7 +3440,7 @@ function renderPlan(app, tabsHtml){
   }
   const { sun, moon } = pl;
   loadPlanSky(p);   // before the sky card is built, so a forecast we already hold shows straight away
-  const tzNote = planZoneOk(tz) ? "" : " The time zone for this place wasn't found, so times are shown in your phone's zone.";
+  const tzNote = planZoneOk(tz) ? "" : " The time zone for this place wasn't found, so times are shown in your device's zone.";
 
   let html = tabsHtml;
   const parts = {};
@@ -3687,8 +3954,9 @@ function describeAge(ms){
 /* ---------- Boot ---------- */
 // Default to whichever event (sunrise/sunset) hasn't happened yet, rather
 // than always opening to today's sunrise even if it's already evening.
-function pickInitialView(daily, lat, lon){
-  const now = new Date();
+function pickInitialView(daily, lat, lon, tz){
+  // Sunrise/sunset are the place's clock times, so compare them with the place's "now" (same frame), not the viewer's.
+  const now = tz ? frameN(new Date()) : new Date();
   const morningBlue = blueHourBounds(daily.sunrise[0], daily.sunset[0], "morning", lat, lon);
   const eveningBlue = blueHourBounds(daily.sunrise[0], daily.sunset[0], "evening", lat, lon);
   // Still pre-dawn or in the morning blue hour -> stay on today's sunrise.
@@ -3699,14 +3967,16 @@ function pickInitialView(daily, lat, lon){
   return { activeDay: daily.time.length > 1 ? 1 : 0, mode: "morning" };
 }
 
-async function boot(loc){
+async function boot(loc, keep){
+  const keepDay = keep && state.daily ? { day: state.activeDay, mode: state.mode } : null;
   $("locName").textContent = loc.name || "Choose location";
   state.loc = loc;
   state.stale = null;
+  if(keepDay) state.rc = null; // a refresh also pulls a fresh airport and satellite check
   const esc = (t) => String(t).replace(/[<>&]/g, c => ({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]));
   const say = (msg) => { $("app").innerHTML = `<div class="loading">${msg}</div>`; };
 
-  say('Reading the sky over ' + esc(loc.name) + '…');
+  if(!keepDay) say('Reading the sky over ' + esc(loc.name) + '…');
 
   try{
     const data = await withRetry(
@@ -3724,9 +3994,10 @@ async function boot(loc){
     // so they go out after core. Both are optional — a failure just falls back
     // to the blind ceiling rather than costing us the forecast.
     state.sample = await fetchSunPathSamples(loc, data.daily);
-    const initial = pickInitialView(data.daily, loc.lat, loc.lon);
-    state.activeDay = initial.activeDay;
-    state.mode = initial.mode;
+    const initial = pickInitialView(data.daily, loc.lat, loc.lon, data.timezone);
+    state.activeDay = keepDay ? Math.min(keepDay.day, data.daily.time.length - 1) : initial.activeDay;
+    state.mode = keepDay ? keepDay.mode : initial.mode;
+    state.updatedAt = Date.now();
     cacheForecast(loc, data, state.sample);
     render();
   }catch(e){
@@ -3740,9 +4011,10 @@ async function boot(loc){
       state.hourly = cached.hourly;
       state.tz = cached.tz || null;
       state.sample = cached.sample || { morning: null, evening: null };
-      const initial = pickInitialView(cached.daily, loc.lat, loc.lon);
-      state.activeDay = initial.activeDay;
-      state.mode = initial.mode;
+      const initial = pickInitialView(cached.daily, loc.lat, loc.lon, cached.tz);
+      state.activeDay = keepDay ? Math.min(keepDay.day, cached.daily.time.length - 1) : initial.activeDay;
+      state.mode = keepDay ? keepDay.mode : initial.mode;
+      state.updatedAt = cached.savedAt;
       state.stale = { savedAt: cached.savedAt, reason: info.headline };
       render();
       return;
