@@ -24,6 +24,9 @@ Afterglow predicts how good a sunrise or sunset is actually going to look — no
 
 ## What's new
 
+**2.4.7**
+- **Clearer note on the Reality check.** The line at the bottom now says what the satellite and airports each can and can't see, and that the card is a cross-check that doesn't change the score.
+
 **2.4.6**
 - **Reality check stays up after sunset or sunrise.** The card now stays on Today for 17 minutes after the event, when the color is often at its best, and its header says how long ago it was ("Sunset 5 min ago").
 
