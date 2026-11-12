@@ -24,6 +24,12 @@ Afterglow predicts how good a sunrise or sunset is actually going to look — no
 
 ## What's new
 
+**2.4.5**
+- **Miles or kilometers.** A **mi / km** button at the top switches the whole app between miles and feet, and kilometers and meters. It starts from your device's region and remembers your choice. Cloud heights in airport reports stay in feet.
+- **A smarter Reality check.** The card now compares the forecast with the airports out where the forecast is looking, lists every airport it used, and says plainly when those airports disagree with each other. The headline says which way they differ: airports showing more cloud than the forecast, or a forecast heavier than the airport reports. It also says when no airport is close enough to check, and it holds its height while loading so nothing jumps.
+- **Satellite line.** The card also flags when the satellite sees much more or much less high cloud than the forecast.
+- **Help** moved to the left of the header row, and a few distance readings that were stuck in kilometers now follow your choice.
+
 **2.4.4**
 - **Reality check.** In the last 3 hours before sunrise or sunset, a new card on Today compares the forecast with what is actually being reported toward the sun: recent airport weather reports (METARs) along the sun's direction, and a satellite line (NOAA GOES-19 cloud layers, a beta product) that can see high cloud, the layer that gives color. It says whether the airports agree with the forecast's low cloud. It appears only in that window and then goes away, and a small note on Today explains this when it is hidden. It does not change the score. It collapses and expands like the other cards.
 - **Refresh button.** Today now shows when the forecast was last fetched and has a Refresh button that reloads it, keeping your day and sunrise or sunset choice.
