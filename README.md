@@ -24,6 +24,9 @@ Afterglow predicts how good a sunrise or sunset is actually going to look — no
 
 ## What's new
 
+**2.4.6**
+- **Reality check stays up after sunset or sunrise.** The card now stays on Today for 17 minutes after the event, when the color is often at its best, and its header says how long ago it was ("Sunset 5 min ago").
+
 **2.4.5**
 - **Miles or kilometers.** A **mi / km** button at the top switches the whole app between miles and feet, and kilometers and meters. It starts from your device's region and remembers your choice. Cloud heights in airport reports stay in feet.
 - **A smarter Reality check.** The card now compares the forecast with the airports out where the forecast is looking, lists every airport it used, and says plainly when those airports disagree with each other. The headline says which way they differ: airports showing more cloud than the forecast, or a forecast heavier than the airport reports. It also says when no airport is close enough to check, and it holds its height while loading so nothing jumps.
