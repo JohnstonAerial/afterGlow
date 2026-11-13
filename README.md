@@ -24,6 +24,12 @@ Afterglow predicts how good a sunrise or sunset is actually going to look — no
 
 ## What's new
 
+**2.4.7.3**
+- **Best light in the times row.** A new item next to Sunrise or Sunset shows the 15 to 20 minute window when the color often peaks.
+- **Wind at the event.** The times row shows the forecast surface wind at sunrise or sunset, with gusts when they add 5 mph or more, in your chosen units.
+- **Clear-sky note.** On a clear sky the line under the score says clear skies top out around Fair and what could lift it.
+- **Timelapse tidy-up.** When the Sun and Moon best windows are the same, the timelapse shows one section instead of two.
+
 **2.4.7.2**
 - **Sky breakdown note mentions the satellite.** It now says the Reality check compares the forecast with airport reports and the satellite.
 
