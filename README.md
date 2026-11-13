@@ -24,6 +24,12 @@ Afterglow predicts how good a sunrise or sunset is actually going to look — no
 
 ## What's new
 
+**2.4.7.1**
+- **Timelapse now works in daylight too.** The Moon & timelapse section scores the hours the Sun is up as well as the hours the Moon is up, so there is a best window most days.
+- **Better cloud reading.** Low cloud now counts, so a solid low deck reads as overcast instead of clear, and wind no longer rescues a sky with no cloud at all.
+- **A starting interval.** Each best window suggests a gap between frames from the wind aloft, and how long a clip the shoot would make.
+- **Sky breakdown is labelled as forecast,** with a line saying the Reality check compares it with airport reports.
+
 **2.4.7**
 - **Clearer note on the Reality check.** The line at the bottom now says what the satellite and airports each can and can't see, and that the card is a cross-check that doesn't change the score.
 
