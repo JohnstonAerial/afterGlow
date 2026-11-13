@@ -1,4 +1,4 @@
-<!-- Afterglow v2.4.7.3 -->
+<!-- Afterglow v2.4.7.4 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -617,7 +617,7 @@
     Forecasts via Open&#8209;Meteo · Moon times by Astronomy Engine · not a substitute for checking the sky yourself.<br>
     <a href="https://github.com/JohnstonAerial/afterGlow/blob/main/HOW-TO.md" target="_blank" rel="noopener">How to use Afterglow</a> · <a href="https://github.com/JohnstonAerial/afterGlow#readme" target="_blank" rel="noopener">About, how it's scored &amp; privacy</a> · <a href="https://buymeacoffee.com/JohnstonAerial" target="_blank" rel="noopener" style="white-space:nowrap">Buy me a coffee <svg class="cup" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" style="vertical-align:-2px"><path d="M3 9h14v5a5 5 0 0 1-5 5H8a5 5 0 0 1-5-5z" fill="#f3e3c8"/><path d="M17 10h1.5a2.5 2.5 0 0 1 0 5H17" fill="none" stroke="#f3e3c8" stroke-width="1.8"/><path d="M3 9h14v2.2H3z" fill="#7a4a2b"/><path d="M7 2.5c-1 1.2 1 2.2 0 3.4M11 2.5c-1 1.2 1 2.2 0 3.4M15 2.5c-1 1.2 1 2.2 0 3.4" fill="none" stroke="#a2abc1" stroke-width="1.2" stroke-linecap="round"/></svg></a> if this helped you catch an epic sky.<br>
     Also from Johnston Aerial:<br><a href="https://checklist.johnstonaerial.com/" id="footChk" target="_blank" rel="noopener" data-reuse="checklist_tab">Free Drone Preflight Checklist</a>
-    <span class="version">v2.4.7.3</span>
+    <span class="version">v2.4.7.4</span>
   </footer>
 </div>
 
@@ -2099,14 +2099,14 @@ function scanTimelapseWindow(dayStart, lat, lon, hourly, toReal, sunriseIso, sun
 
 // A rough starting interval from the wind aloft: faster cloud wants shorter gaps between frames. Heuristic, not a rule.
 function timelapseTip(run, windAvailable){
-  const pts = run.points, hours = pts.length;
+  const pts = run.points;
   const winds = pts.map(p => p.wind).filter(w => w != null);
-  if(!windAvailable || !winds.length) return `Try 3–5 s between frames to start.`;
+  const tail = " Faster cloud, shorter interval.";
+  if(!windAvailable || !winds.length) return `Try 2 to 5 s between frames to start.` + tail;
   const w = winds.reduce((a, b) => a + b, 0) / winds.length;
-  const iv = Math.max(1, Math.min(8, Math.round(50 / Math.max(w, 5))));
-  const sec = Math.round(hours * 3600 / iv / 24);
-  const clip = sec >= 90 ? `${Math.round(sec / 6) / 10} min` : `${sec} s`;
-  return `Try ${iv} s between frames (about ${Math.round(w)} mph aloft). ${hours} h of shooting makes about a ${clip} clip at 24 fps.`;
+  // Three bands, not one exact number: how far the cloud travels across your frame depends on your lens and framing too.
+  const band = w < 15 ? ["light", "5 to 10 s"] : w <= 30 ? ["moderate", "2 to 5 s"] : ["fast", "1 to 2 s"];
+  return `Cloud speed is ${band[0]} (about ${Math.round(w)} mph aloft): try ${band[1]} between frames.` + tail;
 }
 
 function timelapseSection(title, r, windAvailable, emptyMsg){
@@ -2136,7 +2136,7 @@ function timelapseCardHTML(result){
       const win = r => (r && r.bestRun && r.bestRun.avg >= 45) ? fmt(r.bestRun.points[0].time) + "|" + fmt(r.bestRun.points[r.bestRun.points.length - 1].time) : null;
       const same = win(result.sun) && win(result.sun) === win(result.moon);
       return same
-        ? timelapseSection("Moving cloud (Sun and Moon both up)", result.sun, result.windAvailable, "")
+        ? timelapseSection("Sun and Moon both up", result.sun, result.windAvailable, "")
         : timelapseSection("Daytime clouds", result.sun, result.windAvailable, "No daylight forecast hours.") + timelapseSection("Cloud crossing the Moon", result.moon, result.windAvailable, "The Moon isn't up during forecast hours today.");
     })()}
     <div class="outlook-note" style="margin-top:12px;">${result.windAvailable

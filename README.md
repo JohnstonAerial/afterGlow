@@ -24,6 +24,10 @@ Afterglow predicts how good a sunrise or sunset is actually going to look — no
 
 ## What's new
 
+**2.4.7.4**
+- **Timelapse tip fixed.** It no longer overstates the hours of shooting for the best window, and it now gives an interval range by cloud speed (light, moderate or fast) instead of one exact number and a clip length.
+- **Merged section title.** When the Sun and Moon windows match, the section is titled "Sun and Moon both up".
+
 **2.4.7.3**
 - **Best light in the times row.** A new item next to Sunrise or Sunset shows the 15 to 20 minute window when the color often peaks.
 - **Wind at the event.** The times row shows the forecast surface wind at sunrise or sunset, with gusts when they add 5 mph or more, in your chosen units.
