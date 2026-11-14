@@ -1,4 +1,4 @@
-<!-- Afterglow v2.4.7.5 -->
+<!-- Afterglow v2.4.7.6 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -617,7 +617,7 @@
     Forecasts via Open&#8209;Meteo · Moon times by Astronomy Engine · not a substitute for checking the sky yourself.<br>
     <a href="https://github.com/JohnstonAerial/afterGlow/blob/main/HOW-TO.md" target="_blank" rel="noopener">How to use Afterglow</a> · <a href="https://github.com/JohnstonAerial/afterGlow#readme" target="_blank" rel="noopener">About, how it's scored &amp; privacy</a> · <a href="https://buymeacoffee.com/JohnstonAerial" target="_blank" rel="noopener" style="white-space:nowrap">Buy me a coffee <svg class="cup" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" style="vertical-align:-2px"><path d="M3 9h14v5a5 5 0 0 1-5 5H8a5 5 0 0 1-5-5z" fill="#f3e3c8"/><path d="M17 10h1.5a2.5 2.5 0 0 1 0 5H17" fill="none" stroke="#f3e3c8" stroke-width="1.8"/><path d="M3 9h14v2.2H3z" fill="#7a4a2b"/><path d="M7 2.5c-1 1.2 1 2.2 0 3.4M11 2.5c-1 1.2 1 2.2 0 3.4M15 2.5c-1 1.2 1 2.2 0 3.4" fill="none" stroke="#a2abc1" stroke-width="1.2" stroke-linecap="round"/></svg></a> if this helped you catch an epic sky.<br>
     Also from Johnston Aerial:<br><a href="https://checklist.johnstonaerial.com/" id="footChk" target="_blank" rel="noopener" data-reuse="checklist_tab">Free Drone Preflight Checklist</a>
-    <span class="version">v2.4.7.5</span>
+    <span class="version">v2.4.7.6</span>
   </footer>
 </div>
 
@@ -1624,8 +1624,44 @@ function tipClear(sky){
   if(!sky || !(sky.high < 12 && sky.mid < 20 && sky.low < 20)) return "";
   return ` Clear skies top out around Fair. Thin high cloud (30–60%) drifting in could lift this to Good, so check again closer to the time.`;
 }
-function afterglowTip(eventIso, mode, sky){
-  return (mode === "evening" ? `Stay for the afterglow.` : `Arrive early.`) + tipClear(sky);
+function afterglowTip(eventIso, mode, score, sky){
+  // 2.4.5h: say plainly that the score is for the glow AROUND the event (read PEAK_OFFSET_MIN minutes after sunset / before sunrise), not the instant of sunset or sunrise.
+  const t = new Date(eventIso).getTime();
+  const min = 60000;
+  if(mode === "evening"){
+    const at = fmt(new Date(t + PEAK_OFFSET_MIN*min));
+    return `Scored for the glow around ${at}, about ${PEAK_OFFSET_MIN} minutes after sunset.` + (score >= 26 ? ` Stay for it.` : "") + tipClear(sky);
+  }
+  const at = fmt(new Date(t - PEAK_OFFSET_MIN*min));
+  return `Scored for the glow around ${at}, about ${PEAK_OFFSET_MIN} minutes before sunrise.` + (score >= 26 ? ` Arrive early.` : "") + tipClear(sky);
+}
+
+/* 2.4.5g: score the peak of the color, not the moment of sunset. High cloud usually lights up 15 to 20 minutes after sunset
+   (and just before sunrise), so the forecast is read at event +17 min (evening) or -17 min (morning), blended linearly between the
+   two nearest forecast hours. The old at-the-event score is kept as .atEvent. */
+const PEAK_OFFSET_MIN = 17;
+function scoreWindowBase(hourly, evtIso, mode, beam){
+  const t = hourly && hourly.time; if(!t || !evtIso) return null;
+  const idx0 = nearestHourIdx(t, evtIso);
+  const old = scoreEvent(hourly, idx0, beam);
+  if(!old) return null;
+  const target = new Date(evtIso).getTime() + (mode === "evening" ? 1 : -1) * PEAK_OFFSET_MIN * 60000;
+  let k = -1;
+  for(let i = 0; i < t.length - 1; i++){ if(new Date(t[i]).getTime() <= target && target <= new Date(t[i+1]).getTime()){ k = i; break; } }
+  if(k < 0) { old.atEvent = old.score; return old; }
+  const a = new Date(t[k]).getTime(), b = new Date(t[k+1]).getTime(), f = b > a ? (target - a) / (b - a) : 0;
+  const mix = arr => {
+    if(!arr) return arr;
+    const x = arr[k], y = arr[k+1];
+    if(x == null || y == null || !isFinite(x) || !isFinite(y)) return [x != null && isFinite(x) ? x : y];
+    return [x + (y - x) * f];
+  };
+  const h2 = { time: [t[k]] };
+  Object.keys(hourly).forEach(key => { if(key !== "time" && Array.isArray(hourly[key])) h2[key] = mix(hourly[key]); });
+  const sc = scoreEvent(h2, 0, beam);
+  if(!sc) { old.atEvent = old.score; return old; }
+  sc.atEvent = old.score; sc.atEventX = old.scoreX;
+  return sc;
 }
 
 function label(score){
@@ -2453,7 +2489,7 @@ function rcSlot(eventIso, mode, az, fc, where, fcHigh, quiet){
   if(!el) return;
   state.rcArgs = [eventIso, mode, az, fc, where, fcHigh];
   const minsLeft = (placeLocalToMs(eventIso, state.tz) - Date.now()) / 60000;
-  if(!(minsLeft > -17 && minsLeft <= 180)){ el.innerHTML = '<div class="rc-hint">Reality check appears within 3 hours of sunrise or sunset, comparing airport and satellite reports to the forecast.</div>'; return; }
+  if(!(minsLeft > -PEAK_OFFSET_MIN && minsLeft <= 180)){ el.innerHTML = '<div class="rc-hint">Reality check appears within 3 hours of sunrise or sunset, comparing airport and satellite reports to the forecast.</div>'; return; }
   const loc = state.loc, key = [loc.lat.toFixed(2), loc.lon.toFixed(2), eventIso].join("|");
   const draw = (rc, sat) => { if(!el.isConnected) return; el.innerHTML = rcCardHtml(rc, mode, minsLeft, fc, where, sat, fcHigh); const d = el.querySelector("details.rc-card"); if(d) d.addEventListener("toggle", () => { state.fold = state.fold || {}; state.fold.rc = d.open; }); };
   if(state.rc && state.rc.key === key && Date.now() - state.rc.at < 600000) { draw(state.rc.list, state.rc.sat); return; }
@@ -2493,7 +2529,7 @@ function renderToday(app, tabsHtml){
   const sunset = daily.sunset[activeDay];
   const eventIso = mode === "evening" ? sunset : sunrise;
   const idx = nearestHourIdx(hourly.time, eventIso);
-  const s = scoreEvent(hourly, idx, sampleAt(state.sample[mode], eventIso));
+  const s = scoreWindowBase(hourly, eventIso, mode, sampleAt(state.sample[mode], eventIso));
   if(!s){ app.innerHTML = tabsHtml + '<div class="err">Could not compute a forecast for this day.</div>'; return; }
 
   const gradient = swatchGradient(s, mode);
@@ -2565,7 +2601,7 @@ const bestItem = bestLight ? `<div class="hero-time-item"><div class="k">Best li
       </div>
       ${document.querySelector(".test-ver") && s.scoreX != null ? `<div class="score-x" title="Test copy only">Experimental score: <b>${s.scoreX}</b> ${label(s.scoreX)} · test only</div>` : ""}
       ${(() => { const [b1, b2] = splitBlurb(blurb(s, mode)); return `<div class="hero-sub">${b1}${b2 ? ` <span id="blurbRest"${state.blurbMore ? "" : " hidden"}>${b2}</span> <button class="more-link" id="blurbMore">${state.blurbMore ? "Less" : "More"}</button>` : ""}</div>`; })()}
-      ${s.score >= 26 ? `<div class="hero-sub" style="margin-top:8px;">${afterglowTip(eventIso, mode, s)}</div>` : ""}
+      ${s.score >= 26 ? `<div class="hero-sub" style="margin-top:8px;">${afterglowTip(eventIso, mode, s.score, s)}</div>` : ""}
       <div class="hero-times">
         ${(twilight && mode !== "evening") ? `<div class="hero-time-item"><div class="k">${twilightLabel}</div><div class="v">${fmt(twilight)}</div></div>` : ""}
         ${mode === "evening" ? "" : bestItem}
@@ -2598,7 +2634,7 @@ const bestItem = bestLight ? `<div class="hero-time-item"><div class="k">Best li
       : statCard("Humidity", s.hum, "%", "Fallback haze proxy — visibility unavailable", var2color(s.hum, 100, 80, true))}
   </div>`;
 
-  skyInner += `<div class="why">These are forecast numbers. The Reality check above compares them with airport reports and the satellite.<br><br><b>How this is scored</b> — Afterglow weighs high-altitude cloud cover (the layer that catches direct light and turns pink/orange), low and mid cloud (which physically block the view of the horizon or the light source), and humidity (haze mutes saturation even on an otherwise clear evening). It's a heuristic, not a guarantee — always worth a look outside 20 minutes before showtime.</div>`;
+  skyInner += `<div class="why">These are forecast numbers. The Reality check above compares them with airport reports and the satellite.<br><br><b>How this is scored</b> — Afterglow weighs high-altitude cloud cover (the layer that catches direct light and turns pink/orange), low and mid cloud (which physically block the view of the horizon or the light source), and humidity (haze mutes saturation even on an otherwise clear evening). The score is for the glow around sunrise or sunset, not the exact moment: it reads the forecast about ${PEAK_OFFSET_MIN} minutes after sunset (or before sunrise), when high cloud usually lights up. It's a heuristic, not a guarantee — always worth a look outside 20 minutes before showtime.</div>`;
   const skyExtra = (s.hazeFromVis ? ` · <span class="nw">Vis ${fmtVis(s.vis)}</span>` : "") + (s.precip >= 20 ? ` · <span class="nw">Rain ${Math.round(s.precip)}%</span>` : "");
   html += uiFold("sky", `Sky breakdown (forecast) <span class="sub"><span class="nw">High ${Math.round(s.high)}%</span> · <span class="nw">Mid ${Math.round(s.mid)}%</span> · <span class="nw">Low ${Math.round(s.low)}%</span>${skyExtra}</span>`, skyInner);
 
@@ -2661,7 +2697,7 @@ function agendaCardHTML(dayIdx, mode, daily, hourly){
   const evt = mode === "evening" ? daily.sunset[dayIdx] : daily.sunrise[dayIdx];
   if(!evt) return `<div class="agenda-card"><div class="k">–</div><div class="label-word">No data</div></div>`;
   const j = nearestHourIdx(hourly.time, evt);
-  const s = scoreEvent(hourly, j, sampleAt(state.sample[mode], evt));
+  const s = scoreWindowBase(hourly, evt, mode, sampleAt(state.sample[mode], evt));
   if(!s) return `<div class="agenda-card"><div class="k">–</div><div class="label-word">No data</div></div>`;
   const eventLabel = mode === "evening" ? "Sunset" : "Sunrise";
   return `<div class="agenda-card" data-day="${dayIdx}" data-mode="${mode}">
@@ -2682,7 +2718,7 @@ function renderOutlook(app, tabsHtml){
     ["morning", "evening"].forEach(mode => {
       const evt = mode === "evening" ? daily.sunset[i] : daily.sunrise[i];
       let sc = null;
-      if(evt){ const j = nearestHourIdx(hourly.time, evt); sc = scoreEvent(hourly, j, sampleAt(state.sample[mode], evt)); }
+      if(evt){ sc = scoreWindowBase(hourly, evt, mode === "evening" ? "evening" : "morning", sampleAt(state.sample[mode], evt)); }
       cells.push({ i, mode, evt, sc });
       if(i < 7 && sc && evt && new Date(evt).getTime() >= Date.now() && (!best || sc.score > best.sc.score)) best = { i, mode, sc };
     });
@@ -2929,7 +2965,7 @@ function skyCardHtml(p, sun, esc){
   const rows = [];
   [["evening", "Sunset", sk.daily.sunset[i], sun.set], ["morning", "Sunrise", sk.daily.sunrise[i], sun.rise]].forEach(([mode, name, evt, t]) => {
     if(!evt) return;
-    const j = nearestHourIdx(sk.hourly.time, evt), sc = scoreEvent(sk.hourly, j, sampleAt(sk.sample && sk.sample[mode], evt));
+    const sc = scoreWindowBase(sk.hourly, evt, mode, sampleAt(sk.sample && sk.sample[mode], evt));
     if(!sc) return;
     rows.push(`<div class="plan-row2"><span>${name}${t ? " " + fmtZ(t, p.loc.tz) : ""}</span><b class="${sc.score >= 44 ? "plan-good" : ""}">${label(sc.score)} · ${sc.score}</b></div>`);
   });
@@ -3259,7 +3295,7 @@ function planSkyLine(p, sun, mode){
   const sk = p.sky; if(!sk || !sk.daily) return "";
   const i = sk.daily.time.indexOf(p.date); if(i < 0) return "";
   const evt = mode === "morning" ? sk.daily.sunrise[i] : sk.daily.sunset[i]; if(!evt) return "";
-  const sc = scoreEvent(sk.hourly, nearestHourIdx(sk.hourly.time, evt), sampleAt(sk.sample && sk.sample[mode], evt));
+  const sc = scoreWindowBase(sk.hourly, evt, mode, sampleAt(sk.sample && sk.sample[mode], evt));
   return sc ? label(sc.score) + " (" + sc.score + ")" : "";
 }
 function saveIcs(ics, fname){

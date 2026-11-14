@@ -24,6 +24,10 @@ Afterglow predicts how good a sunrise or sunset is actually going to look — no
 
 ## What's new
 
+**2.4.7.6**
+- **Scored for the glow.** The score now reads the forecast about 17 minutes after sunset (or before sunrise), when high cloud usually lights up, instead of the exact moment of the sun event. The tip under the score says which time it covers.
+- **Reality check stays up longer.** The card now stays up for 17 minutes after the event, matching the glow window.
+
 **2.4.7.5**
 - **Reality check wording.** The airports used for the comparison are now marked "compared with forecast" instead of "used in the verdict".
 
