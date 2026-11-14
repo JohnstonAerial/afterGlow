@@ -24,6 +24,9 @@ Afterglow predicts how good a sunrise or sunset is actually going to look — no
 
 ## What's new
 
+**2.4.7.5**
+- **Reality check wording.** The airports used for the comparison are now marked "compared with forecast" instead of "used in the verdict".
+
 **2.4.7.4**
 - **Timelapse tip fixed.** It no longer overstates the hours of shooting for the best window, and it now gives an interval range by cloud speed (light, moderate or fast) instead of one exact number and a clip length.
 - **Merged section title.** When the Sun and Moon windows match, the section is titled "Sun and Moon both up".

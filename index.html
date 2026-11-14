@@ -1,4 +1,4 @@
-<!-- Afterglow v2.4.7.4 -->
+<!-- Afterglow v2.4.7.5 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -617,7 +617,7 @@
     Forecasts via Open&#8209;Meteo · Moon times by Astronomy Engine · not a substitute for checking the sky yourself.<br>
     <a href="https://github.com/JohnstonAerial/afterGlow/blob/main/HOW-TO.md" target="_blank" rel="noopener">How to use Afterglow</a> · <a href="https://github.com/JohnstonAerial/afterGlow#readme" target="_blank" rel="noopener">About, how it's scored &amp; privacy</a> · <a href="https://buymeacoffee.com/JohnstonAerial" target="_blank" rel="noopener" style="white-space:nowrap">Buy me a coffee <svg class="cup" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" style="vertical-align:-2px"><path d="M3 9h14v5a5 5 0 0 1-5 5H8a5 5 0 0 1-5-5z" fill="#f3e3c8"/><path d="M17 10h1.5a2.5 2.5 0 0 1 0 5H17" fill="none" stroke="#f3e3c8" stroke-width="1.8"/><path d="M3 9h14v2.2H3z" fill="#7a4a2b"/><path d="M7 2.5c-1 1.2 1 2.2 0 3.4M11 2.5c-1 1.2 1 2.2 0 3.4M15 2.5c-1 1.2 1 2.2 0 3.4" fill="none" stroke="#a2abc1" stroke-width="1.2" stroke-linecap="round"/></svg></a> if this helped you catch an epic sky.<br>
     Also from Johnston Aerial:<br><a href="https://checklist.johnstonaerial.com/" id="footChk" target="_blank" rel="noopener" data-reuse="checklist_tab">Free Drone Preflight Checklist</a>
-    <span class="version">v2.4.7.4</span>
+    <span class="version">v2.4.7.5</span>
   </footer>
 </div>
 
@@ -2380,7 +2380,7 @@ function rcCardHtml(rc, mode, minsLeft, fc, where, sat, fcHigh){
   const F = (fc && typeof fc === "object") ? fc : { low: beamSpot ? 0 : fc, mid: 0, bLow: beamSpot ? fc : null, bMid: 0 };
   const rows = rc.map(r => {
     const code = r.sky.pct === 0 ? "CLR" : r.sky.code + (r.sky.base != null ? " " + (Math.round(r.sky.base / 100) * 100).toLocaleString("en-US") + " ft" : "");
-    return `<div class="rc-row"><span><b>${rcEsc(r.id)}</b> ${rcEsc(r.name)}<br><small>${fmtDist(r.km).split(" · ")[0]} ${compassDir(r.brg)} · ${fmt(frameN(new Date(r.obs * 1000)))}${r.spot ? " · used in the verdict" : ""}</small></span><b>${code}</b></div>`;
+    return `<div class="rc-row"><span><b>${rcEsc(r.id)}</b> ${rcEsc(r.name)}<br><small>${fmtDist(r.km).split(" · ")[0]} ${compassDir(r.brg)} · ${fmt(frameN(new Date(r.obs * 1000)))}${r.spot ? " · compared with forecast" : ""}</small></span><b>${code}</b></div>`;
   }).join("");
   const judge = (skies, fLow, fMid) => {
     if(!skies || !skies.length || fLow == null) return null;
