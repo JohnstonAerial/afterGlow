@@ -26,7 +26,7 @@ Use the **Sunrise** / **Sunset** toggle at the top to switch between the two. Us
 | Fair | 26–43 | Modest, mostly gradient |
 | Flat | under 26 | Little to catch the light |
 
-**Reality check.** In the last 3 hours before sunrise or sunset, a card appears on Today. It compares the forecast with recent airport weather reports toward the sun (airports see cloud below about 12,000 ft) and with a satellite view of high cloud, which is the layer that gives color. It tells you whether the airports agree with the forecast. It shows the sky now, not at sunrise or sunset, and it does not change the score. Outside that window a small note says when it will appear. Tap the card's title to collapse it.
+**Reality check.** In the last 3 hours before sunrise or sunset, a card appears on Today. It compares the forecast with recent airport weather reports toward the sun (airports see cloud below about 12,000 ft) and with a satellite view of high cloud, which is the layer that gives color. It tells you whether the airports agree with the forecast. It shows the sky now, not at sunrise or sunset, and from about 3 hours out the score itself moves toward what the satellite and airports report, more and more as the time gets closer. Outside that window a small note says when it will appear. Tap the card's title to collapse it.
 
 **Refresh.** Under the Sunrise / Sunset toggle, Today shows when the forecast was fetched. Tap **Refresh** to load it again; you stay on the same day and sunrise or sunset.
 

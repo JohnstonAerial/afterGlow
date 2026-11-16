@@ -24,6 +24,16 @@ Afterglow predicts how good a sunrise or sunset is actually going to look — no
 
 ## What's new
 
+**2.5.0**
+- **The score now moves toward what's actually happening.** Starting about 3 hours before sunrise or sunset, the forecast cloud layers are blended with what the satellite and nearby airports report right now, more and more as the time gets closer. Before that, it's the forecast alone. The Reality check card says so.
+- **Timelapse window checked against live reports** within 3 hours of the event, so the best window can say when the sky isn't doing what the forecast promised.
+- **Where the Moon is now.** On Today, the Moon card shows its direction and height right now, and its height at sunset when that differs.
+- **Best timelapse window leaves out hours already gone** on today, and says plainly when there is no good window ("clear sky", "solid cloud" or "patchy cloud").
+- **Dates on the cards.** The Moon & timelapse and Sky breakdown headers show the weekday and date when you're looking at a day other than today, and a moonset after midnight shows the weekday instead of "tomorrow".
+- **Tighter "more cloud" warning** on the Reality check: scattered cloud or more against a forecast far lower now counts.
+- **Faster start.** The forecast loads first; wind aloft and the second model fill in behind it, the map library loads only when Plan needs it, the location popup keeps its height while results load, and the app connects to the forecast and map servers earlier.
+- **Evening tip** no longer says "Stay for the glow."
+
 **2.4.7.6**
 - **Scored for the glow.** The score now reads the forecast about 17 minutes after sunset (or before sunrise), when high cloud usually lights up, instead of the exact moment of the sun event. The tip under the score says which time it covers.
 - **Reality check stays up longer.** The card now stays up for 17 minutes after the event, matching the glow window.
@@ -155,7 +165,7 @@ Afterglow 2.0 is a big redesign of the Plan tab, with a few new tools.
 - **Any location** — search by city, state or ZIP, type coordinates, or use your current position, and switch any time with the location button. Your chosen location stays on your device.
 - **Moon conditions** — phase, illumination, moonrise/moonset with compass headings, and a callout for the "big warm moon on the horizon" alignment window. Includes an hourly timelapse-conditions score.
 - **Plan tab** — Sun and Moon direction and height at any time, on any date, anywhere, on a free, keyless Leaflet/OpenStreetMap map that also opens full screen. Place a subject, find the dates the Sun or Moon lines up with it, allow for height and obstructions, share a link, add the shoot to your calendar, or print a shoot card.
-- **Reality check** — in the 3 hours before sunrise or sunset, a card compares the forecast with recent airport weather reports toward the sun and a satellite view of high cloud. It appears only in that window and does not change the score.
+- **Reality check** — in the 3 hours before sunrise or sunset, a card compares the forecast with recent airport weather reports toward the sun and a satellite view of high cloud. It appears only in that window, and in that window the score moves toward what they report (see 2.5.0 in What's new).
 - **Three tabs** — Today, Outlook and Plan.
 - **Installable app (PWA)** — add it to your Home Screen on iOS or Android for a real standalone app experience, with offline support for the app itself (forecast data always pulls fresh, never stale).
 - **Push notifications** — optional alerts before sunrise, sunset, or golden hour (morning and evening), sent right to your phone. You choose which alerts you want and how far ahead: 15, 30, 60 or 90 minutes, and sunrise and sunset alerts can wait for a minimum forecast (Good or better, Great or better, or Epic only). Notifications need the app installed (Home Screen on a phone or tablet, Dock or app window on a computer) (see the [how-to](HOW-TO.md)).
