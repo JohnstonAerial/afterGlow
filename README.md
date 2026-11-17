@@ -24,6 +24,9 @@ Afterglow predicts how good a sunrise or sunset is actually going to look — no
 
 ## What's new
 
+**2.5.2**
+- **Quicker first screen.** The forecast and score now appear as soon as the main forecast arrives. The reading toward the sun is added a moment later, and the score may shift a few points when it does.
+
 **2.5.1**
 - **New tagline and description.** Under the name it now reads "Know the sky. Plan the light." and Afterglow describes itself as a free sunrise and sunset forecast and planning app for photographers and drone pilots, in the page, the footer and link previews.
 
