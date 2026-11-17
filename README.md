@@ -1,6 +1,6 @@
 # Afterglow
 
-**Sunrise and sunset sky-quality forecasts, built for photographers and drone pilots.**
+**Sunrise and sunset sky-quality forecasts and shoot planning, built for photographers and drone pilots.**
 
 🔗 [afterglow.johnstonaerial.com](https://afterglow.johnstonaerial.com)
 
@@ -23,6 +23,9 @@ Afterglow predicts how good a sunrise or sunset is actually going to look — no
 <sub>Pictures use sample forecast numbers and the Coats, NC area. They follow your light or dark setting on GitHub.</sub>
 
 ## What's new
+
+**2.5.1**
+- **New tagline and description.** Under the name it now reads "Know the sky. Plan the light." and Afterglow describes itself as a free sunrise and sunset forecast and planning app for photographers and drone pilots, in the page, the footer and link previews.
 
 **2.5.0**
 - **The score now moves toward what's actually happening.** Starting about 3 hours before sunrise or sunset, the forecast cloud layers are blended with what the satellite and nearby airports report right now, more and more as the time gets closer. Before that, it's the forecast alone. The Reality check card says so.
