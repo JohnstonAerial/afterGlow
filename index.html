@@ -25,6 +25,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://api.open-meteo.com" crossorigin>
 <meta name="theme-color" content="#1B1F3B">
+<meta name="color-scheme" content="light dark">
 <script>
 // Theme (2.1.0): Auto follows the device, or the saved choice (Light / Dark). Runs early so the page never flashes the wrong colors.
 (function(){
@@ -34,6 +35,7 @@
   if(pref === "auto"){ try{ light = !!(window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches); }catch(e){} }
   var h = document.documentElement; h.setAttribute("data-theme", light ? "light" : "dark"); h.setAttribute("data-theme-pref", pref);
   var m = document.querySelector('meta[name="theme-color"]'); if(m) m.setAttribute("content", light ? "#f7f1e7" : "#1B1F3B");
+  var cs = document.querySelector('meta[name="color-scheme"]'); if(cs) cs.setAttribute("content", light ? "only light" : "dark");
 })();
 </script>
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -117,7 +119,7 @@
   }
   .eyebrow{ font-family:'IBM Plex Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: rgba(245,230,211,0.65); margin-bottom: 6px; }
   .score-row{ display:flex; align-items:flex-end; gap: 14px; margin-bottom: 4px;}
-  .score-x{ font-family: ui-monospace, Menlo, monospace; font-size:12px; letter-spacing:.04em; color:#e8743b; margin:2px 0 8px; }
+  .score-x{ font-family:'IBM Plex Mono', monospace; font-size:12px; letter-spacing:.04em; color:#e8743b; margin:2px 0 8px; }
   .score-num{ font-family: Georgia, 'Times New Roman', serif; font-size: 68px; line-height: 0.9; font-weight: 600; color: var(--sand); text-shadow: 0 2px 12px rgba(0,0,0,0.35); }
   .score-label{ font-size: 20px; font-weight: 600; padding-bottom: 8px; color: var(--sand); }
   .hero-sub{ font-size: 14px; color: rgba(245,230,211,0.8); max-width: 46ch; line-height: 1.5; }
@@ -190,7 +192,7 @@
   .map-wrap.full .map-pinhint{ top: calc(10px + env(safe-area-inset-top, 0px)); }
   .map-wrap.full .map-fs-panel{ display:block; position:absolute; left:0; right:0; bottom:0; z-index:1002; padding:8px 14px calc(8px + env(safe-area-inset-bottom, 0px)); background:rgba(20,23,44,0.94); border-top:1px solid var(--line); }
   .map-fs-panel .map-fs-tap{ display:flex; align-items:center; gap:6px; margin:0 0 6px; }
-  .map-fs-panel .plan-seg-l{ font-size:12.5px; color:var(--slate); margin-right:2px; }
+  .map-fs-panel .plan-seg-l{ font-size:12px; color:var(--slate); margin-right:2px; }
   .map-fs-panel .plan-range{ margin:2px 0 4px; height:40px; width:100%; }
   .map-fs-jumps{ display:flex; gap:6px; overflow-x:auto; padding-bottom:2px; }
   .map-fs-jumps .plan-seg-b{ flex:0 0 auto; white-space:nowrap; }
@@ -201,7 +203,8 @@
   .map-slider-icon{ font-size: 15px; opacity: 0.7; }
   .map-readout{ display:flex; gap: 10px; margin-bottom: 14px; }
   .map-readout .card{ flex: 1; text-align: center; }
-  .map-note{ font-size: 12.5px; line-height: 1.5; color: var(--slate); }
+  .map-note{ font-size: 13px; line-height: 1.5; color: var(--slate); }
+  .note{ font-size: 13px; line-height: 1.5; color: var(--slate); }
   /* Reality check: airport reports toward the sun, shown in the last 3 hours before the event */
   .rc-hint{ font-size:12px; line-height:1.5; color: var(--slate); text-align:center; margin:22px 10px 22px; }
   .rc-card{ border:1px solid var(--line); border-left:4px solid var(--rc, var(--slate)); background: var(--card); border-radius:14px; padding:14px 16px 12px; margin:14px 0 12px; }
@@ -242,7 +245,7 @@
   .plan-fold .card{ border:0; background:transparent; padding:10px 4px; }
   .plan-fold .card + .card{ border-top:1px solid var(--line); border-radius:0; }
   .map-tap{ position:absolute; left:8px; bottom:26px; z-index:1001; display:flex; gap:4px; background:rgba(10,11,22,0.82); border:1px solid var(--line); border-radius:999px; padding:3px; }
-  .map-tap .plan-seg-b{ padding:5px 12px; font-size:12.5px; border-color:transparent; background:transparent; }
+  .map-tap .plan-seg-b{ padding:5px 12px; font-size:12px; border-color:transparent; background:transparent; }
   .map-tap .plan-seg-b.on{ background: var(--card); border-color: var(--gold); }
   .plan-seg-b.jump{ display:flex; flex-direction:column; align-items:center; line-height:1.25; padding:6px 12px; }
   .plan-seg-b.jump small{ font-size:11px; color: var(--slate); font-family:'IBM Plex Mono', monospace; }
@@ -254,13 +257,13 @@
   .fold-close{ display:block; margin:6px auto 10px; background:none; border:0; color: var(--slate); font: inherit; font-size:13px; padding:8px 14px; cursor:pointer; text-decoration:underline; }
   .fold-close:hover{ color: var(--gold); }
   .today-fold > summary .nw{ white-space:nowrap; }
-  .today-fold > summary .sub, .plan-fold > summary .sub{ color: var(--slate); font-size:12.5px; margin-left:auto; margin-right:10px; }
+  .today-fold > summary .sub, .plan-fold > summary .sub{ color: var(--slate); font-size:12px; margin-left:auto; margin-right:10px; }
   /* Today cards: title and arrow stay on the first row; the summary drops to its own line when it does not fit beside the title */
   .today-fold > summary{ position:relative; flex-wrap:wrap; justify-content:space-between; gap:4px 10px; padding-right:42px; white-space:nowrap; }
   .today-fold > summary::after{ position:absolute; right:16px; top:50%; margin-top:-0.6em; line-height:1.2; }
   .today-fold > summary .sub{ margin:0; text-align:left; white-space:normal; }
   .ag-head, .ag-row{ display:grid; grid-template-columns:54px minmax(0,1fr) minmax(0,1fr); gap:8px; align-items:stretch; }
-  .ag-head{ font-size:12px; color: var(--slate); text-transform:uppercase; letter-spacing:.08em; font-family:'IBM Plex Mono', monospace; margin:2px 0 6px; }
+  .ag-head{ font-size:11px; color: var(--slate); text-transform:uppercase; letter-spacing:.08em; font-family:'IBM Plex Mono', monospace; margin:2px 0 6px; }
   .ag-row{ margin-bottom:8px; }
   .ag-day{ font-family: Georgia, serif; font-size:15px; font-weight:600; color: var(--sand); display:flex; align-items:center; }
   .ag-cell{ border:1px solid var(--line); background: var(--card); border-radius:12px; padding:8px 10px; cursor:pointer; position:relative; }
@@ -268,11 +271,11 @@
   .ag-cell .t1{ display:flex; justify-content:space-between; align-items:baseline; gap:6px; }
   .ag-cell .sc{ font-family: Georgia, serif; font-size:20px; font-weight:600; color: var(--sand); }
   .ag-cell .lb{ font-size:13px; color: var(--slate); }
-  .ag-cell .tm{ font-family:'IBM Plex Mono', monospace; font-size:12.5px; color: var(--slate); margin-top:2px; white-space:nowrap; }
-  .ag-cell .ag-why{ font-size:11.5px; color: var(--slate); margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .ag-cell .tm{ font-family:'IBM Plex Mono', monospace; font-size:12px; color: var(--slate); margin-top:2px; white-space:nowrap; }
+  .ag-cell .ag-why{ font-size:11px; color: var(--slate); margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .ag-cell .agenda-bar{ margin:5px 0 0; }
   .ag-cell.far{ border-style:dashed; }
-  .ag-far-note{ font-size:12.5px; color: var(--slate); margin:10px 0 8px; padding-top:10px; border-top:1px dashed var(--line); }
+  .ag-far-note{ font-size:12px; color: var(--slate); margin:10px 0 8px; padding-top:10px; border-top:1px dashed var(--line); }
   .ag-cell .ag-best{ position:absolute; right:10px; top:-9px; background: var(--card); border:1px solid var(--gold); border-radius:8px; padding:0 7px; line-height:16px; }
   .ag-best{ font-size:11px; color: var(--gold); font-family:'IBM Plex Mono', monospace; text-transform:uppercase; letter-spacing:.06em; }
   .plan-sum{ margin-top:2px; }
@@ -295,13 +298,13 @@
   .plan-btn.round{ width:36px; min-width:36px; flex:0 0 36px; height:36px; padding:0; border-radius:50%; font-size:16px; }
   .plan-saved-note{ margin:0 0 8px; font-size:13px; }
   .plan-place{ flex:1; min-width:0; text-align:left; display:flex; flex-direction:column; align-items:flex-start; gap:1px; }
-  .plan-place .pl-from{ font-size:11.5px; color: var(--slate); line-height:1.2; }
+  .plan-place .pl-from{ font-size:12px; color: var(--slate); line-height:1.2; }
   .plan-place .pl-name{ max-width:100%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .plan-date{ flex:1 1 0; width:0; min-width:0; max-width:100%; -webkit-appearance:none; appearance:none; min-height:40px; text-align:left; background: var(--card); border:1px solid var(--line); color: var(--sand); border-radius:12px; padding:8px 10px; font-size:15px; font-family: inherit; color-scheme: dark; }
   .plan-search{ display:flex; gap:8px; margin-bottom:8px; }
   .plan-search input{ flex:1; min-width:0; background: var(--card); border:1px solid var(--line); color: var(--sand); border-radius:12px; padding:9px 12px; font-size:16px; font-family: inherit; }
   .plan-res{ display:block; width:100%; text-align:left; margin-bottom:6px; }
-  .plan-msg{ font-size:12.5px; color: var(--slate); margin: 0 0 10px; line-height:1.5; }
+  .plan-msg{ font-size:13px; color: var(--slate); margin: 0 0 10px; line-height:1.5; }
   .plan-lbl{ background:none; border:none; }
   .plan-lbl span{ position:absolute; transform: translate(-50%,-50%); white-space:nowrap; font-size:11px; font-weight:600; padding:2px 7px; border-radius:999px; background: rgba(20,23,44,0.88); border:1px solid currentColor; }
   .plan-legend{ display:flex; flex-wrap:wrap; gap:6px 14px; font-size:12px; color: var(--slate); margin: 0 0 14px; }
@@ -330,9 +333,9 @@
   .plan-range::-moz-range-track{ height:8px; border-radius:4px; background: var(--track); }
   .plan-range::-webkit-slider-thumb{ -webkit-appearance:none; width:30px; height:30px; border-radius:50%; background: var(--sand); border:3px solid var(--gold); margin-top:-11px; }
   .plan-range::-moz-range-thumb{ width:24px; height:24px; border-radius:50%; background: var(--sand); border:3px solid var(--gold); }
-  .plan-ticks{ display:flex; justify-content:space-between; font-size:11.5px; color: var(--slate); }
+  .plan-ticks{ display:flex; justify-content:space-between; font-size:12px; color: var(--slate); }
   .plan-seg{ display:flex; align-items:center; gap:6px; margin: 0 0 10px; flex-wrap:wrap; }
-  .plan-seg-l{ font-size:12.5px; color: var(--slate); margin-right:2px; }
+  .plan-seg-l{ font-size:12px; color: var(--slate); margin-right:2px; }
   .plan-seg-b{ background: var(--card); border:1px solid var(--line); color: var(--slate); border-radius:999px; padding:6px 14px; font-size:13px; cursor:pointer; font-family: inherit; }
   .plan-seg-b.on{ color: var(--sand); border-color: var(--gold); }
   .cal-row{ display:flex; gap:6px; align-items:center; margin-bottom:8px; }
@@ -356,7 +359,7 @@
   .plan-row2 b small.by{ display:block; font-weight:400; font-size:12px; color:var(--slate); }
   .hz-face{ font-family: ui-monospace, Menlo, monospace; font-size:11px; letter-spacing:.08em; color:var(--slate); white-space:nowrap; }
   .hz-svg{ display:block; width:100%; max-width:400px; height:auto; border-radius:12px; margin:0 auto 6px; }   /* 2.4.1a/b: on a wide screen (Mac, iPad) the picture stops growing, so its text and tags don't get huge */
-  .plan-row2{ display:flex; justify-content:space-between; gap:12px; padding:8px 0; border-top:1px solid var(--line); font-size:13.5px; line-height:1.4; }
+  .plan-row2{ display:flex; justify-content:space-between; gap:12px; padding:8px 0; border-top:1px solid var(--line); font-size:13px; line-height:1.4; }
   .plan-row2:first-of-type{ border-top:0; }
   .plan-row2 b{ font-weight:600; text-align:right; }
   .plan-good{ color:#7bd88f; } .plan-warn{ color: var(--gold); }
@@ -416,7 +419,7 @@
   @keyframes rcPulse{ 0%,100%{ opacity:1 } 50%{ opacity:.45 } }
   @media (prefers-reduced-motion: reduce){ .rc-skel .rc-verdict, .rc-skel .rc-text, .rc-skel .rc-sat-head, .rc-skel .rc-note{ animation:none; } }
   .about-seo{ margin:0 0 14px; font-size:12px; line-height:1.55; }
-  footer{ text-align:center; font-size: 12px; line-height:1.55; color: var(--slate); margin-top: 36px; font-family:'IBM Plex Mono', monospace; }
+  footer{ text-align:center; font-size: 12px; line-height:1.55; color: var(--slate); margin-top: 36px; }
   footer a{ text-decoration: underline; text-decoration-color: var(--slate); }
 
   .loading, .err{ text-align:center; padding: 60px 20px; color: var(--slate); font-size: 14px; }
@@ -495,7 +498,7 @@
   .ag-day{ flex-direction:column; align-items:flex-start; justify-content:center; line-height:1.15; }
   .ag-day small{ font-family:'IBM Plex Mono', monospace; font-size:11px; font-weight:400; color: var(--slate); }
   .ag-cell.past{ opacity:0.5; }
-  .ag-hint{ font-size:12.5px; color: var(--slate); margin: -4px 0 10px; }
+  .ag-hint{ font-size:12px; color: var(--slate); margin: -4px 0 10px; }
   #textBtn{ background: transparent; border: 1px solid var(--line); border-radius: 10px; color: var(--sand); font-size: 15px; padding: 6px 10px; cursor: pointer; line-height: 1; font-family: Georgia, serif; font-weight:600; }
   #textBtn[aria-pressed="true"]{ border-color: var(--gold); color: var(--gold); }
   .header-actions{ display:flex; align-items:center; gap: 8px; }
@@ -574,9 +577,8 @@
   }
   html[data-theme="light"]{ background: #efe6d8; }
   /* 2.3.1n: light mode gets a dawn-sky wash (pale periwinkle at the top, cream, soft peach at the bottom) plus the same gold glow low on the right as dark mode */
-  html[data-theme="light"] body{ background:
-    radial-gradient(70% 40% at 112% 54%, rgba(236,160,48,0.50) 0%, rgba(236,160,48,0.22) 38%, rgba(236,160,48,0) 78%) top / 100% 100vh no-repeat,
-    linear-gradient(180deg, #e9ecf8 0%, #f5f0ea 22%, #f8f1e4 52%, #f2dfc8 100%); }
+  /* 2.5.1z2: drawn as SVG images, not CSS gradients, so a page-darkening extension or Safari setting leaves the light wash alone */
+  html[data-theme="light"] body{ background-color:#f5f0ea; background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%20100%20100%27%20preserveAspectRatio%3D%27none%27%3E%3Cdefs%3E%3CradialGradient%20id%3D%27r%27%20cx%3D%27112%27%20cy%3D%2754%27%20r%3D%271%27%20gradientUnits%3D%27userSpaceOnUse%27%20gradientTransform%3D%27translate%28112%2054%29%20scale%2870%2040%29%20translate%28-112%20-54%29%27%3E%3Cstop%20offset%3D%270%27%20stop-color%3D%27rgb%28236%2C160%2C48%29%27%20stop-opacity%3D%27.5%27/%3E%3Cstop%20offset%3D%27.38%27%20stop-color%3D%27rgb%28236%2C160%2C48%29%27%20stop-opacity%3D%27.22%27/%3E%3Cstop%20offset%3D%27.78%27%20stop-color%3D%27rgb%28236%2C160%2C48%29%27%20stop-opacity%3D%270%27/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect%20width%3D%27100%27%20height%3D%27100%27%20fill%3D%27url%28%23r%29%27/%3E%3C/svg%3E"),url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%201%20100%27%20preserveAspectRatio%3D%27none%27%3E%3Cdefs%3E%3ClinearGradient%20id%3D%27g%27%20x1%3D%270%27%20y1%3D%270%27%20x2%3D%270%27%20y2%3D%27100%27%20gradientUnits%3D%27userSpaceOnUse%27%3E%3Cstop%20offset%3D%270%27%20stop-color%3D%27%23e9ecf8%27/%3E%3Cstop%20offset%3D%27.22%27%20stop-color%3D%27%23f5f0ea%27/%3E%3Cstop%20offset%3D%27.52%27%20stop-color%3D%27%23f8f1e4%27/%3E%3Cstop%20offset%3D%271%27%20stop-color%3D%27%23f2dfc8%27/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20width%3D%271%27%20height%3D%27100%27%20fill%3D%27url%28%23g%29%27/%3E%3C/svg%3E"); background-size:100% 100vh, 100% 100%; background-position:top, top; background-repeat:no-repeat; }
   html[data-theme="light"] #locBtn{ background: rgba(255,255,255,0.7); }
   html[data-theme="light"] .bar, html[data-theme="light"] .agenda-bar{ background: rgba(30,35,70,0.10); }
   /* The sky card and the map overlays keep their dark look in both themes */
@@ -601,14 +603,14 @@
   .tl-big{ font-size:20px; font-weight:700; margin-top:6px; line-height:1.15; overflow-wrap:anywhere; }
   .tl-time{ font-family:'IBM Plex Mono', monospace; font-size:15px; margin-top:4px; }
   .tl-sub{ font-size:12px; color:var(--slate); margin-top:6px; }
-  .tl-msg{ font-size:14px; line-height:1.4; color:var(--slate); margin-top:6px; }
-  .tl-note{ font-size:14px; line-height:1.5; color:var(--slate); margin-top:14px; }
-  .tl-live{ margin-top:14px; padding:10px 12px; border-left:3px solid var(--gold); background:rgba(242,184,75,.07); border-radius:0 8px 8px 0; font-size:14px; line-height:1.45; color:var(--slate); }
-  .tl-foot{ font-size:11.5px; color:var(--slate-dim); margin-top:14px; }
+  .tl-msg{ font-size:13px; line-height:1.4; color:var(--slate); margin-top:6px; }
+  .tl-note{ font-size:13px; line-height:1.5; color:var(--slate); margin-top:14px; }
+  .tl-live{ margin-top:14px; padding:10px 12px; border-left:3px solid var(--gold); background:rgba(242,184,75,.07); border-radius:0 8px 8px 0; font-size:13px; line-height:1.45; color:var(--slate); }
+  .tl-foot{ font-size:12px; color:var(--slate-dim); margin-top:14px; }
   .sky-verdict{ font-size:16px; font-weight:600; line-height:1.35; margin:2px 0 4px; }
     .sky-pic{ display:block; width:100%; height:auto; border-radius:12px; margin-top:8px; }
   .sky-rows{ margin-top:10px; }
-  .sk-row{ display:flex; justify-content:space-between; align-items:baseline; gap:12px; font-size:13.5px; padding:6px 0; border-top:1px solid var(--line); }
+  .sk-row{ display:flex; justify-content:space-between; align-items:baseline; gap:12px; font-size:13px; padding:6px 0; border-top:1px solid var(--line); }
   .sk-k{ color:var(--sand); flex:0 0 auto; }
   .sk-v{ text-align:right; }
   .sk-raw{ color:var(--slate); }
@@ -2927,7 +2929,7 @@ const bestItem = bestLight ? `<div class="hero-time-item"><div class="k">Best li
     <div class="sky-rows">${skySummary.rows.map(skyRowText).join("")}</div>
     <div class="outlook-note" style="margin-top:8px;">A sketch of how much cloud the forecast puts at each height. Not a photo of the sky.</div>`;
 
-  skyInner += `<div class="why">These are forecast numbers. The Reality check above compares them with airport reports and the satellite.<br><br><b>How this is scored</b> — Afterglow weighs high-altitude cloud cover (the layer that catches direct light and turns pink/orange), low and mid cloud (which physically block the view of the horizon or the light source), and visibility, or humidity when visibility isn't available (haze mutes saturation even on an otherwise clear evening). The score is for the glow around sunrise or sunset, not the exact moment: it reads the forecast about ${PEAK_OFFSET_MIN} minutes after sunset (or before sunrise), when high cloud usually lights up. It's a rule of thumb, not a guarantee, so it's always worth a look outside about 20 minutes before ${mode === "evening" ? "sunset" : "sunrise"}.</div>`;
+  skyInner += `<div class="why"><b>How this is scored</b> — Afterglow weighs high-altitude cloud cover (the layer that catches direct light and turns pink/orange), low and mid cloud (which physically block the view of the horizon or the light source), and visibility, or humidity when visibility isn't available (haze mutes saturation even on an otherwise clear evening). The score is for the glow around sunrise or sunset, not the exact moment: it reads the forecast about ${PEAK_OFFSET_MIN} minutes after sunset (or before sunrise), when high cloud usually lights up. It's a rule of thumb, not a guarantee, so it's always worth a look outside about 20 minutes before ${mode === "evening" ? "sunset" : "sunrise"}.</div>`;
   const skyExtra = (s.hazeFromVis ? ` · <span class="nw">Vis ${fmtVis(s.vis)}</span>` : "") + (s.precip >= 20 ? ` · <span class="nw">Rain ${Math.round(s.precip)}%</span>` : "");
   html += uiFold("sky", `Sky breakdown (forecast)${activeDay === 0 ? "" : " · " + parseLocalDate(daily.time[activeDay]).toLocaleDateString([], { weekday:'short', month:'short', day:'numeric' })} <span class="sub"><span class="nw">High ${Math.round(sF.high)}%</span> · <span class="nw">Mid ${Math.round(sF.mid)}%</span> · <span class="nw">Low ${Math.round(sF.low)}%</span>${skyExtra}</span>`, skyInner);
 
@@ -3270,7 +3272,7 @@ function skyCardHtml(p, sun, esc){
     const msg = p.date < sk.daily.time[0]
       ? "That date has passed. Pick a later date for a sky forecast."
       : `Too far out for a sky forecast. It becomes available <b>${planDayLabel(planShift(p.date, -(sk.daily.time.length - 1)))}</b>, about ten days before. Directions and times above are exact now.`;
-    return `<div class="card" style="margin-bottom:10px;"><div class="label">Sky forecast · ${planDayLabel(p.date)}</div><div class="note" style="font-size:13px;">${msg}</div></div>`;
+    return `<div class="card" style="margin-bottom:10px;"><div class="label">Sky forecast · ${planDayLabel(p.date)}</div><div class="note" style="font-size:13px">${msg}</div></div>`;
   }
   const rows = [];
   [["evening", "Sunset", sk.daily.sunset[i], sun.set], ["morning", "Sunrise", sk.daily.sunrise[i], sun.rise]].forEach(([mode, name, evt, t]) => {
@@ -3280,7 +3282,7 @@ function skyCardHtml(p, sun, esc){
     rows.push(`<div class="plan-row2"><span>${name}${t ? " " + fmtZ(t, p.loc.tz) : ""}</span><b class="${sc.score >= 44 ? "plan-good" : ""}">${label(sc.score)} · ${sc.score}</b></div>`);
   });
   const nearToday = i === 0 ? "" : "";
-  return `<div class="card" style="margin-bottom:10px;"><div class="label">Sky forecast · ${planDayLabel(p.date)}</div>${sk.staleAt ? `<div class="note" style="margin-bottom:6px;color:var(--gold);">Offline: this is the last forecast that loaded, from ${describeAge(Date.now() - sk.staleAt)}.</div>` : ""}${rows.join("") || '<div class="note">No sunrise or sunset score for this date.</div>'}<div class="note" style="margin-top:6px;">Same score as Today and Outlook. Forecasts shift, so check again closer to the day.</div></div>`;
+  return `<div class="card" style="margin-bottom:10px;"><div class="label">Sky forecast · ${planDayLabel(p.date)}</div>${sk.staleAt ? `<div class="note" style="margin-bottom:6px;color:var(--gold)">Offline: this is the last forecast that loaded, from ${describeAge(Date.now() - sk.staleAt)}.</div>` : ""}${rows.join("") || '<div class="note">No sunrise or sunset score for this date.</div>'}<div class="note" style="margin-top:6px">Same score as Today and Outlook. Forecasts shift, so check again closer to the day.</div></div>`;
 }
 
 // ---- Calendar file (.ics): the shoot window plus the light times, in the event notes.
@@ -3521,7 +3523,7 @@ function planViewCardHtml(p, pl, esc){
     const shown = unit === "m" ? Math.round(hFt * FT_M) : Math.round(hFt);
     h += `<div class="plan-row"><span style="font-size:13.5px;flex:1;">Height above takeoff</span><input class="plan-date" style="max-width:110px;text-align:right;" type="number" inputmode="decimal" min="0" max="${unit === "m" ? 1000 : 3000}" id="planAlt" value="${shown}" aria-label="Height above takeoff in ${unit === "m" ? "meters" : "feet"}"><span style="font-size:13.5px;">${unit}</span></div>
     <div class="plan-seg" style="margin:6px 0;">${[100, 200, 300, 400].map(v => `<button class="plan-seg-b" data-altq="${v}">${unit === "m" ? Math.round(v * FT_M) : v}</button>`).join("")}</div>
-    <div class="note" style="font-size:12.5px;">${unit === "m" ? (hFt > 400 ? "Above the usual 122 m (400 ft) limit. " : "122 m (400 ft) is the US Part 107 limit above the takeoff point. ") : (hFt > 400 ? "Above the usual 400 ft limit. " : "400 ft is the Part 107 limit above the takeoff point. ")}Horizon dips ${dipDeg(hFt).toFixed(1)}° at this height.</div>`;
+    <div class="note">${unit === "m" ? (hFt > 400 ? "Above the usual 122 m (400 ft) limit. " : "122 m (400 ft) is the US Part 107 limit above the takeoff point. ") : (hFt > 400 ? "Above the usual 400 ft limit. " : "400 ft is the Part 107 limit above the takeoff point. ")}Horizon dips ${dipDeg(hFt).toFixed(1)}° at this height.</div>`;
   }
   h += `</div>`;
   const block = (mode, label) => {
@@ -3534,28 +3536,28 @@ function planViewCardHtml(p, pl, esc){
       const g = planVisibility(p, pl, 0, mode, obs), d = drone ? planVisibility(p, pl, hFt, mode, obs) : null;
       r += `<div class="plan-row2"><span>With what's in the way, from the ground</span><b class="nw ${g && g.blocked ? "plan-warn" : "plan-good"}">${fmt(g)}</b></div>`;
       if(drone) r += `<div class="plan-row2"><span>With what's in the way, from ${lenOut(hFt, unit)}</span><b class="nw ${d && d.blocked ? "plan-warn" : "plan-good"}">${fmt(d)}</b></div>`;
-      if(g && d){ const mins = Math.round(Math.abs(d.t - g.t) / 60000); if(mins >= 2) r += `<div class="note" style="font-size:12.5px;margin-top:6px;">${mode === "evening" ? "From the drone you get about " + mins + " more minutes of direct sun here." : "From the drone the sun is clear about " + mins + " minutes " + (d.t < g.t ? "earlier" : "later") + "."}</div>`; }
+      if(g && d){ const mins = Math.round(Math.abs(d.t - g.t) / 60000); if(mins >= 2) r += `<div class="note" style="margin-top:6px">${mode === "evening" ? "From the drone you get about " + mins + " more minutes of direct sun here." : "From the drone the sun is clear about " + mins + " minutes " + (d.t < g.t ? "earlier" : "later") + "."}</div>`; }
     }
     return `<div class="label" style="margin-top:8px;">${label}</div>${r}`;
   };
-  h += `<div class="card" style="margin-bottom:10px;"><div class="label">Sun at the horizon, ${planDayLabel(p.date)}</div>${block("evening", "Sunset") + block("morning", "Sunrise") || '<div class="note" style="font-size:12.5px;">The Sun doesn\'t rise or set on this date here.</div>'}</div>`;
+  h += `<div class="card" style="margin-bottom:10px;"><div class="label">Sun at the horizon, ${planDayLabel(p.date)}</div>${block("evening", "Sunset") + block("morning", "Sunrise") || '<div class="note">The Sun doesn\'t rise or set on this date here.</div>'}</div>`;
   h += `<div class="card" style="margin-bottom:12px;"><div class="label">Things in the way at this spot</div>${p.obNote ? `<div class="plan-msg" style="color:var(--gold);margin:4px 0 6px;">${esc(p.obNote)}</div>` : ""}`;
-  if(!obs.length) h += `<div class="note" style="font-size:12.5px;margin-bottom:8px;">Trees, buildings or a hill that block the Sun. You've seen them; the app can't. Enter what you know, and the times above allow for it.</div>`;
+  if(!obs.length) h += `<div class="note" style="margin-bottom:8px">Trees, buildings or a hill that block the Sun. You've seen them; the app can't. Enter what you know, and the times above allow for it.</div>`;
   obs.forEach((o, i) => {
     h += `<div class="plan-row2"><span><b>${esc(o.name)}</b> · ${Math.round(o.a1)}° to ${Math.round(o.a2)}°<br><span style="color:var(--slate);font-size:12.5px;">${lenOut(o.h, unit)} tall, ${lenOut(o.d, unit)} away</span></span><b>${Math.max(0, obstAngle(o, 0)).toFixed(0)}° from the ground${drone ? `<br><span style="color:var(--slate);font-weight:400;font-size:12.5px;">${Math.max(0, obstAngle(o, hFt)).toFixed(0)}° at ${lenOut(hFt, unit)}</span>` : ""}<br><button class="plan-seg-b" data-delobs="${i}" style="margin-top:4px;padding:3px 10px;font-size:12px;">Remove</button></b></div>`;
   });
   if(p.addObs){
-    h += `<div style="margin-top:8px;"><div class="note" style="font-size:12.5px;margin:0 0 4px;">What is it?</div><div class="ob-types"><button type="button" class="ob-type${p.obType === 'trees' || (!p.obType && 'trees' === 'trees') ? " on" : ""}" data-obtype="trees"><svg viewBox="0 0 40 24" width="40" height="24" aria-hidden="true" fill="currentColor"><circle cx="8" cy="14" r="6"/><circle cx="17" cy="12" r="7"/><circle cx="27" cy="14" r="6"/><circle cx="34" cy="15" r="5"/><rect x="3" y="14" width="34" height="8"/></svg>Trees</button><button type="button" class="ob-type${p.obType === 'tree' || (!p.obType && 'tree' === 'trees') ? " on" : ""}" data-obtype="tree"><svg viewBox="0 0 40 24" width="40" height="24" aria-hidden="true" fill="currentColor"><rect x="18.5" y="14" width="3" height="9"/><circle cx="20" cy="10" r="7"/><circle cx="14" cy="14" r="5"/><circle cx="26" cy="14" r="5"/></svg>Big tree</button><button type="button" class="ob-type${p.obType === 'building' || (!p.obType && 'building' === 'trees') ? " on" : ""}" data-obtype="building"><svg viewBox="0 0 40 24" width="40" height="24" aria-hidden="true" fill="currentColor"><rect x="8" y="5" width="14" height="17"/><rect x="22" y="12" width="10" height="10"/></svg>Building</button><button type="button" class="ob-type${p.obType === 'hill' || (!p.obType && 'hill' === 'trees') ? " on" : ""}" data-obtype="hill"><svg viewBox="0 0 40 24" width="40" height="24" aria-hidden="true" fill="currentColor"><path d="M2 22 Q12 4 22 12 Q32 2 38 16 L38 22 Z"/></svg>Hill</button><button type="button" class="ob-type${p.obType === 'tower' || (!p.obType && 'tower' === 'trees') ? " on" : ""}" data-obtype="tower"><svg viewBox="0 0 40 24" width="40" height="24" aria-hidden="true" fill="currentColor"><polygon points="18,22 22,22 21,2 19,2"/><rect x="13" y="8" width="14" height="1.5"/></svg>Tower</button><button type="button" class="ob-type${p.obType === 'wall' || (!p.obType && 'wall' === 'trees') ? " on" : ""}" data-obtype="wall"><svg viewBox="0 0 40 24" width="40" height="24" aria-hidden="true" fill="currentColor"><rect x="3" y="14" width="34" height="8"/></svg>Wall</button></div><input class="plan-name" id="obName" maxlength="30" placeholder="Name it (optional)">
+    h += `<div style="margin-top:8px;"><div class="note" style="margin:0 0 4px">What is it?</div><div class="ob-types"><button type="button" class="ob-type${p.obType === 'trees' || (!p.obType && 'trees' === 'trees') ? " on" : ""}" data-obtype="trees"><svg viewBox="0 0 40 24" width="40" height="24" aria-hidden="true" fill="currentColor"><circle cx="8" cy="14" r="6"/><circle cx="17" cy="12" r="7"/><circle cx="27" cy="14" r="6"/><circle cx="34" cy="15" r="5"/><rect x="3" y="14" width="34" height="8"/></svg>Trees</button><button type="button" class="ob-type${p.obType === 'tree' || (!p.obType && 'tree' === 'trees') ? " on" : ""}" data-obtype="tree"><svg viewBox="0 0 40 24" width="40" height="24" aria-hidden="true" fill="currentColor"><rect x="18.5" y="14" width="3" height="9"/><circle cx="20" cy="10" r="7"/><circle cx="14" cy="14" r="5"/><circle cx="26" cy="14" r="5"/></svg>Big tree</button><button type="button" class="ob-type${p.obType === 'building' || (!p.obType && 'building' === 'trees') ? " on" : ""}" data-obtype="building"><svg viewBox="0 0 40 24" width="40" height="24" aria-hidden="true" fill="currentColor"><rect x="8" y="5" width="14" height="17"/><rect x="22" y="12" width="10" height="10"/></svg>Building</button><button type="button" class="ob-type${p.obType === 'hill' || (!p.obType && 'hill' === 'trees') ? " on" : ""}" data-obtype="hill"><svg viewBox="0 0 40 24" width="40" height="24" aria-hidden="true" fill="currentColor"><path d="M2 22 Q12 4 22 12 Q32 2 38 16 L38 22 Z"/></svg>Hill</button><button type="button" class="ob-type${p.obType === 'tower' || (!p.obType && 'tower' === 'trees') ? " on" : ""}" data-obtype="tower"><svg viewBox="0 0 40 24" width="40" height="24" aria-hidden="true" fill="currentColor"><polygon points="18,22 22,22 21,2 19,2"/><rect x="13" y="8" width="14" height="1.5"/></svg>Tower</button><button type="button" class="ob-type${p.obType === 'wall' || (!p.obType && 'wall' === 'trees') ? " on" : ""}" data-obtype="wall"><svg viewBox="0 0 40 24" width="40" height="24" aria-hidden="true" fill="currentColor"><rect x="3" y="14" width="34" height="8"/></svg>Wall</button></div><input class="plan-name" id="obName" maxlength="30" placeholder="Name it (optional)">
       <div class="plan-row"><span style="font-size:13px;">From</span><input class="plan-date" type="number" inputmode="decimal" id="obA1" placeholder="e.g. 240" aria-label="From compass degrees"><span style="font-size:13px;">to</span><input class="plan-date" type="number" inputmode="decimal" id="obA2" placeholder="e.g. 260" aria-label="To compass degrees"><span style="font-size:13px;">°</span></div>
       <div class="plan-row"><span class="ob-lbl" style="font-size:13px;">Height</span><input class="plan-date" type="number" inputmode="decimal" id="obH" placeholder="e.g. 70" aria-label="Height"><span style="font-size:13px;">${unit}</span></div>
       <div class="plan-row"><span class="ob-lbl" style="font-size:13px;">Distance</span><input class="plan-date" type="number" inputmode="decimal" id="obD" placeholder="e.g. 700" aria-label="Distance"><span style="font-size:13px;">${unit}</span></div>
       <div class="plan-msg" id="obErr" style="display:${p.obMsg ? "block" : "none"};color:#e0600f;font-weight:600;">${esc(p.obMsg || "")}</div>
       <div class="plan-seg"><button class="plan-seg-b on" id="obSave">Save</button><button class="plan-seg-b" id="obCancel">Cancel</button></div>
-      <div class="note" style="font-size:12.5px;">Compass degrees: north 0, east 90, south 180, west 270. Height is above the ground you stand on.</div></div>`;
+      <div class="note">Compass degrees: north 0, east 90, south 180, west 270. Height is above the ground you stand on.</div></div>`;
   } else if(obs.length < 12){
     h += `<button class="plan-seg-b" id="obAdd" style="margin-top:8px;">＋ Add something in the way</button>`;
   }
-  h += `<div class="note" style="font-size:12.5px;margin-top:8px;">Saved on this device with this spot.</div></div>`;
+  h += `<div class="note" style="margin-top:8px">Saved on this device with this spot.</div></div>`;
   return h;
 }
 function planEventTitle(p){ return (p.calTitle || "").trim() || "Shoot: " + ((p.subject && p.subject.name) || p.loc.name); }
@@ -3776,7 +3778,7 @@ function planFinder(p, brg, mode){
       const w = windowsOf(list, k, back, 20), tx = runsText(w);
       rows.push(`<div class="plan-row2"><span>${label} behind you: front light <span style="color:var(--slate)">(within 20°)</span></span><b>${tx || "never"}</b></div>`);
     });
-    html = `<div class="note" style="margin-bottom:6px;">Dates in the next 12 months. The Sun's heading moves slowly, so these are runs of days.</div>` + rows.join("");
+    html = `<div class="note" style="margin-bottom:6px">Dates in the next 12 months. The Sun's heading moves slowly, so these are runs of days.</div>` + rows.join("");
     const firsts = [["rise", "Sunrise"], ["set", "Sunset"]].map(([k, label]) => { const w = windowsOf(list, k, brg, 3); return w.runs.length ? { label, r: w.runs[0] } : null; }).filter(Boolean).sort((a, b) => a.r.from < b.r.from ? -1 : 1);
     sum = firsts.length ? firsts[0].label + " behind it: " + (firsts[0].r.from === firsts[0].r.to ? planDayLabel(firsts[0].r.from) : planDayLabel(firsts[0].r.from) + " – " + planDayLabel(firsts[0].r.to)) : "no Sun lineup in 12 months";
   } else {
@@ -3794,7 +3796,7 @@ function planFinder(p, brg, mode){
     });
     const near = cand.filter(c => c.off <= 6).sort((a, b) => a.off - b.off).slice(0, 5).sort((a, b) => a.t - b.t);
     const show = near.length ? near : cand.slice().sort((a, b) => a.off - b.off).slice(0, 1);
-    html = `<div class="note" style="margin-bottom:6px;">${near.length ? "Moonrise or moonset within 6° of the subject, next " + days + " days" : "Nothing within 6° in the next " + days + " days. The closest one:"}</div>` +
+    html = `<div class="note" style="margin-bottom:6px">${near.length ? "Moonrise or moonset within 6° of the subject, next " + days + " days" : "Nothing within 6° in the next " + days + " days. The closest one:"}</div>` +
       show.map(c => `<div class="plan-row2"><span><b>${planDayLabel(c.ds)}</b> · ${c.label} ${fmtZ(c.t, tz)} · ${c.lit}% lit${c.rel ? `<br><span style="color:var(--slate);font-size:12.5px;">${c.rel}</span>` : ""}</span><b>${Math.round(c.az)}°, ${Math.round(c.off)}° off</b></div>`).join("");
   }
   p.scan = { key, html, sum };
@@ -3985,7 +3987,7 @@ function renderPlan(app, tabsHtml){
     html += `<button type="button" class="plan-btn plan-res" id="planGps" style="margin-top:8px;"><svg class="loc-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="6.5"/><circle cx="12" cy="12" r="2" fill="currentColor"/><path d="M12 1.5v4M12 18.5v4M1.5 12h4M18.5 12h4"/></svg><span>${p.loc.name === MYLOC ? "Update my location" : "My location"}</span></button>`;
     if(!p.results.length && !p.msg){
       const rl = recentsFor(p.loc);
-      if(rl.length) html += `<div class="note" style="margin:8px 0 4px;">Recent places</div>` + rl.map((r, i) => `<button type="button" class="plan-btn plan-res" data-recent="${i}">📍 ${esc(r.name)}</button>`).join("");
+      if(rl.length) html += `<div class="note" style="margin:8px 0 4px">Recent places</div>` + rl.map((r, i) => `<button type="button" class="plan-btn plan-res" data-recent="${i}">📍 ${esc(r.name)}</button>`).join("");
     }
     html += p.results.map((r, i) => `<button type="button" class="plan-btn plan-res" data-i="${i}">${esc(r.name)}${r.admin1 ? ", " + esc(r.admin1) : ""}${r.country ? " · " + esc(r.country) : ""}</button>`).join("");
     if(!sameAsSaved) html += `<button type="button" class="plan-btn plan-res" id="planSaved">Back to ${esc(state.loc.name)}</button>`;
@@ -4035,12 +4037,12 @@ function renderPlan(app, tabsHtml){
     if(sun.set) { const lp = lightPhrase(sun.setAz, bd.brg); rows.push(`<div class="plan-row2"><span>Sun at sunset (${fmtZ(sun.set, tz)})</span><b class="${lp.c}">${lp.t}</b></div>`); }
     if(moon.moonrise) { const dd = angDiff(moon.moonriseAz, bd.brg); rows.push(`<div class="plan-row2"><span>Moonrise (${fmtZ(moon.moonrise, tz)})</span><b>${Math.round(Math.abs(dd))}° ${dd > 0 ? "right" : "left"} of the subject</b></div>`); }
     if(moon.moonset) { const dd = angDiff(moon.moonsetAz, bd.brg); rows.push(`<div class="plan-row2"><span>Moonset (${fmtZ(moon.moonset, tz)})</span><b>${Math.round(Math.abs(dd))}° ${dd > 0 ? "right" : "left"} of the subject</b></div>`); }
-    html += `<div class="card" style="margin-bottom:10px;"><div class="label">${esc(sname)} · ${Math.round(bd.brg)}° ${compassDir(bd.brg)} · ${fmtDist(bd.km)}</div><div class="note" style="margin-bottom:4px;">Light on the subject, ${planDayLabel(p.date)}. You are facing it from your spot.</div>${rows.join("") || '<div class="note">No sunrise, sunset or moon events on this date.</div>'}</div>`;
+    html += `<div class="card" style="margin-bottom:10px;"><div class="label">${esc(sname)} · ${Math.round(bd.brg)}° ${compassDir(bd.brg)} · ${fmtDist(bd.km)}</div><div class="note" style="margin-bottom:4px">Light on the subject, ${planDayLabel(p.date)}. You are facing it from your spot.</div>${rows.join("") || '<div class="note">No sunrise, sunset or moon events on this date.</div>'}</div>`;
     cap("subj", i0);
     i0 = html.length;
     let fin = "";
     try{ fin = planFinder(p, bd.brg, p.finder); }catch(e){ console.error("Finder failed:", e); fin = '<div class="note">Couldn\'t search the dates.</div>'; }
-    html += `<details class="plan-fold two" data-fold="finder"${p.fold.finder ? " open" : ""}><summary>Find the dates it lines up${p.scan && p.scan.sum ? ` <span class="sub">${esc(p.scan.sum)}</span>` : ""}</summary><div class="fold-body"><div class="plan-seg" style="margin-bottom:8px;"><button class="plan-seg-b ${p.finder === "sun" ? "on" : ""}" data-finder="sun">Sun</button><button class="plan-seg-b ${p.finder === "moon" ? "on" : ""}" data-finder="moon">Moon</button></div>${fin}<div class="note" style="margin-top:8px;">Direction only: it doesn't know how tall the subject is or what stands in between.</div>${FOLD_CLOSE}</div></details>`;
+    html += `<details class="plan-fold two" data-fold="finder"${p.fold.finder ? " open" : ""}><summary>Find the dates it lines up${p.scan && p.scan.sum ? ` <span class="sub">${esc(p.scan.sum)}</span>` : ""}</summary><div class="fold-body"><div class="plan-seg" style="margin-bottom:8px;"><button class="plan-seg-b ${p.finder === "sun" ? "on" : ""}" data-finder="sun">Sun</button><button class="plan-seg-b ${p.finder === "moon" ? "on" : ""}" data-finder="moon">Moon</button></div>${fin}<div class="note" style="margin-top:8px">Direction only: it doesn't know how tall the subject is or what stands in between.</div></div></details>`;
   }
   cap("find", i0);
   i0 = html.length;
@@ -4053,7 +4055,7 @@ function renderPlan(app, tabsHtml){
   html += checklistBtnHtml(p.loc, "planChk");
   cap("chk", i0);
   i0 = html.length;
-  html += `<div class="card" style="margin-bottom:12px;"><div class="label">Share this plan</div><div class="plan-seg" style="margin-bottom:8px;"><button class="plan-seg-b" id="planCopy">🔗 Copy link</button>${navigator.share ? '<button class="plan-seg-b" id="planShare">Share…</button>' : ""}</div>${p.shareMsg ? `<div class="note" style="margin-bottom:6px;color:var(--gold);">${esc(p.shareMsg)}</div>` : ""}<div class="note">Reopens this place${p.subject ? ', the subject pin' : ''} and date in AfterGlow on any phone. Nothing is stored on a server.</div></div>`;
+  html += `<div class="card" style="margin-bottom:12px;"><div class="label">Share this plan</div><div class="plan-seg" style="margin-bottom:8px;"><button class="plan-seg-b" id="planCopy">🔗 Copy link</button>${navigator.share ? '<button class="plan-seg-b" id="planShare">Share…</button>' : ""}</div>${p.shareMsg ? `<div class="note" style="margin-bottom:6px;color:var(--gold)">${esc(p.shareMsg)}</div>` : ""}<div class="note">Reopens this place${p.subject ? ', the subject pin' : ''} and date in AfterGlow on any phone. Nothing is stored on a server.</div></div>`;
   cap("share", i0);
   i0 = html.length;
   if(!p.calMode) p.calMode = "evening";
@@ -4067,10 +4069,10 @@ function renderPlan(app, tabsHtml){
       ? `<div class="cal-row"><select class="plan-name cal-sel" id="calOffH" aria-label="Hours">${hrOpts}</select><select class="plan-name cal-sel" id="calOffM" aria-label="Minutes">${mnOpts}</select><select class="plan-name cal-sel" id="calDir" aria-label="Before or after"><option value="before"${cc.dir === "before" ? " selected" : ""}>before</option><option value="after"${cc.dir === "after" ? " selected" : ""}>after</option></select></div><div class="cal-row"><select class="plan-name cal-sel" id="calAnchor" aria-label="Light event">${CAL_ANCHORS.map(selA).join("")}</select></div>`
       : `<input type="time" class="plan-name" id="calClock" value="${esc(cc.clock)}" aria-label="Start time" style="margin-bottom:8px;">`}<div class="plan-seg" style="margin-bottom:8px;"><button class="plan-seg-b" id="calUseBar" data-bar="${barClock}">⏱ Use the time on the bar</button></div><div class="label" style="margin:6px 0;">Length</div><div class="plan-seg" style="margin-bottom:8px;">${lenChip(60)}${lenChip(120)}${lenChip(180)}<button class="plan-seg-b ${cc.lenKind === "sunset" ? "on" : ""}" data-callen="sunset">Until sunset</button></div><div class="cal-row"><span class="cal-t">Or type:</span><input type="number" class="plan-name cal-num" id="calLenH" min="0" max="12" value="${Math.floor(cc.lenMin / 60)}" aria-label="Hours long"><span class="cal-t">hr</span><input type="number" class="plan-name cal-num" id="calLenM" min="0" max="59" value="${cc.lenMin % 60}" aria-label="Minutes long"><span class="cal-t">min</span></div>` : "";
   const calWords = p.calMode === "custom" ? planCustomText(pl, p, tz) : "an hour before golden hour through " + (p.calMode === "morning" ? "the end of golden hour." : "sunset.");
-  html += `<div class="card" style="margin-bottom:12px;"><div class="label">Add to calendar</div><div class="plan-seg" style="margin-bottom:8px;"><button class="plan-seg-b ${p.calMode === "evening" ? "on" : ""}" data-cal="evening">Sunset shoot</button><button class="plan-seg-b ${p.calMode === "morning" ? "on" : ""}" data-cal="morning">Sunrise shoot</button><button class="plan-seg-b ${p.calMode === "custom" ? "on" : ""}" data-cal="custom">Custom</button></div><input class="plan-name" id="planCalTitle" value="${esc(p.calTitle || "")}" maxlength="80" placeholder="${esc(planEventTitle({ loc: p.loc, subject: p.subject }))}" aria-label="Event title">${customUi}<textarea class="plan-name" id="planCalNotes" rows="3" maxlength="600" placeholder="Your notes (optional): gear, who is coming, a reminder" aria-label="Your notes" style="resize:vertical;">${esc(p.calNotes || "")}</textarea>${cw && !cw.bad ? `<div class="note" style="margin-bottom:8px;">${planDayLabel(p.date)}, ${fmtZ(cw.start, tz)} to ${fmtZ(cw.end, tz)}: ${calWords}</div><div class="plan-seg" style="margin:0;"><button class="plan-seg-b" id="planIcs">📅 Add to calendar</button><button class="plan-seg-b" id="planGcal">Google Calendar</button></div>` : cw && cw.bad ? `<div class="note">That ends before it starts. Try a longer length or an earlier start.</div>` : `<div class="note">${p.calMode === "custom" ? "That light event doesn't happen on this date here (the Moon doesn't always rise or set each day), so there's no window to add." : "The Sun doesn't " + (p.calMode === "morning" ? "rise" : "set") + " on this date here, so there's no window to add."}</div>`}<div class="note" style="margin-top:8px;">Light times and a link back to this plan go in the event notes.</div></div>`;
+  html += `<div class="card" style="margin-bottom:12px;"><div class="label">Add to calendar</div><div class="plan-seg" style="margin-bottom:8px;"><button class="plan-seg-b ${p.calMode === "evening" ? "on" : ""}" data-cal="evening">Sunset shoot</button><button class="plan-seg-b ${p.calMode === "morning" ? "on" : ""}" data-cal="morning">Sunrise shoot</button><button class="plan-seg-b ${p.calMode === "custom" ? "on" : ""}" data-cal="custom">Custom</button></div><input class="plan-name" id="planCalTitle" value="${esc(p.calTitle || "")}" maxlength="80" placeholder="${esc(planEventTitle({ loc: p.loc, subject: p.subject }))}" aria-label="Event title">${customUi}<textarea class="plan-name" id="planCalNotes" rows="3" maxlength="600" placeholder="Your notes (optional): gear, who is coming, a reminder" aria-label="Your notes" style="resize:vertical;">${esc(p.calNotes || "")}</textarea>${cw && !cw.bad ? `<div class="note" style="margin-bottom:8px">${planDayLabel(p.date)}, ${fmtZ(cw.start, tz)} to ${fmtZ(cw.end, tz)}: ${calWords}</div><div class="plan-seg" style="margin:0;"><button class="plan-seg-b" id="planIcs">📅 Add to calendar</button><button class="plan-seg-b" id="planGcal">Google Calendar</button></div>` : cw && cw.bad ? `<div class="note">That ends before it starts. Try a longer length or an earlier start.</div>` : `<div class="note">${p.calMode === "custom" ? "That light event doesn't happen on this date here (the Moon doesn't always rise or set each day), so there's no window to add." : "The Sun doesn't " + (p.calMode === "morning" ? "rise" : "set") + " on this date here, so there's no window to add."}</div>`}</div>`;
   cap("cal", i0);
   i0 = html.length;
-  html += `<div class="card" style="margin-bottom:12px;"><div class="label">Print a shoot card</div><div class="note" style="margin-bottom:8px;font-size:12.5px;">One page with the compass, light times, subject, drone height, what's in the way, your notes and a code that reopens this plan. </div><button class="plan-seg-b" id="planPrint">🖨 Print / Save as PDF</button><div class="note" style="margin-top:8px;font-size:12.5px;">${printHint()}</div></div>`;
+  html += `<div class="card" style="margin-bottom:12px;"><div class="label">Print a shoot card</div><div class="note" style="margin-bottom:8px">One page: compass, light times, subject, drone height, what's in the way and a code that reopens this plan.</div><button class="plan-seg-b" id="planPrint">🖨 Print / Save as PDF</button><div class="note" style="margin-top:8px">${printHint()}</div></div>`;
   cap("cal", i0);
   i0 = html.length;
   p.live = null;
@@ -4092,15 +4094,15 @@ function renderPlan(app, tabsHtml){
     <div class="plan-grid" style="margin:10px 0 0;"><div><div class="label">Moonrise</div><div class="value">${mRise}</div></div><div><div class="label">Moonset</div><div class="value">${mSet}</div></div></div>
   </div>`;
   cap("sum", i0);
-  const foldBody = (key, title, inner, force, cls) => `<details class="plan-fold${cls ? " " + cls : ""}" data-fold="${key}"${(p.fold[key] || force) ? " open" : ""}><summary>${title}</summary><div class="fold-body">${inner}${FOLD_CLOSE}</div></details>`;
+  const foldBody = (key, title, inner, force, cls) => `<details class="plan-fold${cls ? " " + cls : ""}" data-fold="${key}"${(p.fold[key] || force) ? " open" : ""}><summary>${title}</summary><div class="fold-body">${inner}</div></details>`;
   const vDrone = p.vmode !== "ground", vFt = vDrone ? Math.max(0, p.alt == null ? 400 : p.alt) : 0, vObs = loadObst(p.loc).length;
   const vTitle = "Height &amp; things in the way<span class=\"sub\">" + (vDrone ? lenOut(vFt, planUnit()) : "From the ground") + " · " + (vObs ? vObs + " in the way" : "nothing in the way") + "</span>";
-  html += (parts.time || "") + (parts.hz || "");
+  html += (parts.time || "") + (parts.hz || "") + (parts.sky || "");
   html += foldBody("view", vTitle, parts.view || "", false, "two");
-  html += (parts.subj || "") + (parts.sky || "") + (parts.chk || "") + (parts.find || "");
+  html += (parts.subj || "") + (parts.find || "");
   html += foldBody("dial", "Sky view<span class=\"sub\">top-down, north up</span>", parts.dial || "", false, "two");
   html += foldBody("tools", "Share, calendar &amp; print", (parts.share || "") + (parts.cal || ""), !!p.shareMsg);
-  html += `<div class="map-note" style="margin-top:4px;">Times and directions are calculated for a flat horizon, so hills and buildings change what you see. No sky forecast past about ten days.${esc(tzNote)}</div>`;
+  html += `<div class="map-note" style="margin-top:4px;">Times and directions are calculated for a flat horizon, so hills and buildings change what you see. No sky forecast past about ten days.${esc(tzNote)}</div>` + (parts.chk || "");
   app.innerHTML = html;
   document.querySelectorAll("details.plan-fold").forEach(d => d.addEventListener("toggle", () => { p.fold[d.dataset.fold] = d.open; }));
 
@@ -5067,7 +5069,7 @@ initLocation();
   function apply(pref){
     const light = pref === "light" || (pref === "auto" && !!(mq && mq.matches));
     const h = document.documentElement; h.setAttribute("data-theme", light ? "light" : "dark"); h.setAttribute("data-theme-pref", pref);
-    const m = document.querySelector('meta[name="theme-color"]'); if(m) m.setAttribute("content", light ? "#f7f1e7" : "#1B1F3B");
+    const m = document.querySelector('meta[name="theme-color"]'); if(m) m.setAttribute("content", light ? "#f7f1e7" : "#1B1F3B"); const cs = document.querySelector('meta[name="color-scheme"]'); if(cs) cs.setAttribute("content", light ? "only light" : "dark");
     btn.innerHTML = ICO[pref]; btn.setAttribute("aria-label", "Theme: " + NAME[pref]); btn.title = "Theme: " + NAME[pref];
     panel.querySelectorAll(".theme-opt").forEach(o => { const on = o.dataset.themePref === pref; o.setAttribute("aria-checked", on ? "true" : "false"); o.classList.toggle("on", on); });
   }
