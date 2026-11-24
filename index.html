@@ -1,4 +1,4 @@
-<!-- Afterglow v2.5.8 -->
+<!-- Afterglow v2.5.9 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -651,7 +651,7 @@
     Forecasts via Open&#8209;Meteo · Moon times by Astronomy Engine · not a substitute for checking the sky yourself.<br>
     <a href="https://github.com/JohnstonAerial/afterGlow/blob/main/HOW-TO.md" target="_blank" rel="noopener">How to use Afterglow</a> · <a href="https://github.com/JohnstonAerial/afterGlow#readme" target="_blank" rel="noopener">About, how it's scored &amp; privacy</a> · <a href="https://buymeacoffee.com/JohnstonAerial" target="_blank" rel="noopener" style="white-space:nowrap">Buy me a coffee <svg class="cup" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" style="vertical-align:-2px"><path d="M3 9h14v5a5 5 0 0 1-5 5H8a5 5 0 0 1-5-5z" fill="#f3e3c8"/><path d="M17 10h1.5a2.5 2.5 0 0 1 0 5H17" fill="none" stroke="#f3e3c8" stroke-width="1.8"/><path d="M3 9h14v2.2H3z" fill="#7a4a2b"/><path d="M7 2.5c-1 1.2 1 2.2 0 3.4M11 2.5c-1 1.2 1 2.2 0 3.4M15 2.5c-1 1.2 1 2.2 0 3.4" fill="none" stroke="#a2abc1" stroke-width="1.2" stroke-linecap="round"/></svg></a> if this helped you catch an epic sky.<br>
     Also from Johnston Aerial:<br><a href="https://checklist.johnstonaerial.com/" id="footChk" target="_blank" rel="noopener" data-reuse="checklist_tab">Free Drone Preflight Checklist</a>
-    <span class="version">v2.5.8</span>
+    <span class="version">v2.5.9</span>
   </footer>
 </div>
 
@@ -2229,6 +2229,17 @@ function computeMoonInfoPlace(dayStart, lat, lon, sunriseIso, sunsetIso){
       }
     }
   }catch(e){}
+  // 2.5.9a: Moon path curve data: the Moon's height every 10 minutes across this calendar day (place clock), plus where the sun is (night and golden-hour bands).
+  try{
+    const t0 = frameR(dayStart).getTime(), t1 = frameR(new Date(dayStart.getFullYear(), dayStart.getMonth(), dayStart.getDate() + 1)).getTime();
+    const n = Math.round((t1 - t0) / 600000), alts = [], sun = [];
+    for(let i = 0; i <= n; i++){
+      const d = new Date(t0 + i * 600000);
+      alts.push(moonHorizontal(d, lat, lon).alt);
+      sun.push(solarHorizontal(d, lat, lon).alt);
+    }
+    m.path = { alts, sun, n, hours: (t1 - t0) / 3600000, sunrise: new Date(sunriseIso), sunset: new Date(sunsetIso), dayStart };
+  }catch(e){}
   if(!m.nowPos){ m.atNoon = true; m.dayName = dayStart.toLocaleDateString([], { weekday:'long' }); }   // 2.5.7d: any day but today is the midday value, and says so
   return m;
 }
@@ -2239,6 +2250,65 @@ function fistsText(alt){
   if(f < 0.75) return "about half a fist above the horizon";
   const w = Math.floor(f) + (f % 1 ? "½" : "");
   return `about ${w} ${f === 1 ? "fist" : "fists"} above the horizon`;
+}
+// 2.5.9a: the Moon path card: the Moon's height across the day, with rise/set markers, night and golden-hour bands, and a dot for right now.
+function moonPathHTML(m){
+  const P = m.path; if(!P || !P.alts || P.alts.length < 6) return "";
+  // 2.5.9e: draw at the screen's own size (1 unit = 1 px) so text stays the same size on a phone and on a wide Mac window; max-width keeps it inside the card.
+  let cw = 390; try{ cw = document.documentElement.clientWidth || 390; }catch(e){}
+  const W = Math.max(300, Math.min(620, cw - 64)), H = W > 450 ? 190 : 168, L = 10, R = 10, T = 22, B = 26, n = P.n, hrs = P.hours;
+  const x = i => L + (W - L - R) * i / n;
+  const lo = Math.min(-15, Math.floor(Math.min(...P.alts) / 5) * 5), hi = Math.max(30, Math.ceil(Math.max(...P.alts) / 5) * 5);
+  const y = a => T + (H - T - B) * (hi - a) / (hi - lo);
+  const hz = y(0), bandH = H - T - B;
+  const idxOf = d => { const h = (d - P.dayStart) / 3600000; return Math.max(0, Math.min(n, h / hrs * n)); };
+  // runs of samples where a test holds -> rects
+  const runs = f => { const out = []; let s0 = -1; for(let i = 0; i <= n; i++){ const ok = f(i); if(ok && s0 < 0) s0 = i; if((!ok || i === n) && s0 >= 0){ out.push([s0, ok ? i : i - 1]); s0 = -1; } } return out; };
+  const rects = (rs, fill, op) => rs.map(([a, b]) => `<rect x="${x(a).toFixed(1)}" y="${T}" width="${Math.max(1, x(b) - x(a)).toFixed(1)}" height="${bandH}" fill="${fill}" opacity="${op}"/>`).join("");
+  const night = rects(runs(i => P.sun[i] < -0.83), "var(--ink)", 0.5);
+  const gold = rects(runs(i => P.sun[i] >= -4 && P.sun[i] < 6), "var(--sun)", 0.22);
+  const line = P.alts.map((a, i) => (i ? "L" : "M") + x(i).toFixed(1) + "," + y(a).toFixed(1)).join(" ");
+  const fill = "M" + x(0).toFixed(1) + "," + hz.toFixed(1) + " " + P.alts.map((a, i) => "L" + x(i).toFixed(1) + "," + y(Math.max(a, 0)).toFixed(1)).join(" ") + " L" + x(n).toFixed(1) + "," + hz.toFixed(1) + " Z";
+  const sr = x(idxOf(P.sunrise)), ss = x(idxOf(P.sunset));
+  // moon rise/set crossings from the samples (the card's own rise/set times stay the headline numbers)
+  let marks = "";
+  for(let i = 1; i <= n; i++){
+    const a = P.alts[i - 1] - MOON_UP_ALT, b = P.alts[i] - MOON_UP_ALT;
+    if((a < 0) !== (b < 0)){
+      const f = a / (a - b), cx = x(i - 1 + f), rise = b > a;
+      marks += `<circle cx="${cx.toFixed(1)}" cy="${hz.toFixed(1)}" r="3.5" fill="var(--panel)" stroke="var(--moon)" stroke-width="1.6"/><text x="${Math.max(24, Math.min(W - 24, cx)).toFixed(1)}" y="${(hz + 16).toFixed(1)}" fill="var(--sand)" font-size="11" text-anchor="middle">${rise ? "Moonrise" : "Moonset"}</text>`;
+    }
+  }
+  let nowMark = "";
+  if(m.nowPos){
+    const ni = idxOf(m.nowPos.at), nx = x(ni), na = m.nowPos.alt, ny = y(na);
+    nowMark = `<line x1="${nx.toFixed(1)}" x2="${nx.toFixed(1)}" y1="${T}" y2="${H - B}" stroke="var(--ring)"/><circle cx="${nx.toFixed(1)}" cy="${ny.toFixed(1)}" r="9" fill="var(--moon)" opacity=".2"/><circle cx="${nx.toFixed(1)}" cy="${ny.toFixed(1)}" r="5" fill="var(--moon-fill)" stroke="var(--moon)" stroke-width="1.5"/><text x="${Math.min(W - 24, nx + 8).toFixed(1)}" y="${Math.max(T + 8, ny - 8).toFixed(1)}" fill="var(--sand)" font-size="11">Now</text>`;
+  }
+  const hr = k => { const h = ((P.dayStart.getHours() + k) % 24); return h === 0 ? "12 AM" : h === 12 ? "12 PM" : (h % 12) + (h < 12 ? " AM" : " PM"); };
+  const ticks = [0, 6, 12, 18, 24].map((k, j) => `<text x="${x(k / hrs * n).toFixed(1)}" y="${H - 8}" fill="var(--slate)" font-size="11" text-anchor="${j === 0 ? "start" : j === 4 ? "end" : "middle"}">${hr(k)}</text>`).join("");
+  const svg = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Moon height across the day" style="display:block;width:100%;max-width:${W}px;height:auto;">
+    ${night}${gold}
+    <line x1="${L}" x2="${W - R}" y1="${hz.toFixed(1)}" y2="${hz.toFixed(1)}" stroke="var(--ring)" stroke-dasharray="3 3"/>
+    <line x1="${sr.toFixed(1)}" x2="${sr.toFixed(1)}" y1="${T}" y2="${H - B}" stroke="var(--sun)" opacity=".75"/><line x1="${ss.toFixed(1)}" x2="${ss.toFixed(1)}" y1="${T}" y2="${H - B}" stroke="var(--sun)" opacity=".75"/>
+    <path d="${fill}" fill="var(--moon)" opacity=".16"/><path d="${line}" fill="none" stroke="var(--moon)" stroke-width="2"/>
+    ${marks}${nowMark}
+    <text x="${sr.toFixed(1)}" y="${T - 8}" fill="var(--sun)" font-size="11" text-anchor="middle">☀ rise</text><text x="${ss.toFixed(1)}" y="${T - 8}" fill="var(--sun)" font-size="11" text-anchor="middle">☀ set</text>
+    ${ticks}</svg>`;
+  // how long the Moon is up in this window
+  let upMin = 0; for(let i = 0; i < n; i++) if(P.alts[i] > MOON_UP_ALT) upMin += 10;
+  const upTxt = upMin ? `Up ${Math.floor(upMin / 60)} h ${upMin % 60} m` : "Not up today";
+  // one line: what the Moon is doing at the golden hours
+  const at = d => P.alts[Math.round(idxOf(d))];
+  const eveUp = at(P.sunset) > 0, mornUp = at(P.sunrise) > 0;
+  const note = eveUp ? "The Moon is up at sunset, so it sits in the sky during evening golden hour."
+    : mornUp ? "The Moon is still up at sunrise, so it sits in the sky during morning golden hour."
+    : "The Moon is below the horizon at both sunrise and sunset today.";
+  return `<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line);">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;"><div class="label">Moon path · ${m.nowPos ? "today" : (m.dayName || "this day")}</div><small style="color:var(--slate);">${upTxt}</small></div>
+    ${svg}
+    <div style="display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--slate);margin-top:4px;"><span><b style="color:var(--sun);">▌</b> golden hour</span></div>
+    ${m.alignment ? "" : `<div class="outlook-note" style="margin-top:6px;">${note}</div>`}
+  </div>`;
 }
 function moonCardHTML(m){
   const riseStr = m.moonrise ? `${fmt(m.moonrise)} <small><span style="white-space:nowrap;">${compassDir(m.moonriseAz)}</span></small>` : `<small>Doesn't rise today</small>`;
@@ -2262,6 +2332,7 @@ function moonCardHTML(m){
            <div class="outlook-note" style="margin-top:6px;">A fist held at arm's length is about 10°. Start at the horizon in that direction and count fists up.</div>`
         : `<div class="value">Below the horizon${(m.moonrise && m.moonrise > m.nowPos.at) ? ` <small>· <span style="white-space:nowrap;">rises in ${(() => { const mins = Math.max(1, Math.round((m.moonrise - m.nowPos.at) / 60000)); const h = Math.floor(mins / 60), r = mins % 60; return h ? (r ? `${h} hr ${r} min` : `${h} hr`) : `${r} min`; })()}</span></small>` : ""}</div>`}
     </div>` : ""}
+    ${moonPathHTML(m)}
     ${alignNote ? `<div class="outlook-note" style="margin-top:10px;">${alignNote}</div>` : ""}
     <div class="outlook-note" style="margin-top:${alignNote ? 6 : 10}px;">Rise/set times are calculated, not observed — usually within a few minutes, but can be off by up to ~30-45 min when the Moon crosses the horizon at a shallow angle.</div>
   </div>`;
@@ -2828,12 +2899,28 @@ function moonTick(){
     const m = computeMoonInfoPlace(parseLocalDate(daily.time[activeDay]), loc.lat, loc.lon, daily.sunrise[activeDay], daily.sunset[activeDay]);
     slot.innerHTML = moonCardHTML(m);
     const e = document.getElementById("moonEmoji"), ph = document.getElementById("moonPh"), pc = document.getElementById("moonPct");
-    if(e) e.textContent = m.emoji; if(ph) ph.textContent = m.phaseName; if(pc) pc.textContent = m.illumPct + "% lit" + (m.atNoon ? " at noon" : "");
+    if(e) e.textContent = m.emoji; if(ph) ph.textContent = m.phaseName; if(pc) pc.textContent = m.illumPct + "% lit";
   }catch(err){}
 }
 setInterval(rcTick, 60000);
 setInterval(moonTick, 60000);
-document.addEventListener("visibilitychange", () => { if(!document.hidden){ rcTick(); moonTick(); } });
+// 2.5.7c: reopening the app after more than 15 minutes does what the Refresh button does (forecast, score, text, Moon card, "Updated" time).
+// Not on the Plan tab (the person may be mid-edit); at most one try every 2 minutes; the page keeps its scroll position.
+const AUTO_REFRESH_MIN = 15;
+function autoRefreshIfOld(){
+  try{
+    if(document.hidden || !state.loc || !state.daily || state.view === "plan" || state.autoRefreshing) return false;
+    const now = Date.now();
+    if(!state.updatedAt || now - state.updatedAt < AUTO_REFRESH_MIN * 60000) return false;
+    if(state.lastAutoTry && now - state.lastAutoTry < 120000) return false;
+    state.lastAutoTry = now; state.autoRefreshing = true;
+    const y = window.scrollY;
+    Promise.resolve(boot(state.loc, true)).catch(() => {}).then(() => { state.autoRefreshing = false; window.scrollTo(0, y); });
+    return true;
+  }catch(e){ state.autoRefreshing = false; return false; }
+}
+document.addEventListener("visibilitychange", () => { if(!document.hidden){ if(!autoRefreshIfOld()){ rcTick(); moonTick(); } } });
+window.addEventListener("pageshow", e => { if(e.persisted) autoRefreshIfOld(); });
 function renderToday(app, tabsHtml){
   const { daily, hourly, activeDay, mode, loc } = state;
 
@@ -2957,7 +3044,12 @@ const bestItem = bestLight ? `<div class="hero-time-item"><div class="k">Best li
   timelapse.liveMsg = timelapseLiveCheck(timelapse, eventIso, mode);
   let tlSum = "";
   { const pick = [timelapse.sun, timelapse.moon].filter(r => r && r.bestRun && r.bestRun.avg >= 45).sort((a, b) => b.bestRun.avg - a.bestRun.avg)[0];
-    if(pick){ const bp = pick.bestRun.points; tlSum = ` · <span class="nw">${pick === timelapse.moon ? "Moon cloud" : "Cloud timelapse"} ${timelapseLabel(Math.round(pick.bestRun.avg))}, ${bp.length === 1 ? "~" : ""}${fmt(bp[0].time)}</span>`; }
+    if(pick){ const bp = pick.bestRun.points; tlSum = ` · <span class="nw">${pick === timelapse.moon ? "Moon cloud" : "Daytime clouds"} ${timelapseLabel(Math.round(pick.bestRun.avg))}, ${bp.length === 1 ? "~" : ""}${fmt(bp[0].time)}</span>`;
+      // 2.5.9c: when the daytime window is the one shown, say how the Moon's own cloud looks so the two aren't read as one thing.
+      if(pick !== timelapse.moon && timelapse.moon && timelapse.moon.points.length && !(timelapse.moon.bestRun && timelapse.moon.bestRun.avg >= 45)){
+        const mk = timelapseNoWindowKind(timelapse.moon);
+        const mw = mk === "clear" ? "clear sky" : mk === "solid" ? "mostly cloud-covered" : mk === "patchy" ? "patchy cloud" : "no good cloud window";
+        tlSum += ` · <span class="nw">Moon: ${mw}</span>`; } }
     else if((timelapse.sun && timelapse.sun.points.length) || (timelapse.moon && timelapse.moon.points.length)){
       // 2.4.9f: say why there is no window ("clear sky", "solid cloud", "patchy cloud"), or just "no good window" when daytime and Moon differ.
       const ks = [timelapseNoWindowKind(timelapse.sun), timelapseNoWindowKind(timelapse.moon)].filter(Boolean);
@@ -2965,7 +3057,7 @@ const bestItem = bestLight ? `<div class="hero-time-item"><div class="k">Best li
       const why = k === "clear" ? "clear sky, nothing to move" : k === "solid" ? "solid cloud, nothing to move" : k === "patchy" ? "patchy cloud, little movement" : "no good window";
       tlSum = ` · <span class="nw">Timelapse: ${why}</span>`; } }
   if(state.windPending) tlSum = ` · <span class="nw">Timelapse: checking wind…</span>`;
-  html += uiFold("moon", `<span id="moonEmoji">${moon.emoji}</span> Moon &amp; timelapse${activeDay === 0 ? "" : " · " + parseLocalDate(daily.time[activeDay]).toLocaleDateString([], { weekday:'short', month:'short', day:'numeric' })} <span class="sub"><span id="moonPh">${moon.phaseName}</span> · <span class="nw" id="moonPct">${moon.illumPct}% lit${moon.atNoon ? " at noon" : ""}</span>${tlSum}</span>`, `<div class="grid"><div id="moonSlot" style="display:contents">${moonCardHTML(moon)}</div>${timelapseCardHTML(timelapse)}</div>`);
+  html += uiFold("moon", `<span id="moonEmoji">${moon.emoji}</span> Moon &amp; timelapse${activeDay === 0 ? "" : " · " + parseLocalDate(daily.time[activeDay]).toLocaleDateString([], { weekday:'short', month:'short', day:'numeric' })} <span class="sub"><span id="moonPh">${moon.phaseName}</span> · <span class="nw" id="moonPct">${moon.illumPct}% lit</span>${tlSum}</span>`, `<div class="grid"><div id="moonSlot" style="display:contents">${moonCardHTML(moon)}</div>${timelapseCardHTML(timelapse)}</div>`);
 
   html += checklistBtnHtml(state.loc, "todayChk");
   app.innerHTML = html;
