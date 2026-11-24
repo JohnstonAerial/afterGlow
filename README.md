@@ -24,6 +24,14 @@ Afterglow predicts how good a sunrise or sunset is actually going to look — no
 
 ## What's new
 
+**2.5.10**
+- **Moon & timelapse header** keeps the emoji and title together on the left, with the summary on its own line, so a long summary no longer pushes the title across a wide window.
+
+**2.5.9**
+- **Moon path.** A small curve under Moonrise and Moonset shows the Moon's height across the day, with moonrise and moonset, sunrise and sunset lines, golden hour bands, night shading and a "right now" dot. It uses the Moon's position only, not the forecast.
+- **Clearer Moon & timelapse header.** It now says **Daytime clouds** for the daytime timelapse, adds a **Moon:** note for the sky around the Moon, and drops "at noon" (the lit percentage is how much of the Moon the Sun lights, not whether it is visible).
+- **Reopen refresh.** Reopening Afterglow after more than 15 minutes refreshes Today like the Refresh button, except on Plan, and keeps your place on the page.
+
 **2.5.2**
 - **Quicker first screen.** The forecast and score now appear as soon as the main forecast arrives. The reading toward the sun is added a moment later, and the score may shift a few points when it does.
 

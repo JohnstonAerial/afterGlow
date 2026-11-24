@@ -28,7 +28,11 @@ Use the **Sunrise** / **Sunset** toggle at the top to switch between the two. Us
 
 **Reality check.** In the last 3 hours before sunrise or sunset, a card appears on Today. It compares the forecast with recent airport weather reports toward the sun (airports see cloud below about 12,000 ft) and with a satellite view of high cloud, which is the layer that gives color. It tells you whether the airports agree with the forecast. It shows the sky now, not at sunrise or sunset, and from about 3 hours out the score itself moves toward what the satellite and airports report, more and more as the time gets closer. Outside that window a small note says when it will appear. Tap the card's title to collapse it.
 
-**Refresh.** Under the Sunrise / Sunset toggle, Today shows when the forecast was fetched. Tap **Refresh** to load it again; you stay on the same day and sunrise or sunset.
+**Refresh.** Under the Sunrise / Sunset toggle, Today shows when the forecast was fetched. Tap **Refresh** to load it again; you stay on the same day and sunrise or sunset. If you reopen Afterglow after more than 15 minutes away, Today refreshes by itself the same way (not on Plan, and your scroll position stays put).
+
+**Moon path.** Open **Moon & timelapse** and under Moonrise and Moonset you'll find a small curve of the Moon's height across the day, midnight to midnight. Open circles mark moonrise and moonset, gold lines mark sunrise and sunset, the gold bands are golden hour, the shaded areas are night, and on today a dot marks where the Moon is right now. It is worked out from the Moon's position on your device, not from the forecast, so clouds don't change it. A one-line note says whether the Moon is up at sunset or sunrise. On other days it shows that day.
+
+**Moon & timelapse header.** The line under the title shows the phase and how much is lit, then **Daytime clouds** (the best time to shoot moving clouds in daylight) and, when it differs, **Moon:** how the sky looks around the Moon (for example "mostly cloud-covered"). "100% lit" means how much of the Moon's face the Sun lights up, not whether you can see it.
 
 **Other time zones.** If you look at a place in a different time zone, the times on Today are that place's local time, not your device's, and a note says so.
 
