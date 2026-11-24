@@ -1,4 +1,4 @@
-<!-- Afterglow v2.5.10 -->
+<!-- Afterglow v2.5.11 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -654,7 +654,7 @@
     Forecasts via Open&#8209;Meteo · Moon times by Astronomy Engine · not a substitute for checking the sky yourself.<br>
     <a href="https://github.com/JohnstonAerial/afterGlow/blob/main/HOW-TO.md" target="_blank" rel="noopener">How to use Afterglow</a> · <a href="https://github.com/JohnstonAerial/afterGlow#readme" target="_blank" rel="noopener">About, how it's scored &amp; privacy</a> · <a href="https://buymeacoffee.com/JohnstonAerial" target="_blank" rel="noopener" style="white-space:nowrap">Buy me a coffee <svg class="cup" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" style="vertical-align:-2px"><path d="M3 9h14v5a5 5 0 0 1-5 5H8a5 5 0 0 1-5-5z" fill="#f3e3c8"/><path d="M17 10h1.5a2.5 2.5 0 0 1 0 5H17" fill="none" stroke="#f3e3c8" stroke-width="1.8"/><path d="M3 9h14v2.2H3z" fill="#7a4a2b"/><path d="M7 2.5c-1 1.2 1 2.2 0 3.4M11 2.5c-1 1.2 1 2.2 0 3.4M15 2.5c-1 1.2 1 2.2 0 3.4" fill="none" stroke="#a2abc1" stroke-width="1.2" stroke-linecap="round"/></svg></a> if this helped you catch an epic sky.<br>
     Also from Johnston Aerial:<br><a href="https://checklist.johnstonaerial.com/" id="footChk" target="_blank" rel="noopener" data-reuse="checklist_tab">Free Drone Preflight Checklist</a>
-    <span class="version">v2.5.10</span>
+    <span class="version">v2.5.11</span>
   </footer>
 </div>
 
@@ -2209,6 +2209,8 @@ function computeMoonInfo(dayStart, lat, lon, sunriseIso, sunsetIso, endAt){
     ...phase,
     moonrise: events.rise, moonriseAz: riseAz,
     moonset: shownSet, moonsetAz: setAz, moonsetNextDay: setNextDay,
+    // 2.5.11a: this calendar day's own set (the Today moon card shows rise and set from the same day, so it agrees with the Moon path curve)
+    daySet: events.set, daySetAz: events.set ? moonHorizontal(events.set, lat, lon).az : null,
     alignment
   };
 }
@@ -2217,7 +2219,7 @@ function computeMoonInfo(dayStart, lat, lon, sunriseIso, sunsetIso, endAt){
 function computeMoonInfoPlace(dayStart, lat, lon, sunriseIso, sunsetIso){
   const next = new Date(dayStart.getFullYear(), dayStart.getMonth(), dayStart.getDate() + 1);
   const m = computeMoonInfo(frameR(dayStart), lat, lon, frameR(new Date(sunriseIso)).toISOString(), frameR(new Date(sunsetIso)).toISOString(), frameR(next));
-  m.moonrise = frameN(m.moonrise); m.moonset = frameN(m.moonset);
+  m.moonrise = frameN(m.moonrise); m.moonset = frameN(m.moonset); m.daySet = frameN(m.daySet);
   // 2.4.9e: where the Moon is right now (today only): direction and height, plus its height at sunset when that differs.
   try{
     const t0 = frameR(dayStart).getTime(), nowMs = Date.now();
@@ -2314,8 +2316,15 @@ function moonPathHTML(m){
   </div>`;
 }
 function moonCardHTML(m){
-  const riseStr = m.moonrise ? `${fmt(m.moonrise)} <small><span style="white-space:nowrap;">${compassDir(m.moonriseAz)}</span></small>` : `<small>Doesn't rise today</small>`;
-  const setStr  = m.moonset  ? `${fmt(m.moonset)} <small><span style="white-space:nowrap;">${compassDir(m.moonsetAz)}${m.moonsetNextDay ? ' · ' + m.moonset.toLocaleDateString([], { weekday:'short' }) : ''}</span></small>`   : `<small>Doesn't set today</small>`;
+  // 2.5.11a: moonrise and moonset are both from this calendar day, and the one that comes next is shown first (today); past ones are dimmed. A day with no rise or no set says so.
+  const evs = [
+    { lbl: "Moonrise", t: m.moonrise, az: m.moonriseAz, none: "Doesn't rise today" },
+    { lbl: "Moonset",  t: m.daySet,   az: m.daySetAz,   none: "Doesn't set today" }
+  ];
+  const nowAt = m.nowPos ? m.nowPos.at : null;
+  const rank = e => !e.t ? 3 : (nowAt && e.t < nowAt ? 2 : 1);
+  evs.sort((a, b) => rank(a) - rank(b) || (a.t && b.t ? a.t - b.t : 0));
+  const tile = e => `<div${nowAt && e.t && e.t < nowAt ? ' style="opacity:.55;"' : ""}><div class="label">${e.lbl}</div><div class="value">${e.t ? `${fmt(e.t)} <small><span style="white-space:nowrap;">${compassDir(e.az)}</span></small>` : `<small>${e.none}</small>`}</div></div>`;
   const alignNote = m.alignment
     ? (m.alignment.type === "moonrise-sunset"
         ? `Moonrise lands within ${m.alignment.minutes} min of sunset — good odds of a big, warm Moon low over the horizon.`
@@ -2324,8 +2333,8 @@ function moonCardHTML(m){
 
   return `<div class="card" style="grid-column: 1 / -1;">
     <div class="grid">
-      <div><div class="label">Moonrise</div><div class="value">${riseStr}</div></div>
-      <div><div class="label">Moonset</div><div class="value">${setStr}</div></div>
+      ${tile(evs[0])}
+      ${tile(evs[1])}
     </div>
     ${m.nowPos ? `<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line);">
       <div class="label">Right now · ${fmt(m.nowPos.at)}</div>
