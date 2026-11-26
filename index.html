@@ -1,4 +1,4 @@
-<!-- Afterglow v2.5.11 -->
+<!-- Afterglow v2.5.12 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -654,7 +654,7 @@
     Forecasts via Open&#8209;Meteo · Moon times by Astronomy Engine · not a substitute for checking the sky yourself.<br>
     <a href="https://github.com/JohnstonAerial/afterGlow/blob/main/HOW-TO.md" target="_blank" rel="noopener">How to use Afterglow</a> · <a href="https://github.com/JohnstonAerial/afterGlow#readme" target="_blank" rel="noopener">About, how it's scored &amp; privacy</a> · <a href="https://buymeacoffee.com/JohnstonAerial" target="_blank" rel="noopener" style="white-space:nowrap">Buy me a coffee <svg class="cup" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" style="vertical-align:-2px"><path d="M3 9h14v5a5 5 0 0 1-5 5H8a5 5 0 0 1-5-5z" fill="#f3e3c8"/><path d="M17 10h1.5a2.5 2.5 0 0 1 0 5H17" fill="none" stroke="#f3e3c8" stroke-width="1.8"/><path d="M3 9h14v2.2H3z" fill="#7a4a2b"/><path d="M7 2.5c-1 1.2 1 2.2 0 3.4M11 2.5c-1 1.2 1 2.2 0 3.4M15 2.5c-1 1.2 1 2.2 0 3.4" fill="none" stroke="#a2abc1" stroke-width="1.2" stroke-linecap="round"/></svg></a> if this helped you catch an epic sky.<br>
     Also from Johnston Aerial:<br><a href="https://checklist.johnstonaerial.com/" id="footChk" target="_blank" rel="noopener" data-reuse="checklist_tab">Free Drone Preflight Checklist</a>
-    <span class="version">v2.5.11</span>
+    <span class="version">v2.5.12</span>
   </footer>
 </div>
 
@@ -4555,7 +4555,8 @@ function skyPictureSVG(sF, high, mid, low, opts){
   if(hFill) g += puffs(high, 14, 52, 46, 9, hFill, hOp, 9);
   if(mid > 0) g += puffs(mid, 60, 92, 34, 12, "#6b5a7e", .9, 8);
   g += `</g><g filter="url(#skpBlur)">`;
-  if(low > 0) g += puffs(low, HZ - 34, HZ - 6, 38, 16, "#2a2540", .95, 9);
+  // 2.5.12: low cloud was #2a2540, nearly the same as the darkened sky and the ground, so a 100% low deck looked like open sky. Lighter slate plus a faint lit top edge so it reads as a solid bank.
+  if(low > 0){ const lowP = puffs(low, HZ - 34, HZ - 6, 38, 16, "#4a4468", .95, 9); g += `<g transform="translate(0,-3)" opacity=".55">${lowP.split("#4a4468").join("#8a84b0")}</g>` + lowP; }
   g += `</g><path d="M0 ${HZ} Q60 ${HZ - 6} 120 ${HZ - 2} T250 ${HZ - 3} T${W} ${HZ - 1} V${H} H0Z" fill="#0d0f20"/>`;
   [[33, "HIGH"], [76, "MID"], [HZ - 20, "LOW"]].forEach(([y, t]) => { g += `<text x="6" y="${y + 3}" font-family="'IBM Plex Mono', monospace" font-size="8.5" fill="#f5e6d3" opacity=".55">${t}</text>`; });
   return g + `</svg>`;
