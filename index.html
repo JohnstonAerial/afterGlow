@@ -1,4 +1,4 @@
-<!-- Afterglow v2.5.12 -->
+<!-- Afterglow v2.5.13 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -498,6 +498,13 @@
   .day-nav .eyebrow{ margin:0; text-align:center; flex:1; white-space:nowrap; letter-spacing:0.1em; }
   .day-step{ width:38px; height:38px; border-radius:50%; border:1px solid var(--line); background: rgba(10,11,22,0.35); color: var(--sand); font-size:20px; line-height:1; cursor:pointer; }
   .day-step:disabled{ opacity:0.3; cursor:default; }
+  /* 2.5.13: one control bar (day arrows + date, then Sunrise | Sunset) under the tabs. It sticks to the top as you scroll, like the Plan time dock. Tap the date to jump back to today. */
+  .day-dock{ position: sticky; top: env(safe-area-inset-top, 0px); z-index: 1100; margin: 0 -20px 14px; padding: 8px 20px 9px; background: rgb(20,23,44); border-bottom: 1px solid var(--line); box-shadow: 0 2px 16px rgba(0,0,0,0.4); }
+  .day-dock .dd-top{ display:flex; align-items:center; gap:8px; }
+  .day-dock .dd-date{ flex:1; min-width:0; text-align:center; background:none; border:0; color: var(--sand); font:inherit; font-size:16px; font-weight:600; padding:6px 4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:default; }
+  .day-dock .dd-date.home{ cursor:pointer; text-decoration: underline dotted; text-underline-offset:4px; }
+  .day-dock .toggle-row{ margin: 7px 0 0; }
+  .day-dock .toggle-btn{ padding: 8px; }
   .ag-day{ flex-direction:column; align-items:flex-start; justify-content:center; line-height:1.15; }
   .ag-day small{ font-family:'IBM Plex Mono', monospace; font-size:11px; font-weight:400; color: var(--slate); }
   .ag-cell.past{ opacity:0.5; }
@@ -586,6 +593,8 @@
   html[data-theme="light"] .bar, html[data-theme="light"] .agenda-bar{ background: rgba(30,35,70,0.10); }
   /* The sky card and the map overlays keep their dark look in both themes */
   html[data-theme="light"] .hero{ --sand:#F5E6D3; --slate:#a2abc1; --gold:#F2B84B; --line: rgba(245,230,211,0.14); --card: rgba(245,230,211,0.05); color:#F5E6D3; }
+  html[data-theme="light"] .day-dock{ background: var(--panel); box-shadow: 0 2px 14px rgba(30,35,70,0.16); }
+  html[data-theme="light"] .day-dock .day-step{ background: transparent; }
   html[data-theme="light"] .plan-dock{ background: var(--panel); box-shadow: 0 2px 14px rgba(30,35,70,0.16); }
   html[data-theme="light"] .plan-date{ color-scheme: light; }
   html[data-theme="light"] .map-wrap.full .map-fs-panel{ background: rgba(255,250,241,0.96); }
@@ -654,7 +663,7 @@
     Forecasts via Open&#8209;Meteo · Moon times by Astronomy Engine · not a substitute for checking the sky yourself.<br>
     <a href="https://github.com/JohnstonAerial/afterGlow/blob/main/HOW-TO.md" target="_blank" rel="noopener">How to use Afterglow</a> · <a href="https://github.com/JohnstonAerial/afterGlow#readme" target="_blank" rel="noopener">About, how it's scored &amp; privacy</a> · <a href="https://buymeacoffee.com/JohnstonAerial" target="_blank" rel="noopener" style="white-space:nowrap">Buy me a coffee <svg class="cup" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" style="vertical-align:-2px"><path d="M3 9h14v5a5 5 0 0 1-5 5H8a5 5 0 0 1-5-5z" fill="#f3e3c8"/><path d="M17 10h1.5a2.5 2.5 0 0 1 0 5H17" fill="none" stroke="#f3e3c8" stroke-width="1.8"/><path d="M3 9h14v2.2H3z" fill="#7a4a2b"/><path d="M7 2.5c-1 1.2 1 2.2 0 3.4M11 2.5c-1 1.2 1 2.2 0 3.4M15 2.5c-1 1.2 1 2.2 0 3.4" fill="none" stroke="#a2abc1" stroke-width="1.2" stroke-linecap="round"/></svg></a> if this helped you catch an epic sky.<br>
     Also from Johnston Aerial:<br><a href="https://checklist.johnstonaerial.com/" id="footChk" target="_blank" rel="noopener" data-reuse="checklist_tab">Free Drone Preflight Checklist</a>
-    <span class="version">v2.5.12</span>
+    <span class="version">v2.5.13</span>
   </footer>
 </div>
 
@@ -2570,6 +2579,25 @@ function uiFold(key, title, inner, cls){
   state.fold = state.fold || {};
   return `<details class="plan-fold today-fold${cls ? " " + cls : ""}" data-fold="${key}"${state.fold[key] ? " open" : ""}><summary>${title}</summary><div class="fold-body">${inner}${(key === "sky" || key === "moon") ? FOLD_CLOSE : ""}</div></details>`;
 }
+// 2.5.13: redraw while keeping your place. The panels above the Sky breakdown / Moon sections change height from day to day, so a plain pixel scroll position lands on the wrong spot.
+// Instead, note which open section is on screen (the one with the most showing) and how far its top is from the top of the screen, redraw, then scroll so that same section's top is back in the same place.
+// With no open section on screen it falls back to the old pixel position.
+function keepPlace(redraw){
+  const y = window.scrollY;
+  let key = null, off = 0;
+  const dock = document.querySelector(".day-dock");
+  const top = dock ? dock.getBoundingClientRect().bottom : 0;
+  let best = 20;   // the open section with the most of itself on screen is the one being read (at least 20 px)
+  for(const d of document.querySelectorAll("#app details[open][data-fold]")){
+    const r = d.getBoundingClientRect();
+    const seen = Math.min(r.bottom, window.innerHeight) - Math.max(r.top, top);
+    if(seen > best){ best = seen; key = d.dataset.fold; off = r.top; }
+  }
+  redraw();
+  const d2 = key ? document.querySelector('#app details[data-fold="' + key + '"]') : null;
+  if(d2) window.scrollTo(0, Math.max(0, window.scrollY + d2.getBoundingClientRect().top - off));
+  else window.scrollTo(0, y);
+}
 function bindFolds(){
   document.querySelectorAll("details.today-fold").forEach(d => d.addEventListener("toggle", () => { state.fold = state.fold || {}; state.fold[d.dataset.fold] = d.open; }));
 }
@@ -2991,10 +3019,16 @@ function renderToday(app, tabsHtml){
     </div>`;
   }
 
-  html += `<div class="toggle-row">
-    <button class="toggle-btn ${mode==='morning'?'active':''}" data-mode="morning">Sunrise</button>
-    <button class="toggle-btn ${mode==='evening'?'active':''}" data-mode="evening">Sunset</button>
-  </div>`;
+  {
+    const dObj = parseLocalDate(daily.time[activeDay]);
+    const dLbl = activeDay === 0 ? "Today, " + dObj.toLocaleDateString([], { month:"short", day:"numeric" }) : dObj.toLocaleDateString([], { weekday:"short", month:"short", day:"numeric" });
+    const lastDay = Math.min(9, daily.time.length - 1);
+    html += `<div class="day-dock"><div class="dd-top"><button class="day-step" id="barPrev" aria-label="Previous day"${activeDay <= 0 ? " disabled" : ""}>‹</button><button class="dd-date${activeDay > 0 ? " home" : ""}" id="barDate"${activeDay > 0 ? ' aria-label="Back to today"' : ""}>${dLbl}</button><button class="day-step" id="barNext" aria-label="Next day"${activeDay >= lastDay ? " disabled" : ""}>›</button></div>
+    <div class="toggle-row">
+      <button class="toggle-btn ${mode==='morning'?'active':''}" data-mode="morning">Sunrise</button>
+      <button class="toggle-btn ${mode==='evening'?'active':''}" data-mode="evening">Sunset</button>
+    </div></div>`;
+  }
 
   html += `<div class="upd-row"><span id="updTime">${state.updatedAt ? "Updated " + new Date(state.updatedAt).toLocaleTimeString([], { hour:"numeric", minute:"2-digit" }) : ""}</span><button class="upd-btn" id="updBtn" aria-label="Refresh the forecast">↻ Refresh</button></div>`;
   html += tzNoteHtml();
@@ -3004,8 +3038,6 @@ const bestItem = bestLight ? `<div class="hero-time-item"><div class="k">Best li
   html += `<div class="hero">
     <div class="hero-swatch" style="background:${gradient}"></div>
     <div class="hero-content">
-      <div class="day-nav"><button class="day-step" id="dayPrev" aria-label="Previous day"${activeDay <= 0 ? " disabled" : ""}>‹</button><div class="eyebrow">${activeDay === 0 ? "Today, " + parseLocalDate(daily.time[activeDay]).toLocaleDateString([], { month:'short', day:'numeric' }) : parseLocalDate(daily.time[activeDay]).toLocaleDateString([], { weekday:'short', month:'short', day:'numeric' })}</div><button class="day-step" id="dayNext" aria-label="Next day"${activeDay >= Math.min(9, daily.time.length - 1) ? " disabled" : ""}>›</button></div>
-      ${activeDay > 0 ? `<div style="text-align:center;margin-top:10px;"><button class="plan-btn" id="dayHome" style="border-color:var(--gold);">↩ Back to today</button></div>` : ""}
       ${activeDay >= 7 ? `<div class="far-note">Day ${activeDay + 1} of 10: less certain. Forecasts shift most this far out.</div>` : ""}
       <div class="score-row">
         <div class="score-num">${s.score}</div>
@@ -3077,12 +3109,13 @@ const bestItem = bestLight ? `<div class="hero-time-item"><div class="k">Best li
   rcSlot(eventIso, mode, azimuth, { low: sF.low, mid: sF.mid, bLow: sF.beam != null ? sF.beamLow : null, bMid: sF.beam != null ? sF.beamMid : null }, sF.beam != null ? "toward the sun" : "at your spot", sF.high);
 
   document.querySelectorAll(".toggle-btn").forEach(b => b.addEventListener("click", () => {
-    state.mode = b.dataset.mode; render();
+    keepPlace(() => { state.mode = b.dataset.mode; render(); });   // 2.5.13: keep your place
   }));
-  const dp = $("dayPrev"), dn = $("dayNext"), dh = $("dayHome");
-  if(dh) dh.addEventListener("click", () => { state.activeDay = 0; render(); window.scrollTo(0, 0); });   // 2.5.7e
-  if(dp) dp.addEventListener("click", () => { if(state.activeDay > 0){ state.activeDay--; render(); } });
-  if(dn) dn.addEventListener("click", () => { if(state.activeDay < Math.min(9, state.daily.time.length - 1)){ state.activeDay++; render(); } });
+  // 2.5.13: the day arrows and tap-the-date-for-today keep your scroll position, so you can step through days while reading Sky breakdown or Moon.
+  const stepDay = (d) => { const nd = state.activeDay + d; if(nd < 0 || nd > Math.min(9, state.daily.time.length - 1)) return; keepPlace(() => { state.activeDay = nd; render(); }); };
+  const goHome = () => { if(state.activeDay === 0) return; keepPlace(() => { state.activeDay = 0; render(); }); };
+  [["barPrev", -1], ["barNext", 1]].forEach(([id, d]) => { const b = $(id); if(b) b.addEventListener("click", () => stepDay(d)); });
+  { const b = $("barDate"); if(b) b.addEventListener("click", goHome); }
   bindFolds();
   const bm = $("blurbMore"); if(bm) bm.addEventListener("click", () => { state.blurbMore = !state.blurbMore; $("blurbRest").hidden = !state.blurbMore; bm.textContent = state.blurbMore ? "Less" : "More"; });
   const mt = $("moreTimes"); if(mt) mt.addEventListener("click", () => { state.moreTimes = !state.moreTimes; $("moreTimesBox").hidden = !state.moreTimes; mt.textContent = state.moreTimes ? "Fewer times" : "More twilight times"; });
